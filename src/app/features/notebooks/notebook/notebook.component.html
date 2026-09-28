@@ -1,0 +1,2966 @@
+@if (chipPopoverOpen()) {
+  <!-- backdrop to close popover -->
+  <div (click)="closeChipPopover()" style="position:fixed;inset:0;z-index:998"></div>
+  <!-- citation chip popover — fixed, anchored to chip position -->
+  <div class="nb__chip-popover"
+    (click)="$event.stopPropagation()"
+    [style.top.px]="chipPopoverTop()"
+    [style.bottom.px]="chipPopoverBottom()"
+    [style.left.px]="chipPopoverLeft()">
+    <div class="nb__chip-popover-hd">Sources</div>
+    <div class="nb__chip-popover-body">
+      @for (src of chipPopoverSources(); track src.title; let last = $last) {
+        <div class="nb__chip-popover-item" (click)="openSourceDoc(src, $event)" role="button" tabindex="0" style="cursor:pointer">
+          <div class="nb__chip-popover-item-hd">
+            @if (src.type === 'pdf' || src.type === 'dataset') {
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+              </svg>
+            } @else {
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            }
+            <span class="nb__chip-popover-item-title">{{ src.title }}</span>
+          </div>
+          <p class="nb__chip-popover-item-desc">{{ src.description }}</p>
+          <span class="nb__chip-popover-item-date">Last updated {{ src.updatedAt }}</span>
+          <span class="nb__chip-popover-item-link">View document →</span>
+        </div>
+        @if (!last) { <div class="nb__chip-popover-divider"></div> }
+      }
+    </div>
+  </div>
+}
+
+<div class="nb">
+
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
+  <header class="nb__header">
+    <div class="nb__header-left">
+      <img src="/adb-logo.svg" alt="ADB" class="nb__logo" (click)="goHome()" style="cursor:pointer" title="Go to home" />
+      <button class="nb__icon-btn" type="button" title="Back to Studio" aria-label="Back to Studio" (click)="closeWorkspace()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      @if (editingTitle()) {
+        <input
+          class="nb__title-input"
+          type="text"
+          [value]="title()"
+          (blur)="saveTitle($any($event.target).value)"
+          (keydown.enter)="saveTitle($any($event.target).value)"
+          autofocus
+        />
+      } @else {
+        <span class="nb__title" (click)="startEditTitle()">{{ title() }}</span>
+      }
+    </div>
+    <div class="nb__header-right" (click)="closeOutputDrop()">
+      @if (isPublished) {
+        <button class="nb__fork-btn" [class.nb__fork-btn--forking]="forking()" type="button"
+                [disabled]="forking()"
+                (click)="forkSpace(); $event.stopPropagation()">
+          @if (forking()) {
+            <span class="nb__fork-spinner"></span>
+            Copying to My Library…
+          } @else {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>
+            </svg>
+            Copy to My Workspace
+          }
+        </button>
+      } @else {
+        <div class="nb__use-in-wrap" (click)="$event.stopPropagation()">
+          <button class="nb__use-in-btn" type="button" (click)="useInOpen.set(!useInOpen())">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+            Use in
+            <svg class="nb__use-in-chevron" [class.nb__use-in-chevron--open]="useInOpen()"
+                 width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          @if (useInOpen()) {
+            <div class="nb__use-in-dropdown">
+              <p class="nb__use-in-label">Use in a development environment</p>
+              @for (opt of useInOptions; track opt.label) {
+                <button class="nb__use-in-option" type="button" (click)="openUseInDrawer(opt.icon)">
+                  <div class="nb__use-in-icon">
+                    @if (opt.icon === 'databricks') {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8512C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2 2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 12l10 5 10-5"/>
+                        <path d="M2 17l10 5 10-5"/>
+                      </svg>
+                    } @else if (opt.icon === 'build-app') {
+                      <!-- Code / terminal icon for Build an Application -->
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"/>
+                        <polyline points="8 6 2 12 8 18"/>
+                      </svg>
+                    } @else {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#616161" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                    }
+                  </div>
+                  <div class="nb__use-in-body">
+                    <span class="nb__use-in-name">{{ opt.label }}</span>
+                    <span class="nb__use-in-desc">{{ opt.desc }}</span>
+                    <span class="nb__use-in-count">{{ opt.count }} assets available</span>
+                  </div>
+                  <svg class="nb__use-in-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (effectivelyPublished) {
+        <button class="nb__publish-btn" type="button" (click)="openPublishModal(); $event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share
+        </button>
+      } @else {
+        <button class="nb__publish-btn" type="button" (click)="openPublishModal(); $event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/>
+          </svg>
+          Publish
+        </button>
+      }
+
+      <!-- Output generator -->
+      <div class="nb__output-wrap" (click)="$event.stopPropagation()">
+        <button class="nb__icon-btn" type="button" title="Output generator" aria-label="Generate output" (click)="toggleOutputDrop($event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        @if (outputDropOpen) {
+          <div class="nb__output-dropdown">
+            <div class="nb__output-label">Export as</div>
+            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+              </svg>
+              <span class="nb__export-item-inner">
+                <span class="nb__export-item-name">CSV</span>
+                <span class="nb__export-item-desc">Comma-separated data</span>
+              </span>
+            </button>
+            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <path d="M9 13h6M9 17h6M9 9h1"/>
+              </svg>
+              <span class="nb__export-item-inner">
+                <span class="nb__export-item-name">PDF</span>
+                <span class="nb__export-item-desc">Formatted report</span>
+              </span>
+            </button>
+            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/>
+              </svg>
+              <span class="nb__export-item-inner">
+                <span class="nb__export-item-name">DOC</span>
+                <span class="nb__export-item-desc">Word document</span>
+              </span>
+            </button>
+            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
+              </svg>
+              <span class="nb__export-item-inner">
+                <span class="nb__export-item-name">ZIP</span>
+                <span class="nb__export-item-desc">Compressed folder</span>
+              </span>
+            </button>
+          </div>
+        }
+      </div>
+
+      <button class="nb__icon-btn" type="button" title="Settings" aria-label="Workspace settings" (click)="$event.stopPropagation()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Use-in Overlay + Drawer ───────────────────────────────────────────── -->
+  @if (useInDrawer()) {
+    <div class="nb__drawer-overlay" (click)="useInDrawer.set(null)"></div>
+    <aside class="nb__drawer" (click)="$event.stopPropagation()">
+
+      @if (useInDrawer() === 'databricks') {
+        <!-- Header -->
+        <div class="nb__drawer-header">
+          <div>
+            <h2 class="nb__drawer-title">Prepare for Databricks</h2>
+            <p class="nb__drawer-sub">Set up the assets from this workspace to use in your Databricks environment.</p>
+          </div>
+          <button class="nb__drawer-close" type="button" (click)="useInDrawer.set(null)" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Platform card -->
+        <div class="nb__drawer-platform-card">
+          <div class="nb__drawer-platform-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8512C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2 2 7l10 5 10-5-10-5z"/>
+              <path d="M2 12l10 5 10-5"/>
+              <path d="M2 17l10 5 10-5"/>
+            </svg>
+          </div>
+          <div>
+            <p class="nb__drawer-platform-name">Databricks</p>
+            <p class="nb__drawer-platform-desc">Analyse data, build notebooks and create pipelines with your selected assets.</p>
+          </div>
+        </div>
+
+        <!-- Assets list -->
+        <div class="nb__drawer-section-row">
+          <span class="nb__drawer-section-label">Assets to include ({{ drawerAssets.length - drawerAssets.filter(a => !a.available).length }} of {{ drawerAssets.length)</span>
+          <button class="nb__drawer-select-all" type="button">Select all</button>
+        </div>
+        <div class="nb__drawer-assets">
+          @for (asset of drawerAssets; track asset.name) {
+            <div class="nb__drawer-asset" [class.nb__drawer-asset--disabled]="!asset.available">
+              <input type="checkbox" class="nb__drawer-check" [checked]="asset.checked" [disabled]="!asset.available">
+              <div class="nb__drawer-asset-icon">
+                @if (asset.iconType === 'data') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                } @else if (asset.iconType === 'api') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                } @else {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                }
+              </div>
+              <div class="nb__drawer-asset-body">
+                <span class="nb__drawer-asset-name">{{ asset.name }}</span>
+                <span class="nb__drawer-asset-meta">{{ asset.meta }}</span>
+              </div>
+              @if (!asset.available) {
+                <span class="nb__drawer-badge nb__drawer-badge--na">Not available</span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Destination -->
+        <div class="nb__drawer-dest-label">Destination</div>
+        <div class="nb__drawer-dest-row">
+          <span class="nb__drawer-dest-key">Workspace</span>
+          <select class="nb__drawer-select">
+            <option>ADB Data &amp; Analytics</option>
+          </select>
+        </div>
+        <div class="nb__drawer-dest-row">
+          <span class="nb__drawer-dest-key">Compute</span>
+          <select class="nb__drawer-select">
+            <option>Existing cluster (adb-analytics)</option>
+          </select>
+        </div>
+        <p class="nb__drawer-dest-note">Notebooks and data connections will be created in this cluster.</p>
+
+        <!-- What will be created -->
+        <div class="nb__drawer-created">
+          <p class="nb__drawer-created-title">What will be created</p>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span>1 notebook</span>
+          </div>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+              <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+            </svg>
+            <span>2 data connections</span>
+          </div>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <span>1 agent endpoint</span>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="nb__drawer-footer">
+          <button class="nb__drawer-cta" type="button">Send to Databricks</button>
+        </div>
+      }
+
+      @if (useInDrawer() === 'build-app') {
+        <!-- Header -->
+        <div class="nb__drawer-header">
+          <div>
+            <h2 class="nb__drawer-title">Build an Application</h2>
+            <p class="nb__drawer-sub">Scaffold a starter project with your workspace assets pre-wired as data connections and agent endpoints.</p>
+          </div>
+          <button class="nb__drawer-close" type="button" (click)="useInDrawer.set(null)" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- What's bundled -->
+        <div class="nb__drawer-bundle">
+          <p class="nb__drawer-bundle-label">What gets carried</p>
+          <div class="nb__drawer-bundle-pills">
+            <span class="nb__drawer-bundle-pill">datasets / data connections</span>
+            <span class="nb__drawer-bundle-sep">+</span>
+            <span class="nb__drawer-bundle-pill">APIs</span>
+            <span class="nb__drawer-bundle-sep">+</span>
+            <span class="nb__drawer-bundle-pill">agents</span>
+            <span class="nb__drawer-bundle-sep">+</span>
+            <span class="nb__drawer-bundle-pill">integration config</span>
+            <span class="nb__drawer-bundle-sep">+</span>
+            <span class="nb__drawer-bundle-pill">starter code</span>
+          </div>
+        </div>
+
+        <!-- Assets -->
+        <div class="nb__drawer-section-row">
+          <span class="nb__drawer-section-label">Assets to include ({{ drawerAssets.length - drawerAssets.filter(a => !a.available).length }} of {{ drawerAssets.length)</span>
+          <button class="nb__drawer-select-all" type="button">Select all</button>
+        </div>
+        <div class="nb__drawer-assets">
+          @for (asset of drawerAssets; track asset.name) {
+            <div class="nb__drawer-asset" [class.nb__drawer-asset--disabled]="!asset.available">
+              <input type="checkbox" class="nb__drawer-check" [checked]="asset.checked" [disabled]="!asset.available">
+              <div class="nb__drawer-asset-icon">
+                @if (asset.iconType === 'data') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                } @else if (asset.iconType === 'api') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                } @else {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </svg>
+                }
+              </div>
+              <div class="nb__drawer-asset-body">
+                <span class="nb__drawer-asset-name">{{ asset.name }}</span>
+                <span class="nb__drawer-asset-meta">{{ asset.meta }}</span>
+              </div>
+              <span class="nb__drawer-badge" [class.nb__drawer-badge--ready]="asset.available" [class.nb__drawer-badge--na]="!asset.available">
+                {{ asset.available ? 'Included' : 'Not transferable' }}
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Framework -->
+        <div class="nb__drawer-dest-label">Framework</div>
+        <div class="nb__drawer-framework-row">
+          @for (fw of buildAppFrameworks; track fw) {
+            <button class="nb__drawer-fw-btn" type="button"
+                    [class.nb__drawer-fw-btn--active]="buildAppFramework() === fw"
+                    (click)="buildAppFramework.set(fw)">
+              {{ fw }}
+            </button>
+          }
+        </div>
+
+        <!-- Destination -->
+        <div class="nb__drawer-dest-label" style="margin-top:4px">Repository</div>
+        <div class="nb__drawer-repo-platform">
+          <button class="nb__drawer-platform-btn" type="button"
+                  [class.nb__drawer-platform-btn--active]="buildAppPlatform() === 'github'"
+                  (click)="buildAppPlatform.set('github')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .319.216.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            GitHub
+          </button>
+          <button class="nb__drawer-platform-btn" type="button"
+                  [class.nb__drawer-platform-btn--active]="buildAppPlatform() === 'gitlab'"
+                  (click)="buildAppPlatform.set('gitlab')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 0 0-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 0 0-.867 0L1.386 9.45.044 13.587a.924.924 0 0 0 .331 1.023L12 23.054l11.625-8.443a.924.924 0 0 0 .33-1.024"/>
+            </svg>
+            GitLab
+          </button>
+        </div>
+        <div class="nb__drawer-dest-row" style="margin-top:10px">
+          <span class="nb__drawer-dest-key">Repo name</span>
+          <input class="nb__drawer-repo-input" type="text" [value]="buildAppRepoName()" (input)="buildAppRepoName.set($any($event.target).value)">
+        </div>
+        <p class="nb__drawer-dest-note">A new {{ buildAppPlatform() === 'github' ? 'GitHub' : 'GitLab' }} repository will be created under your account.</p>
+
+        <!-- What will be created -->
+        <div class="nb__drawer-created">
+          <p class="nb__drawer-created-title">What will be created</p>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <span>Starter project <span class="nb__drawer-created-muted">({{ buildAppFramework() }})</span></span>
+          </div>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+              <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+            </svg>
+            <span>2 data connections</span>
+          </div>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <span>1 agent endpoint</span>
+          </div>
+          <div class="nb__drawer-created-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>.env template with connection strings</span>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="nb__drawer-footer">
+          <button class="nb__drawer-cta" type="button">
+            Create Repository
+          </button>
+        </div>
+      }
+
+    </aside>
+  }
+
+  <!-- ── Workspace ─────────────────────────────────────────────────────────── -->
+  <div class="nb__workspace">
+
+    <!-- LEFT: Assets Panel -->
+    <aside class="nb__panel nb__panel--assets"
+      [class.nb__panel--collapsed]="assetsCollapsed()"
+      [style.width.px]="assetsCollapsed() ? 48 : assetWidth()">
+
+      @if (!assetsCollapsed()) {
+        <div class="nb__panel-edge nb__panel-edge--right" (mousedown)="startResize('assets', $event)"></div>
+      }
+
+      <div class="nb__panel-header">
+        @if (!assetsCollapsed()) {
+          <span class="nb__panel-title">Assets</span>
+        }
+        <button
+          class="nb__panel-toggle"
+          type="button"
+          [attr.aria-label]="assetsCollapsed() ? 'Expand assets' : 'Collapse assets'"
+          (click)="toggleAssetsPanel()"
+        >
+          @if (assetsCollapsed()) {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>
+              <path d="M9 4v16"/>
+              <path d="M14 10l2 2l-2 2"/>
+            </svg>
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>
+              <path d="M9 4v16"/>
+              <path d="M14 10l-2 2l2 2"/>
+            </svg>
+          }
+        </button>
+      </div>
+
+      @if (assetsCollapsed()) {
+        <div class="nb__assets-icons">
+          @for (group of assetGroups; track group.name) {
+            <button class="nb__asset-icon-btn" [attr.aria-label]="group.name" [attr.data-tooltip]="group.name" (click)="toggleAssetsPanel()">
+              @switch (group.name) {
+                @case ('AI Agents') {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3l2 5.5 5.5 2-5.5 2L12 18l-2-5.5L4.5 10.5l5.5-2z"/>
+                    <path d="M19 3l.8 2.2L22 6l-2.2.8L19 9l-.8-2.2L16 6l2.2-.8z"/>
+                  </svg>
+                }
+                @case ('AI Tools') {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                  </svg>
+                }
+                @case ('API') {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                  </svg>
+                }
+                @case ('Data') {
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
+                    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                  </svg>
+                }
+              }
+            </button>
+          }
+        </div>
+      }
+
+      @if (!assetsCollapsed()) {
+        @if (forkLoading() || assetPaneLoading()) {
+          <div class="nb__skel-assets">
+            <div class="nb__skel-group-hd"></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:72%"></span></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:54%"></span></div>
+            <div class="nb__skel-group-hd" style="margin-top:14px"></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:60%"></span></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:44%"></span></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:67%"></span></div>
+            <div class="nb__skel-group-hd" style="margin-top:14px"></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:50%"></span></div>
+            <div class="nb__skel-item"><span class="nb__skel-cb"></span><span class="nb__skel-line" style="width:58%"></span></div>
+          </div>
+        } @else {
+
+        @if (assetGroups.length === 0) {
+          <div class="nb__assets-empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c8d8e4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+              <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+            </svg>
+            <p class="nb__assets-empty-label">No assets added yet</p>
+            <p class="nb__assets-empty-sub">Use the button below to browse and add datasets, agents, and tools.</p>
+          </div>
+        }
+        <div class="nb__assets-body">
+          @for (group of assetGroups; track group.name) {
+            <div class="nb__asset-group">
+              <div class="nb__asset-group-header" [class.nb__asset-group-header--expanded]="group.expanded" (click)="toggleGroup(group)">
+                <span class="nb__asset-group-name">{{ group.name }}</span>
+                <button class="nb__asset-clear" type="button" (click)="clearGroup(group, $event)">Clear</button>
+                @if (group.expanded) {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"/>
+                  </svg>
+                } @else {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                }
+              </div>
+              @if (group.expanded) {
+                @for (item of group.items; track item.name) {
+                  <div class="nb__asset-item" draggable="true"
+                       (dragstart)="onAssetDragStart(item)" (dragend)="onAssetDragEnd()"
+                       [class.nb__asset-item--draggable]="wfEditingNodeId() !== null">
+                    <span class="nb__asset-label">{{ item.name }}</span>
+                    @if (!isPublished) {
+                      <button class="nb__asset-remove" type="button" aria-label="Remove asset"
+                              (click)="removeAssetItem(group, item, $event)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    } @else {
+                      <button class="nb__asset-remove nb__asset-remove--link" type="button" aria-label="View asset detail"
+                              (click)="openAssetDetail(item, $event)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+        @if (!isPublished) {
+          <div class="nb__assets-add">
+            <button class="nb__assets-add-btn" type="button" (click)="openAddAssets()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Assets
+            </button>
+          </div>
+        }
+        } <!-- end @else forkLoading -->
+      }
+    </aside>
+
+    <!-- CENTER: Chat Panel -->
+    <section class="nb__panel nb__panel--chat" [class.nb__panel--chat-wide]="previewCollapsed()">
+      <div class="nb__panel-header" [class.nb__panel-header--tabs]="hasArtefact || isCommunityWorkspace()">
+        @if (hasArtefact || isCommunityWorkspace()) {
+          <div class="nb__chat-tabs">
+            <button class="nb__chat-tab" [class.nb__chat-tab--active]="chatTab() === 'chat'" type="button" (click)="chatTab.set('chat')">Chat</button>
+            <button class="nb__chat-tab" [class.nb__chat-tab--active]="chatTab() === 'workflow'" type="button" (click)="chatTab.set('workflow')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><line x1="12" y1="7.5" x2="12" y2="14"/><line x1="12" y1="14" x2="5" y2="16.5"/><line x1="12" y1="14" x2="19" y2="16.5"/></svg>
+              Workflow
+            </button>
+          </div>
+        } @else {
+          <span class="nb__panel-title">Chat</span>
+        }
+        <button
+          class="nb__panel-toggle nb__chat-doc-toggle"
+          [class.nb__chat-doc-toggle--active]="!previewCollapsed() && previewCtx() !== 'doc'"
+          type="button"
+          title="Toggle output"
+          (click)="previewCtx() === 'doc' ? restoreOutput() : togglePreviewPanel()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <line x1="10" y1="9" x2="8" y2="9"/>
+          </svg>
+        </button>
+      </div>
+
+      @if (chatTab() === 'workflow') {
+        <div class="nb__workflow" (scroll)="closeSourcePicker()">
+
+          <!-- Workflow header -->
+          <div class="nb__wf-header">
+            @if (wfRunning()) {
+              <div class="nb__wf-status-info">
+                <span class="nb__wf-status-info-title">Updating workflow…</span>
+                <span class="nb__wf-status-info-sub">Running step {{ wfNodes().length > 0 ? 2 : 1 }} of {{ wfNodes().length }}</span>
+              </div>
+            } @else if (wfPendingChanges() > 0) {
+              <div class="nb__wf-status-info">
+                <span class="nb__wf-status-info-title">{{ wfPendingChanges() }} change{{ wfPendingChanges() > 1 ? 's' : '' }} pending</span>
+              </div>
+              <button appPrimaryBtn class="app-btn--sm nb__wf-run-btn" type="button" (click)="runWorkflow()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Run workflow
+              </button>
+            } @else {
+              <span class="nb__wf-status-info-title">Workflow is up to date</span>
+              <span class="nb__wf-status-info-sub">Last run just now</span>
+            }
+          </div>
+
+          <!-- Inputs / Parameters block -->
+          <div class="nb__wf-inputs" [class.nb__wf-inputs--editing]="wfEditingParams()">
+            <div class="nb__wf-inputs-hd">
+              <div class="nb__wf-inputs-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <span class="nb__wf-inputs-title">Inputs</span>
+              @if (!wfEditingParams()) {
+                <button class="nb__wf-edit-btn" type="button" (click)="editParams()" title="Edit inputs" aria-label="Edit inputs">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+              }
+            </div>
+            @if (!wfEditingParams()) {
+              <div class="nb__wf-params">
+                <div class="nb__wf-param">
+                  <span class="nb__wf-param-label">Countries</span>
+                  <span class="nb__wf-param-val">{{ wfParams().countries }}</span>
+                </div>
+                <div class="nb__wf-param">
+                  <span class="nb__wf-param-label">Period</span>
+                  <span class="nb__wf-param-val">{{ wfParams().period }}</span>
+                </div>
+                <div class="nb__wf-param">
+                  <span class="nb__wf-param-label">Indicators</span>
+                  <span class="nb__wf-param-val">{{ wfParams().indicators }}</span>
+                </div>
+              </div>
+            } @else {
+              <div class="nb__wf-form">
+                <div class="nb__wf-form-row">
+                  <label class="nb__wf-form-label">Countries</label>
+                  <input class="nb__wf-form-input" type="text" [(ngModel)]="wfParamDraft.countries" placeholder="e.g. Bangladesh, Viet Nam, Cambodia">
+                </div>
+                <div class="nb__wf-form-row nb__wf-form-row--half">
+                  <div>
+                    <label class="nb__wf-form-label">Period</label>
+                    <input class="nb__wf-form-input" type="text" [(ngModel)]="wfParamDraft.period" placeholder="e.g. 2020–2024">
+                  </div>
+                  <div>
+                    <label class="nb__wf-form-label">Indicators</label>
+                    <input class="nb__wf-form-input" type="text" [(ngModel)]="wfParamDraft.indicators" placeholder="e.g. GDP Growth, CPI">
+                  </div>
+                </div>
+              </div>
+              <div class="nb__wf-card-actions">
+                <button appSecondaryBtn class="app-btn--sm" type="button" (click)="cancelParamsEdit()">Cancel</button>
+                <button appPrimaryBtn class="app-btn--sm" type="button" (click)="saveParams()">Save changes</button>
+              </div>
+            }
+          </div>
+
+          <!-- Nodes -->
+          @for (node of wfNodes(); track node.id; let nodeIdx = $index; let isLast = $last) {
+
+            <!-- Connector: inputs → node 1, or node → node -->
+            <div class="nb__wf-connector">
+              <div class="nb__wf-connector-line"></div>
+              <button class="nb__wf-add-step-btn" [class.nb__wf-add-step-btn--active]="wfAddingAt() === nodeIdx"
+                      type="button" title="Add step" aria-label="Add step between nodes"
+                      (click)="$event.stopPropagation(); openAddStep(nodeIdx)">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+
+            @if (wfAddingAt() === nodeIdx) {
+              <div class="nb__wf-type-picker">
+                <div class="nb__wf-type-picker-hd">
+                  <span class="nb__wf-type-picker-title">Add a step</span>
+                  <button class="nb__wf-type-picker-close" type="button" (click)="wfAddingAt.set(null)" aria-label="Close">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+                <div class="nb__wf-type-groups">
+                  @for (group of wfTypeGroups; track group.category) {
+                    <div class="nb__wf-type-group">
+                      <span class="nb__wf-type-group-label">{{ group.category }}</span>
+                      @for (opt of group.types; track opt.type) {
+                        <button appSecondaryBtn class="app-btn--sm" type="button"
+                                (click)="insertNode(nodeIdx, opt.type)">{{ opt.label }}</button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="nb__wf-item">
+
+              <!-- Rail: number + line -->
+              <div class="nb__wf-rail">
+                <div class="nb__wf-num" [class.nb__wf-num--editing]="wfEditingNodeId() === node.id">{{ nodeIdx + 1 }}</div>
+                @if (!isLast) { <div class="nb__wf-rail-line"></div> }
+              </div>
+
+              <!-- Card -->
+              <div class="nb__wf-card-wrap">
+                <div class="nb__wf-card" [class.nb__wf-card--editing]="wfEditingNodeId() === node.id">
+
+                  <!-- Card header -->
+                  <div class="nb__wf-card-header" [class.nb__wf-card-header--editing]="wfEditingNodeId() === node.id"
+                       (click)="wfEditingNodeId() !== node.id && toggleWfNode(node.id)">
+                    <div class="nb__wf-card-icon nb__wf-card-icon--{{ node.type }}">
+                      @if (node.type === 'retrieve') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                      } @else if (node.type === 'search') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      } @else if (node.type === 'filter') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                      } @else if (node.type === 'transform') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+                      } @else if (node.type === 'compare') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                      } @else if (node.type === 'ai') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      } @else if (node.type === 'validate') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      } @else if (node.type === 'visualise') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                      } @else if (node.type === 'human-review') {
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><polyline points="9 11 12 14 22 4"/></svg>
+                      } @else {
+                        <!-- output / destination -->
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      }
+                    </div>
+
+                    <div class="nb__wf-card-main">
+                      <div class="nb__wf-card-title-row">
+                        <span class="nb__wf-card-title">{{ node.title }}</span>
+                        @if (node.type === 'retrieve' && node.sources?.length && wfEditingNodeId() !== node.id) {
+                          <span class="nb__wf-card-sources-badge">{{ node.sources!.length }} sources</span>
+                        }
+                      </div>
+                      @if (wfEditingNodeId() !== node.id) {
+                        <span class="nb__wf-card-desc">{{ node.description }}</span>
+                      }
+                    </div>
+
+                    @if (wfEditingNodeId() !== node.id) {
+                      <div class="nb__wf-card-status">
+                        <div class="nb__wf-status-badge nb__wf-status-badge--{{ node.status }}">
+                          @if (node.status === 'completed') {
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                          } @else if (node.status === 'running') {
+                            <span class="nb__wf-status-spinner"></span>
+                          } @else if (node.status === 'needs-attention' || node.status === 'failed') {
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                          } @else if (node.status === 'changed') {
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                          } @else {
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+                          }
+                          <span>{{ wfNodeStatusLabel(node.status) }}</span>
+                        </div>
+                        @if (node.time) { <span class="nb__wf-card-time">{{ node.time }}</span> }
+                      </div>
+                      <button class="nb__wf-card-chevron" [class.nb__wf-card-chevron--open]="wfExpandedNodes().has(node.id)" type="button" (click)="$event.stopPropagation(); toggleWfNode(node.id)" aria-label="Expand node">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Floating action buttons — top-right of card, visible on card hover (owner only) -->
+                  @if (wfEditingNodeId() !== node.id && !isCommunityWorkspace()) {
+                    <div class="nb__wf-card-float-actions">
+                      <button class="nb__wf-edit-btn" type="button" (click)="$event.stopPropagation(); editNode(node.id)" title="Configure node" aria-label="Configure node">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button class="nb__wf-remove-btn" type="button" (click)="$event.stopPropagation(); removeNode(node.id)" title="Remove step" aria-label="Remove step">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      </button>
+                    </div>
+                  }
+
+                  <!-- EDIT MODE -->
+                  @if (wfEditingNodeId() === node.id) {
+                    <div class="nb__wf-form">
+
+                      @if (node.type === 'retrieve') {
+                        <!-- Existing sources -->
+                        <div class="nb__wf-sources-zone"
+                             [class.nb__wf-sources-zone--highlight]="wfDropHighlight()"
+                             (dragover)="onSourceDropZoneDragOver($event)"
+                             (dragleave)="onSourceDropZoneDragLeave()"
+                             (drop)="onSourceDrop($event)">
+                          @for (src of wfNodeDraft.sources; track $index; let si = $index) {
+                            <div class="nb__wf-subitem nb__wf-subitem--editable">
+                              <div class="nb__wf-subitem-icon">
+                                @if (src.icon === 'web') {
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                } @else if (src.icon === 'pdf') {
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                } @else {
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                                }
+                              </div>
+                              <div class="nb__wf-subitem-body">
+                                <input class="nb__wf-src-input nb__wf-src-input--title" type="text"
+                                       [(ngModel)]="wfNodeDraft.sources[si].title" placeholder="Source name">
+                                <input class="nb__wf-src-input nb__wf-src-input--desc" type="text"
+                                       [(ngModel)]="wfNodeDraft.sources[si].description" placeholder="Short description">
+                              </div>
+                              <button class="nb__wf-subitem-remove" type="button" (click)="removeNodeSource(si)" aria-label="Remove source">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              </button>
+                            </div>
+                          }
+                          @if (wfDropHighlight()) {
+                            <div class="nb__wf-drop-hint">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                              Drop to add source
+                            </div>
+                          }
+                        </div>
+
+                        <button class="nb__wf-add-source-btn" type="button" (click)="openSourcePicker(0, $event)">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                          Add source
+                        </button>
+                      }
+
+                      @if (node.type === 'ai') {
+                        <div class="nb__wf-form-row">
+                          <label class="nb__wf-form-label">Synthesis instruction</label>
+                          <textarea class="nb__wf-form-textarea" rows="5" [(ngModel)]="wfNodeDraft.instruction"
+                                    placeholder="Describe how DataNex+ AI should analyse the retrieved data…"></textarea>
+                        </div>
+                        <div class="nb__wf-model-row">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                          <span class="nb__wf-model-label">Model: Claude Sonnet 4.5</span>
+                        </div>
+                      }
+
+                      @if (node.type === 'validate') {
+                        <div class="nb__wf-form-row">
+                          <label class="nb__wf-form-label">Validation rules</label>
+                          <textarea class="nb__wf-form-textarea" rows="4" [(ngModel)]="wfNodeDraft.instruction"
+                                    placeholder="Describe the validation criteria — e.g. check for missing values, flag outliers above 3σ, ensure date ranges are complete…"></textarea>
+                        </div>
+                        <div class="nb__wf-form-row">
+                          <label class="nb__wf-form-label">On failure</label>
+                          <div class="nb__wf-output-options">
+                            @for (opt of ['Warn and continue', 'Stop workflow']; track opt) {
+                              <button class="nb__wf-output-option"
+                                      [class.nb__wf-output-option--active]="(wfNodeDraft.onFailure ?? 'Warn and continue') === opt"
+                                      type="button"
+                                      (click)="wfNodeDraft.onFailure = opt">{{ opt }}</button>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      @if (node.type === 'output') {
+                        <div class="nb__wf-form-row">
+                          <label class="nb__wf-form-label">Output type</label>
+                          <div class="nb__wf-output-options">
+                            @for (opt of wfOutputTypes; track opt) {
+                              <button class="nb__wf-output-option" [class.nb__wf-output-option--active]="wfNodeDraft.outputType === opt"
+                                      type="button" (click)="wfSetOutputType(opt)">{{ opt }}</button>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                    </div>
+                    <div class="nb__wf-card-actions">
+                      <button appSecondaryBtn class="app-btn--sm" type="button" (click)="cancelNodeEdit()">Cancel</button>
+                      <button appPrimaryBtn class="app-btn--sm" type="button" (click)="saveNode(node.id)">Save changes</button>
+                    </div>
+                  }
+
+                  <!-- READ-ONLY EXPANDED -->
+                  @if (wfExpandedNodes().has(node.id) && wfEditingNodeId() !== node.id) {
+
+                    @if (node.type === 'retrieve' && node.sources?.length) {
+                      <div class="nb__wf-subitems">
+                        @for (src of node.sources; track src.title) {
+                          <div class="nb__wf-subitem">
+                            <div class="nb__wf-subitem-icon">
+                              @if (src.icon === 'web') {
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                              } @else if (src.icon === 'pdf') {
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              } @else {
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                              }
+                            </div>
+                            <div class="nb__wf-subitem-body">
+                              <span class="nb__wf-subitem-title">{{ src.title }}</span>
+                              <span class="nb__wf-subitem-desc">{{ src.description }}</span>
+                            </div>
+                            <div class="nb__wf-subitem-queried">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                              Queried
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    @if (node.type === 'ai' && node.instruction) {
+                      <div class="nb__wf-node-detail">
+                        <blockquote class="nb__wf-query-text">{{ node.instruction }}</blockquote>
+                        <div class="nb__wf-model-row">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                          <span class="nb__wf-model-label">Uses insights from {{ node.sources?.length ?? (wfNodes()[0]?.sources?.length ?? 0) }} data sources</span>
+                          <div class="nb__wf-model-name">Model: Claude Sonnet 4.5</div>
+                        </div>
+                      </div>
+                    }
+
+                    @if (node.type === 'output') {
+                      <div class="nb__wf-node-detail">
+                        @if (node.outputType) {
+                          <div class="nb__wf-output-meta">
+                            <span class="nb__wf-output-meta-type">{{ node.outputType }}</span>
+                            @if (node.outputSections?.length) {
+                              <span class="nb__wf-output-meta-sections">{{ node.outputSections!.join(' · ') }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+
+                  }
+
+                </div>
+
+              </div>
+            </div>
+
+          }
+
+          <!-- Add step at end -->
+          @if (true) {
+            <div class="nb__wf-connector nb__wf-connector--end">
+              <div class="nb__wf-connector-line"></div>
+              <button class="nb__wf-add-step-btn" [class.nb__wf-add-step-btn--active]="wfAddingAt() === wfNodes().length"
+                      type="button" title="Add step" aria-label="Add step at end"
+                      (click)="$event.stopPropagation(); openAddStep(wfNodes().length)">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+            @if (wfAddingAt() === wfNodes().length) {
+              <div class="nb__wf-type-picker">
+                <div class="nb__wf-type-picker-hd">
+                  <span class="nb__wf-type-picker-title">Add a step</span>
+                  <button class="nb__wf-type-picker-close" type="button" (click)="wfAddingAt.set(null)" aria-label="Close">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+                <div class="nb__wf-type-groups">
+                  @for (group of wfTypeGroups; track group.category) {
+                    <div class="nb__wf-type-group">
+                      <span class="nb__wf-type-group-label">{{ group.category }}</span>
+                      @for (opt of group.types; track opt.type) {
+                        <button appSecondaryBtn class="app-btn--sm" type="button"
+                                (click)="insertNode(wfNodes().length, opt.type)">{{ opt.label }}</button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Global asset picker — fixed to viewport, outside all overflow:hidden ancestors -->
+          @if (wfPickerOpenIdx() !== null) {
+            <div class="nb__wf-asset-picker-fixed"
+                 [style.top.px]="wfPickerPos.top"
+                 [style.left.px]="wfPickerPos.left"
+                 [style.width.px]="wfPickerPos.width">
+              <div class="nb__wf-asset-picker-search">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" [(ngModel)]="wfPickerQuery" (ngModelChange)="onPickerQueryChange()"
+                       placeholder="Search assets…" class="nb__wf-asset-picker-input">
+                <button class="nb__wf-type-picker-close" type="button" (click)="closeSourcePicker()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div class="nb__wf-asset-picker-list">
+                @for (asset of wfFilteredAssets; track asset.name) {
+                  <button class="nb__wf-asset-picker-opt" type="button" (click)="selectSourceAsset(0, asset)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    {{ asset.name }}
+                  </button>
+                }
+                @if (wfFilteredAssets.length === 0) {
+                  <span class="nb__wf-asset-picker-empty">No assets match "{{ wfPickerQuery }}"</span>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+      @if (chatTab() !== 'workflow') {
+      <div class="nb__messages" #messagesEl>
+
+        @if (forkLoading()) {
+          <div class="nb__skel-chat">
+            <div class="nb__skel-msg nb__skel-msg--user">
+              <div class="nb__skel-bubble nb__skel-bubble--user"></div>
+              <div class="nb__skel-avatar"></div>
+            </div>
+            <div class="nb__skel-msg nb__skel-msg--asst">
+              <div class="nb__skel-bubble nb__skel-bubble--asst">
+                <span class="nb__skel-line" style="width:88%"></span>
+                <span class="nb__skel-line" style="width:72%;margin-top:8px"></span>
+                <span class="nb__skel-line" style="width:58%;margin-top:8px"></span>
+              </div>
+            </div>
+            <div class="nb__skel-msg nb__skel-msg--user">
+              <div class="nb__skel-bubble nb__skel-bubble--user nb__skel-bubble--user-sm"></div>
+              <div class="nb__skel-avatar"></div>
+            </div>
+            <div class="nb__skel-msg nb__skel-msg--asst">
+              <div class="nb__skel-bubble nb__skel-bubble--asst">
+                <span class="nb__skel-line" style="width:80%"></span>
+                <span class="nb__skel-line" style="width:65%;margin-top:8px"></span>
+                <span class="nb__skel-line" style="width:50%;margin-top:8px"></span>
+                <span class="nb__skel-line" style="width:74%;margin-top:8px"></span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Empty state: starter prompts or fallback text -->
+        @if (!forkLoading() && messages.length === 0) {
+          @if (starterPrompts.length > 0) {
+            <div class="nb__starters">
+              <p class="nb__starters-label">Try asking</p>
+              @for (p of starterPrompts; track p) {
+                <button class="nb__starter-item" type="button" (click)="submitStarter(p)">{{ p }}</button>
+              }
+            </div>
+          } @else {
+            <div class="nb__messages-empty">
+              <p>Ask a question to analyze your selected data</p>
+            </div>
+          }
+        }
+
+
+        <!-- Message list -->
+        @if (!forkLoading()) {
+        @for (msg of messages; track $index; let msgIdx = $index) {
+
+          <!-- User message -->
+          @if (msg.role === 'user') {
+            <div class="nb__msg nb__msg--user">
+              <div class="nb__msg-bubble">{{ msg.text }}</div>
+              <div class="nb__msg-avatar">NT</div>
+            </div>
+          }
+
+          <!-- Contextual note (e.g. "Selected from Data Preview") -->
+          @if (msg.role === 'note') {
+            <div class="nb__note">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+              </svg>
+              <span class="nb__note-context">Selected from Output</span>
+              <span class="nb__note-label">{{ msg.noteLabel }}</span>
+            </div>
+          }
+
+          <!-- Assistant message -->
+          @if (msg.role === 'assistant') {
+            <div class="nb__msg nb__msg--assistant">
+
+              <!-- GDP chart (id='1' backwards compat) -->
+              @if (msg.chartTitle) {
+                <h3 class="nb__msg-chart-title">{{ msg.chartTitle }}</h3>
+              }
+              @if (msg.chartSubtitle) {
+                <p class="nb__msg-chart-subtitle">{{ msg.chartSubtitle }}</p>
+              }
+              @if (msg.hasChart) {
+                <div class="nb__inline-viz">
+                <div class="nb__chart-wrap">
+                  @if (msg.chartType === 'briefing-gdp') {
+                    <!-- Bangladesh / Viet Nam / Cambodia GDP growth 2020–2024 -->
+                    <svg viewBox="0 0 480 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                      <rect width="480" height="230" fill="#F8F9FA"/>
+                      <!-- grid lines (values 8,6,4,2,0,-2,-4) -->
+                      <line x1="60" y1="43"  x2="462" y2="43"  stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="69"  x2="462" y2="69"  stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="95"  x2="462" y2="95"  stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="121" x2="462" y2="121" stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="148" x2="462" y2="148" stroke="#9CA3AF" stroke-width="0.8"/>
+                      <line x1="60" y1="174" x2="462" y2="174" stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="200" x2="462" y2="200" stroke="#E5E7EB" stroke-width="0.5"/>
+                      <!-- Y axis labels -->
+                      <text x="52" y="47"  fill="#9CA3AF" font-size="9.5" text-anchor="end">8%</text>
+                      <text x="52" y="73"  fill="#9CA3AF" font-size="9.5" text-anchor="end">6%</text>
+                      <text x="52" y="99"  fill="#9CA3AF" font-size="9.5" text-anchor="end">4%</text>
+                      <text x="52" y="125" fill="#9CA3AF" font-size="9.5" text-anchor="end">2%</text>
+                      <text x="52" y="152" fill="#9CA3AF" font-size="9.5" text-anchor="end">0%</text>
+                      <text x="52" y="178" fill="#9CA3AF" font-size="9.5" text-anchor="end">−2%</text>
+                      <!-- X axis year labels (2020–2024) at x=70,165,260,355,450 -->
+                      <text x="70"  y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2020</text>
+                      <text x="165" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2021</text>
+                      <text x="260" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2022</text>
+                      <text x="355" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2023</text>
+                      <text x="450" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2024</text>
+                      <!-- Bangladesh BAN [3.5,6.9,7.1,5.8,6.4] → y=102,58,55,72,64 -->
+                      <polyline points="70,102 165,58 260,55 355,72 450,64" stroke="#007DB7" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="70"  cy="102" r="3.5" fill="#007DB7"/>
+                      <circle cx="165" cy="58"  r="3.5" fill="#007DB7"/>
+                      <circle cx="260" cy="55"  r="3.5" fill="#007DB7"/>
+                      <circle cx="355" cy="72"  r="3.5" fill="#007DB7"/>
+                      <circle cx="450" cy="64"  r="3.5" fill="#007DB7"/>
+                      <!-- Viet Nam VIE [2.9,2.6,8.0,5.1,6.8] → y=110,114,43,81,59 -->
+                      <polyline points="70,110 165,114 260,43 355,81 450,59" stroke="#68C5EA" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="70"  cy="110" r="3.5" fill="#68C5EA"/>
+                      <circle cx="165" cy="114" r="3.5" fill="#68C5EA"/>
+                      <circle cx="260" cy="43"  r="3.5" fill="#68C5EA"/>
+                      <circle cx="355" cy="81"  r="3.5" fill="#68C5EA"/>
+                      <circle cx="450" cy="59"  r="3.5" fill="#68C5EA"/>
+                      <!-- Cambodia CAM [-3.1,3.0,5.2,5.6,6.1] → y=189,109,80,75,68 -->
+                      <polyline points="70,189 165,109 260,80 355,75 450,68" stroke="#8DC63F" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="70"  cy="189" r="3.5" fill="#8DC63F"/>
+                      <circle cx="165" cy="109" r="3.5" fill="#8DC63F"/>
+                      <circle cx="260" cy="80"  r="3.5" fill="#8DC63F"/>
+                      <circle cx="355" cy="75"  r="3.5" fill="#8DC63F"/>
+                      <circle cx="450" cy="68"  r="3.5" fill="#8DC63F"/>
+                      <!-- Legend -->
+                      <circle cx="268" cy="16" r="4" fill="#007DB7"/>
+                      <text x="276" y="20" fill="#616161" font-size="10">Bangladesh</text>
+                      <circle cx="340" cy="16" r="4" fill="#68C5EA"/>
+                      <text x="348" y="20" fill="#616161" font-size="10">Viet Nam</text>
+                      <circle cx="405" cy="16" r="4" fill="#8DC63F"/>
+                      <text x="413" y="20" fill="#616161" font-size="10">Cambodia</text>
+                    </svg>
+                  } @else if (msg.chartType === 'briefing-cpi') {
+                    <!-- CPI inflation 2020–2024 for Bangladesh, Viet Nam, Cambodia -->
+                    <svg viewBox="0 0 480 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                      <rect width="480" height="230" fill="#F8F9FA"/>
+                      <!-- grid lines at 0,2,4,6,8,10 → y=200,166,132,98,64,30 (scale: 1%=17px, base=200) -->
+                      <line x1="60" y1="30"  x2="462" y2="30"  stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="64"  x2="462" y2="64"  stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="98"  x2="462" y2="98"  stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="132" x2="462" y2="132" stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="166" x2="462" y2="166" stroke="#E5E7EB" stroke-width="0.5"/>
+                      <line x1="60" y1="200" x2="462" y2="200" stroke="#9CA3AF" stroke-width="0.8"/>
+                      <!-- Y axis labels -->
+                      <text x="52" y="34"  fill="#9CA3AF" font-size="9.5" text-anchor="end">10%</text>
+                      <text x="52" y="68"  fill="#9CA3AF" font-size="9.5" text-anchor="end">8%</text>
+                      <text x="52" y="102" fill="#9CA3AF" font-size="9.5" text-anchor="end">6%</text>
+                      <text x="52" y="136" fill="#9CA3AF" font-size="9.5" text-anchor="end">4%</text>
+                      <text x="52" y="170" fill="#9CA3AF" font-size="9.5" text-anchor="end">2%</text>
+                      <text x="52" y="204" fill="#9CA3AF" font-size="9.5" text-anchor="end">0%</text>
+                      <!-- Bangladesh target line at 6% → y=98 -->
+                      <line x1="60" y1="98" x2="462" y2="98" stroke="#E9532B" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+                      <text x="464" y="102" fill="#E9532B" font-size="8.5" opacity="0.7">target</text>
+                      <!-- X axis year labels -->
+                      <text x="70"  y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2020</text>
+                      <text x="165" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2021</text>
+                      <text x="260" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2022</text>
+                      <text x="355" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2023</text>
+                      <text x="450" y="218" fill="#9CA3AF" font-size="9.5" text-anchor="middle">2024</text>
+                      <!-- Bangladesh BAN [5.7,5.6,6.1,9.0,7.8] → y=200-val*17 → 103,105,96,47,67 -->
+                      <polyline points="70,103 165,105 260,96 355,47 450,67" stroke="#007DB7" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="70"  cy="103" r="3.5" fill="#007DB7"/>
+                      <circle cx="165" cy="105" r="3.5" fill="#007DB7"/>
+                      <circle cx="260" cy="96"  r="3.5" fill="#007DB7"/>
+                      <circle cx="355" cy="47"  r="3.5" fill="#007DB7"/>
+                      <circle cx="450" cy="67"  r="3.5" fill="#007DB7"/>
+                      <!-- Viet Nam VIE [3.2,1.8,3.2,3.2,3.6] → y=146,169,146,146,139 -->
+                      <polyline points="70,146 165,169 260,146 355,146 450,139" stroke="#68C5EA" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="70"  cy="146" r="3.5" fill="#68C5EA"/>
+                      <circle cx="165" cy="169" r="3.5" fill="#68C5EA"/>
+                      <circle cx="260" cy="146" r="3.5" fill="#68C5EA"/>
+                      <circle cx="355" cy="146" r="3.5" fill="#68C5EA"/>
+                      <circle cx="450" cy="139" r="3.5" fill="#68C5EA"/>
+                      <!-- Cambodia CAM [2.9,2.9,5.3,2.2,2.9] → y=151,151,110,163,151 -->
+                      <polyline points="70,151 165,151 260,110 355,163 450,151" stroke="#8DC63F" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="70"  cy="151" r="3.5" fill="#8DC63F"/>
+                      <circle cx="165" cy="151" r="3.5" fill="#8DC63F"/>
+                      <circle cx="260" cy="110" r="3.5" fill="#8DC63F"/>
+                      <circle cx="355" cy="163" r="3.5" fill="#8DC63F"/>
+                      <circle cx="450" cy="151" r="3.5" fill="#8DC63F"/>
+                      <!-- Legend -->
+                      <circle cx="268" cy="16" r="4" fill="#007DB7"/>
+                      <text x="276" y="20" fill="#616161" font-size="10">Bangladesh</text>
+                      <circle cx="340" cy="16" r="4" fill="#68C5EA"/>
+                      <text x="348" y="20" fill="#616161" font-size="10">Viet Nam</text>
+                      <circle cx="405" cy="16" r="4" fill="#8DC63F"/>
+                      <text x="413" y="20" fill="#616161" font-size="10">Cambodia</text>
+                    </svg>
+                  } @else {
+                  <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                    <rect width="480" height="260" fill="#F8F9FA"/>
+                    <line x1="60" y1="30"  x2="470" y2="30"  stroke="#E5E7EB" stroke-width="0.5"/>
+                    <line x1="60" y1="80"  x2="470" y2="80"  stroke="#E5E7EB" stroke-width="0.5"/>
+                    <line x1="60" y1="130" x2="470" y2="130" stroke="#E5E7EB" stroke-width="0.5"/>
+                    <line x1="60" y1="180" x2="470" y2="180" stroke="#E5E7EB" stroke-width="0.5"/>
+                    <line x1="60" y1="230" x2="470" y2="230" stroke="#E5E7EB" stroke-width="0.5"/>
+                    <text x="48" y="33"  fill="#9CA3AF" font-size="10" text-anchor="end">10</text>
+                    <text x="48" y="83"  fill="#9CA3AF" font-size="10" text-anchor="end">5</text>
+                    <text x="48" y="133" fill="#9CA3AF" font-size="10" text-anchor="end">0</text>
+                    <text x="48" y="183" fill="#9CA3AF" font-size="10" text-anchor="end">-5</text>
+                    <text x="48" y="233" fill="#9CA3AF" font-size="10" text-anchor="end">-10</text>
+                    <text x="12" y="140" fill="#9CA3AF" font-size="9" text-anchor="middle" transform="rotate(-90,12,140)">% chg</text>
+                    <text x="75"  y="252" fill="#9CA3AF" font-size="10" text-anchor="middle">2010</text>
+                    <text x="165" y="252" fill="#9CA3AF" font-size="10" text-anchor="middle">2012</text>
+                    <text x="255" y="252" fill="#9CA3AF" font-size="10" text-anchor="middle">2014</text>
+                    <text x="345" y="252" fill="#9CA3AF" font-size="10" text-anchor="middle">2016</text>
+                    <text x="445" y="252" fill="#9CA3AF" font-size="10" text-anchor="middle">2018</text>
+                    <polyline points="75,43 120,58 165,75 210,76 255,83 300,90 345,93 390,91 445,95"   stroke="#333333" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="75,65 120,105 165,100 210,80 255,63 300,57 345,55 390,75 445,72"  stroke="#68C5EA" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="75,152 120,186 165,175 210,152 255,132 300,120 345,118 390,116 445,112" stroke="#8DC63F" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="300" y="50" width="10" height="2" fill="#333333"/><text x="315" y="53" fill="#616161" font-size="10">China</text>
+                    <rect x="300" y="64" width="10" height="2" fill="#68C5EA"/><text x="315" y="67" fill="#616161" font-size="10">India</text>
+                    <rect x="300" y="78" width="10" height="2" fill="#8DC63F"/><text x="315" y="81" fill="#616161" font-size="10">Indonesia</text>
+                  </svg>
+                  }
+                </div>
+                </div>
+              }
+
+              <!-- Text response (supports **bold** + inline citation chip) -->
+              @if (msg.text) {
+                <div class="nb__msg-text" [innerHTML]="renderText(msg.text, msg.sourceCards)" (click)="handleMsgClick($event, $index)"></div>
+              }
+
+              <!-- Artefact card — opens Output pane; shown as part of response, above sources -->
+              @if (msg.artefactCard; as art) {
+                <div class="nb__artefact-card" (click)="openArtefact(art.ctx)" role="button" tabindex="0">
+                  <div class="nb__artefact-card__icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <defs><linearGradient id="nb-art-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#68c5ea"/><stop offset="100%" stop-color="#ae5ded"/></linearGradient></defs>
+                      <path stroke="url(#nb-art-grad)" d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2zm0-12a2 2 0 0 1 2 2a2 2 0 0 1 2-2a2 2 0 0 1-2-2a2 2 0 0 1-2 2zm-7 12a6 6 0 0 1 6-6a6 6 0 0 1-6-6a6 6 0 0 1-6 6a6 6 0 0 1 6 6z"/>
+                    </svg>
+                  </div>
+                  <div class="nb__artefact-card__body">
+                    <span class="nb__artefact-card__label">{{ art.label }}</span>
+                    <span class="nb__artefact-card__title">{{ art.title }}</span>
+                  </div>
+                  <svg class="nb__artefact-card__open" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+              }
+
+              <!-- Suggested metric cards -->
+              @if (msg.suggestedMetrics?.length) {
+                <div class="nb__metric-suggests">
+                  @for (m of msg.suggestedMetrics!; track m.key) {
+                    <div class="nb__metric-suggest" [class.nb__metric-suggest--added]="addedMetricKeys().has(m.key)">
+                      <div class="nb__metric-suggest-head">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        <span class="nb__metric-suggest-label">{{ m.label }}</span>
+                        @if (addedMetricKeys().has(m.key)) {
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8DC63F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;flex-shrink:0">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        }
+                      </div>
+                      <div class="nb__metric-suggest-val" [style.color]="m.previewColor">{{ m.previewVal }}</div>
+                      <span class="nb__metric-suggest-country">Bangladesh · 2024</span>
+                      <button
+                        class="nb__metric-suggest-btn"
+                        [class.nb__metric-suggest-btn--added]="addedMetricKeys().has(m.key)"
+                        type="button"
+                        [disabled]="addedMetricKeys().has(m.key)"
+                        (click)="addMetricToDashboard(m.key, m.label)">
+                        @if (addedMetricKeys().has(m.key)) {
+                          Added
+                        } @else {
+                          + Add to Dashboard
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Output creation options (e.g. Country Dashboard / Metrics Dashboard / Briefing Note) -->
+              @if (msg.outputOptions?.length) {
+                <div class="nb__output-opts">
+                  <p class="nb__output-opts__label">Based on this analysis, I can also turn this into:</p>
+                  <div class="nb__output-opts__row">
+                    @for (opt of msg.outputOptions!; track opt.key) {
+                      <button class="nb__output-opt" type="button" (click)="triggerOutputOption(msgIdx, opt.key)">
+                        <span class="nb__output-opt__border" aria-hidden="true">
+                          <span class="nb__output-opt__blob"></span>
+                          <span class="nb__output-opt__blob nb__output-opt__blob--2"></span>
+                        </span>
+                        @if (opt.icon === 'map') {
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                            <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+                          </svg>
+                        } @else if (opt.icon === 'chart') {
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                          </svg>
+                        } @else {
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                          </svg>
+                        }
+                        {{ opt.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Try asking — row view (matches new workspace starter style) -->
+              @if (msg.actions?.length) {
+                <div class="nb__try-asking">
+                  <p class="nb__starters-label">Try asking</p>
+                  @for (action of msg.actions!; track action) {
+                    <button class="nb__starter-item" type="button" (click)="handleAction(action)">{{ action }}</button>
+                  }
+                </div>
+              }
+
+              <!-- Follow-up chips -->
+              @if (msg.chips?.length) {
+                <div class="nb__chips">
+                  @for (chip of msg.chips!; track chip) {
+                    <button class="nb__chip" type="button" (click)="handleAction(chip)">{{ chip }}</button>
+                  }
+                </div>
+              }
+
+              <!-- CTA buttons (secondary style, e.g. handoff actions) -->
+              @if (msg.ctaButtons?.length) {
+                <div class="nb__cta-btns">
+                  @for (btn of msg.ctaButtons!; track btn) {
+                    <button appSecondaryBtn type="button">{{ btn }}</button>
+                  }
+                </div>
+              }
+              @if (msg.ctaLink) {
+                <a class="nb__cta-link" href="#" (click)="$event.preventDefault(); handleCtaAction(msg.ctaAction)">
+                  {{ msg.ctaLink }}
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              }
+
+              @if (msg.widgets?.length) {
+                <div class="nb__msg-widgets">
+                  @for (w of msg.widgets!; track w.id) {
+                    @if (w.widgetType === 'asset') {
+                      <div class="nb__widget-card">
+                        <app-asset-card
+                          [tag]="w.displayType ?? ''"
+                          [tagColor]="widgetTagColor(w)"
+                          [rating]="w.rating"
+                          [title]="w.title"
+                          [description]="w.description"
+                          [users]="w.users"
+                          [uses]="w.downloads"
+                          [showToggle]="false"
+                        ></app-asset-card>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+              @if (msg.sources) {
+                <button class="nb__sources-link" type="button" (click)="toggleSources($index)">
+                  Used {{ msg.sources }} source{{ msg.sources === 1 ? '' : 's' }}
+                  <svg class="nb__sources-chevron" [class.nb__sources-chevron--open]="sourcesOpenIdx() === $index"
+                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                @if (sourcesOpenIdx() === $index && msg.sourceCards?.length) {
+                  <div class="nb__source-panel">
+                    @for (src of msg.sourceCards!; track src.title) {
+                      <div class="nb__source-card" (click)="openSourceDoc(src)" role="button" tabindex="0" style="cursor:pointer">
+                        <div class="nb__source-card-header">
+                          @if (src.type === 'pdf' || src.type === 'dataset') {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                          } @else {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                          }
+                          <span class="nb__source-card-title">{{ src.title }}</span>
+                        </div>
+                        <p class="nb__source-card-desc">{{ src.description }}</p>
+                        <span class="nb__source-card-date">Last updated {{ src.updatedAt }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+              <div class="nb__feedback">
+                <button class="nb__fb-btn" type="button" title="Copy" aria-label="Copy response">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                </button>
+                <button class="nb__fb-btn" type="button" title="Good response" aria-label="Good response">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
+                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                  </svg>
+                </button>
+                <button class="nb__fb-btn" type="button" title="Bad response" aria-label="Bad response">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
+                    <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                  </svg>
+                </button>
+                <button class="nb__fb-btn" type="button" title="Download" aria-label="Download response">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Related queries — shown after a carried-over conversation -->
+        @if (relatedQueries.length > 0 && !thinking()) {
+          <div class="nb__related">
+            <span class="nb__related-label">Related queries</span>
+            @for (q of relatedQueries; track q) {
+              <button class="nb__related-item" type="button" (click)="sendRelatedQuery(q)">{{ q }}</button>
+            }
+          </div>
+        }
+        } <!-- end @if !forkLoading messages -->
+
+        <!-- AI reasoning loader — shown while a step is processing -->
+        @if (thinking(); as t) {
+          <div class="nb__msg nb__msg--assistant nb__msg--thinking">
+            <ia-ai-reasoning-loader
+              [phases]="t.phases"
+              [phaseDuration]="1100"
+            ></ia-ai-reasoning-loader>
+          </div>
+        }
+
+      </div>
+
+      <!-- Chat Input -->
+      <div class="nb__chat-input">
+        <div class="nb__prompt-wrap" [class.nb__prompt-wrap--quoted]="briefingQuote()">
+          @if (briefingQuote()) {
+            <div class="nb__chat-quote">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:#5a7a96;margin-top:1px">
+                <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
+              </svg>
+              <span class="nb__chat-quote-text">{{ briefingQuote() }}</span>
+              <button class="nb__chat-quote-clear" type="button" (click)="clearBriefingQuote()" aria-label="Remove quote">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          }
+          <adb-prompt-bar
+            placeholder="Follow up with a question"
+            (submit)="sendMessage($event)"
+          ></adb-prompt-bar>
+        </div>
+      </div>
+      } <!-- end @if chatTab !== workflow -->
+    </section>
+
+    <!-- RIGHT: Data Preview Panel -->
+    <aside class="nb__panel nb__panel--preview"
+      [class.nb__panel--preview-collapsed]="previewCollapsed()"
+      [style.width.px]="previewCollapsed() ? 0 : previewWidth()">
+
+      <div class="nb__panel-edge nb__panel-edge--left" (mousedown)="startResize('preview', $event)"></div>
+
+      <div class="nb__panel-header">
+        <span class="nb__panel-title">{{ dynamicOutputTitle }}</span>
+        @if (hasPreviewData && title() !== 'Pacific Risk Atlas (Old)') {
+          <span class="nb__output-updated">Updated just now</span>
+        }
+        @if (hasPreviewData && title() === 'Pacific Risk Atlas (Old)') {
+          <select class="nb__preview-select" [(ngModel)]="previewMode" (ngModelChange)="onPreviewModeChange($event)" aria-label="Preview mode">
+            @for (m of availablePreviewModes; track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        }
+        <button
+          class="nb__panel-toggle"
+          type="button"
+          aria-label="Close output"
+          (click)="togglePreviewPanel()"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="nb__preview-canvas" [class.nb__preview-canvas--data]="hasPreviewData">
+
+          @if (forkLoading() || outputSwitching()) {
+            <div class="nb__skel-preview-wrap">
+              @if (!outputSwitching()) {
+                <div class="nb__skel-preview-chips">
+                  <span class="nb__skel-chip"></span>
+                  <span class="nb__skel-chip" style="width:90px"></span>
+                  <span class="nb__skel-chip" style="width:110px"></span>
+                  <span class="nb__skel-chip" style="width:80px"></span>
+                </div>
+              }
+              <div class="nb__skel-preview-map" style="border-radius:6px">
+                <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+                  <div class="nb__skel-chip" style="width:55%;height:14px;border-radius:6px"></div>
+                  <div class="nb__skel-chip" style="width:90%;height:10px;border-radius:5px"></div>
+                  <div class="nb__skel-chip" style="width:82%;height:10px;border-radius:5px"></div>
+                  <div class="nb__skel-chip" style="width:75%;height:10px;border-radius:5px"></div>
+                  <div class="nb__skel-chip" style="width:88%;height:10px;border-radius:5px;margin-top:8px"></div>
+                  <div class="nb__skel-chip" style="width:65%;height:10px;border-radius:5px"></div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ── EMPTY STATE ──────────────────────────────────────── -->
+          @if (!forkLoading() && !hasPreviewData) {
+            <div class="nb__preview-empty">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="nb__preview-empty-icon">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
+                <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+              <p class="nb__preview-empty-title">No output yet</p>
+              <p class="nb__preview-empty-sub">Your output will appear here as you work in the chat. Visualisations in chat can also be pinned to Output.</p>
+            </div>
+          }
+
+          <!-- ── VIEWS (only when data is available) ─────────────── -->
+          @if (!forkLoading() && hasPreviewData) {
+
+          <!-- ── MAP VIEW ───────────────────────────────────────── -->
+          @if (previewCtx() === 'map') {
+            <div class="nb__country-dashboard">
+              <div class="nb__map-wrap">
+                <app-world-map
+                  [activeEconomies]="mapEconomies()"
+                  [viewBoxOverride]="mapViewBox() ?? '480 330 320 320'"
+                  [markers]="mapMarkers()"
+                  [hideCard]="isCommunityWorkspace()"
+                  (countrySelect)="onCountrySelect($event)"
+                ></app-world-map>
+                @if (mapFilters().length > 0) {
+                  <div class="nb__map-meta">
+                    @if (mapCount() > 0) {
+                      <span class="nb__map-count">{{ mapCount() }} {{ mapCountUnit() }}</span>
+                    }
+                    @for (f of mapFilters(); track f) {
+                      <span class="nb__filter-chip">{{ f }}</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (mapCountryPanel(); as cp) {
+                <div class="nb__country-pane">
+                  <div class="nb__country-pane__header">
+                    <div class="nb__country-pane__flag-wrap">
+                      <img class="nb__country-pane__flag"
+                        [src]="'https://flagcdn.com/w40/' + cp.flag + '.png'"
+                        [alt]="cp.name" />
+                      <div>
+                        <div class="nb__country-pane__name">{{ cp.name }}</div>
+                        <div class="nb__country-pane__region">{{ cp.region }}</div>
+                      </div>
+                    </div>
+                    <button class="nb__country-pane__close" type="button" (click)="mapCountryPanel.set(null)" aria-label="Close">
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                        <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="nb__country-pane__metrics">
+                    @for (m of cp.metrics; track m.label) {
+                      <div class="nb__country-pane__metric">
+                        <span class="nb__country-pane__metric-label">{{ m.label }}</span>
+                        <div class="nb__country-pane__metric-row">
+                          <span class="nb__country-pane__metric-value">{{ m.value }}</span>
+                          <span class="nb__country-pane__metric-delta"
+                            [style.color]="m.up ? '#16a34a' : '#dc2626'">
+                            @if (m.up) {
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                            } @else {
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            }
+                            {{ m.delta }}
+                          </span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── PROJECT OVERVIEW ──────────────────────────────── -->
+          @if (previewCtx() === 'overview') {
+            <div class="nb__overview">
+              <div class="nb__overview-header">
+                <span class="nb__overview-badge">Active</span>
+                <span class="nb__overview-country">Philippines</span>
+              </div>
+              <h3 class="nb__overview-title">Metro Manila Transport Project</h3>
+              <div class="nb__overview-stats">
+                <div class="nb__overview-stat">
+                  <span class="nb__overview-stat-value">$420m</span>
+                  <span class="nb__overview-stat-label">Financing</span>
+                </div>
+                <div class="nb__overview-stat">
+                  <span class="nb__overview-stat-value">64%</span>
+                  <span class="nb__overview-stat-label">Disbursed</span>
+                </div>
+                <div class="nb__overview-stat">
+                  <span class="nb__overview-stat-value">18</span>
+                  <span class="nb__overview-stat-label">Contracts</span>
+                </div>
+                <div class="nb__overview-stat">
+                  <span class="nb__overview-stat-value">2023–28</span>
+                  <span class="nb__overview-stat-label">Implementation</span>
+                </div>
+              </div>
+              <div class="nb__overview-meta">
+                <div class="nb__overview-meta-row">
+                  <span class="nb__overview-meta-key">Country</span>
+                  <span class="nb__overview-meta-val">Philippines</span>
+                </div>
+                <div class="nb__overview-meta-row">
+                  <span class="nb__overview-meta-key">Sector</span>
+                  <span class="nb__overview-meta-val">Transport</span>
+                </div>
+                <div class="nb__overview-meta-row">
+                  <span class="nb__overview-meta-key">Status</span>
+                  <span class="nb__overview-meta-val">Active</span>
+                </div>
+              </div>
+              <!-- Mini disbursement progress bar -->
+              <div class="nb__overview-progress-wrap">
+                <div class="nb__overview-progress-label">
+                  <span>Disbursement</span><span>64% of $420m</span>
+                </div>
+                <div class="nb__overview-progress-track">
+                  <div class="nb__overview-progress-bar" style="width: 64%"></div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- ── DISBURSEMENT CHART ─────────────────────────────── -->
+          @if (previewCtx() === 'disburse') {
+            <div class="nb__disburse">
+              <div class="nb__disburse-header">
+                <span class="nb__disburse-title">Cumulative Disbursement — Metro Manila</span>
+                <div class="nb__disburse-legend">
+                  <span class="nb__legend-dot nb__legend-dot--planned"></span><span>Planned</span>
+                  <span class="nb__legend-dot nb__legend-dot--actual"></span><span>Actual</span>
+                </div>
+              </div>
+              <div class="nb__chart-wrap">
+                <!-- Planned: 2023=5% 2024=25% 2025=50% 2026=72% 2027=90% 2028=100%
+                     Actual:  2023=4% 2024=21% 2025=44% 2026=64%
+                     viewBox 0 0 480 260, y: 30=100%, 230=0%, scale 2px/% -->
+                <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                  <rect width="480" height="260" fill="#F8F9FA"/>
+                  <!-- Grid -->
+                  <line x1="60" y1="30"  x2="460" y2="30"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="80"  x2="460" y2="80"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="130" x2="460" y2="130" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="180" x2="460" y2="180" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="230" x2="460" y2="230" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <!-- Y labels -->
+                  <text x="52" y="33"  fill="#9CA3AF" font-size="10" text-anchor="end">100%</text>
+                  <text x="52" y="83"  fill="#9CA3AF" font-size="10" text-anchor="end">75%</text>
+                  <text x="52" y="133" fill="#9CA3AF" font-size="10" text-anchor="end">50%</text>
+                  <text x="52" y="183" fill="#9CA3AF" font-size="10" text-anchor="end">25%</text>
+                  <text x="52" y="233" fill="#9CA3AF" font-size="10" text-anchor="end">0%</text>
+                  <!-- X labels -->
+                  <text x="80"  y="250" fill="#9CA3AF" font-size="10" text-anchor="middle">2023</text>
+                  <text x="156" y="250" fill="#9CA3AF" font-size="10" text-anchor="middle">2024</text>
+                  <text x="232" y="250" fill="#9CA3AF" font-size="10" text-anchor="middle">2025</text>
+                  <text x="308" y="250" fill="#9CA3AF" font-size="10" text-anchor="middle">2026</text>
+                  <text x="384" y="250" fill="#9CA3AF" font-size="10" text-anchor="middle">2027</text>
+                  <text x="460" y="250" fill="#9CA3AF" font-size="10" text-anchor="middle">2028</text>
+                  <!-- Planned line (blue #007DB7) -->
+                  <polyline
+                    points="80,220 156,180 232,130 308,86 384,50 460,30"
+                    stroke="#007DB7" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 3"/>
+                  <!-- Actual line (green #8DC63F) — stops at 2026 -->
+                  <polyline
+                    points="80,222 156,188 232,142 308,102"
+                    stroke="#8DC63F" stroke-width="2.5" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+                  <!-- Actual endpoint dot -->
+                  <circle cx="308" cy="102" r="4" fill="#8DC63F"/>
+                  <!-- Planned dots -->
+                  <circle cx="80"  cy="220" r="3" fill="#007DB7"/>
+                  <circle cx="156" cy="180" r="3" fill="#007DB7"/>
+                  <circle cx="232" cy="130" r="3" fill="#007DB7"/>
+                  <circle cx="308" cy="86"  r="3" fill="#007DB7"/>
+                  <circle cx="384" cy="50"  r="3" fill="#007DB7"/>
+                  <circle cx="460" cy="30"  r="3" fill="#007DB7"/>
+                  <!-- Gap annotation -->
+                  <line x1="308" y1="86" x2="308" y2="102" stroke="#E57373" stroke-width="1.5" stroke-dasharray="3 2"/>
+                  <text x="316" y="96" fill="#E57373" font-size="9">−8%</text>
+                </svg>
+              </div>
+            </div>
+          }
+
+          <!-- ── PROCUREMENT TABLE ──────────────────────────────── -->
+          @if (previewCtx() === 'procurement') {
+            <div class="nb__proc">
+              <div class="nb__proc-toolbar">
+                <span class="nb__proc-count">
+                  {{ procFilter() ? filteredProcRecords().length + ' contracts' : '18 total · 9 shown' }}
+                  @if (isRanked()) { <span class="nb__proc-ranked-badge">ranked by value</span> }
+                </span>
+                <div class="nb__proc-filters">
+                  <button
+                    class="nb__proc-filter-btn"
+                    [class.nb__proc-filter-btn--active]="procFilter() === ''"
+                    type="button"
+                    (click)="filterProcurement('')">All</button>
+                  <button
+                    class="nb__proc-filter-btn"
+                    [class.nb__proc-filter-btn--active]="procFilter() === 'Active'"
+                    type="button"
+                    (click)="filterProcurement('Active')">Active</button>
+                  <button
+                    class="nb__proc-filter-btn"
+                    [class.nb__proc-filter-btn--active]="procFilter() === 'Awarded'"
+                    type="button"
+                    (click)="filterProcurement('Awarded')">Awarded</button>
+                  <button
+                    class="nb__proc-filter-btn"
+                    [class.nb__proc-filter-btn--active]="procFilter() === 'Complete'"
+                    type="button"
+                    (click)="filterProcurement('Complete')">Complete</button>
+                </div>
+              </div>
+              <div class="nb__proc-scroll">
+                <table class="nb__proc-table">
+                  <thead>
+                    <tr>
+                      <th>Contract</th>
+                      <th>Supplier</th>
+                      <th>Value</th>
+                      <th>Status</th>
+                      <th>Award date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of filteredProcRecords(); track r.contract; let i = $index) {
+                      <tr [class.nb__proc-row--ranked]="isRanked() && i < 3">
+                        <td class="nb__proc-contract">{{ r.contract }}</td>
+                        <td class="nb__proc-supplier">{{ r.supplier }}</td>
+                        <td class="nb__proc-value" [class.nb__proc-value--ranked]="isRanked() && i < 3">{{ r.value }}</td>
+                        <td>
+                          <span class="nb__proc-status"
+                            [class.nb__proc-status--active]="r.status === 'Active'"
+                            [class.nb__proc-status--awarded]="r.status === 'Awarded'"
+                            [class.nb__proc-status--complete]="r.status === 'Complete'">
+                            {{ r.status }}
+                          </span>
+                        </td>
+                        <td class="nb__proc-date">{{ r.awarded }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- ── COMPARISON TABLE ──────────────────────────────── -->
+          @if (previewCtx() === 'comparison') {
+            <div class="nb__comparison">
+              <div class="nb__comparison-header">
+                <span class="nb__comparison-title">Southeast Asia Transport Projects</span>
+                <span class="nb__comparison-subtitle">6 active projects · filtered result set</span>
+              </div>
+              <div class="nb__comparison-scroll">
+                <table class="nb__comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Country</th>
+                      <th>Financing</th>
+                      <th>Disbursed</th>
+                      <th>Contracts</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of comparisonRows; track row.project) {
+                      <tr [class.nb__comparison-row--selected]="row.highlight">
+                        <td class="nb__comparison-project">
+                          @if (row.highlight) {
+                            <span class="nb__comparison-selected-dot"></span>
+                          }
+                          {{ row.project }}
+                        </td>
+                        <td>{{ row.country }}</td>
+                        <td class="nb__comparison-num">{{ row.financing }}</td>
+                        <td class="nb__comparison-num">{{ row.disbursed }}</td>
+                        <td class="nb__comparison-num">{{ row.contracts }}</td>
+                        <td><span class="nb__proc-status nb__proc-status--active">{{ 'Active' }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC RISK ATLAS CHART ─────────────────────── -->
+          @if (previewCtx() === 'pacific-chart') {
+            <div class="nb__disburse">
+              <div class="nb__disburse-header">
+                <span class="nb__disburse-title">Flood Exposure Index — Pacific SIDS</span>
+                <div class="nb__disburse-legend">
+                  <span class="nb__legend-dot" style="background:#E57373"></span><span>High</span>
+                  <span class="nb__legend-dot" style="background:#FFB74D"></span><span>Moderate</span>
+                  <span class="nb__legend-dot" style="background:#8DC63F"></span><span>Low</span>
+                </div>
+              </div>
+              <div class="nb__chart-wrap">
+                <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                  <rect width="480" height="260" fill="#F8F9FA"/>
+                  <!-- Grid lines -->
+                  <line x1="60" y1="30"  x2="460" y2="30"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="80"  x2="460" y2="80"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="130" x2="460" y2="130" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="180" x2="460" y2="180" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="230" x2="460" y2="230" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <!-- Y axis labels -->
+                  <text x="52" y="33"  fill="#9CA3AF" font-size="10" text-anchor="end">100</text>
+                  <text x="52" y="83"  fill="#9CA3AF" font-size="10" text-anchor="end">75</text>
+                  <text x="52" y="133" fill="#9CA3AF" font-size="10" text-anchor="end">50</text>
+                  <text x="52" y="183" fill="#9CA3AF" font-size="10" text-anchor="end">25</text>
+                  <text x="52" y="233" fill="#9CA3AF" font-size="10" text-anchor="end">0</text>
+                  <!-- Bars: Tongatapu=87, Vanuatu=62, Cook Islands=38 -->
+                  <!-- Tongatapu -->
+                  <rect x="90"  y="56"  width="80" height="174" fill="#E57373" rx="3"/>
+                  <text x="130" y="50"  fill="#616161" font-size="10" text-anchor="middle">87</text>
+                  <text x="130" y="248" fill="#9CA3AF" font-size="10" text-anchor="middle">Tongatapu</text>
+                  <!-- Vanuatu -->
+                  <rect x="200" y="106" width="80" height="124" fill="#FFB74D" rx="3"/>
+                  <text x="240" y="100" fill="#616161" font-size="10" text-anchor="middle">62</text>
+                  <text x="240" y="248" fill="#9CA3AF" font-size="10" text-anchor="middle">Vanuatu</text>
+                  <!-- Cook Islands -->
+                  <rect x="310" y="154" width="80" height="76"  fill="#8DC63F" rx="3"/>
+                  <text x="350" y="148" fill="#616161" font-size="10" text-anchor="middle">38</text>
+                  <text x="350" y="248" fill="#9CA3AF" font-size="10" text-anchor="middle">Cook Islands</text>
+                </svg>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC LINE CHART ────────────────────────────── -->
+          @if (previewCtx() === 'pacific-line') {
+            <div class="nb__disburse">
+              <div class="nb__disburse-header">
+                <span class="nb__disburse-title">Flood Risk Index Trend — 2020–2025</span>
+                <div class="nb__disburse-legend">
+                  <span class="nb__legend-dot" style="background:#E57373"></span><span>Tongatapu</span>
+                  <span class="nb__legend-dot" style="background:#FFB74D"></span><span>Vanuatu</span>
+                  <span class="nb__legend-dot" style="background:#4FC3F7"></span><span>Cook Islands</span>
+                </div>
+              </div>
+              <div class="nb__chart-wrap">
+                <svg viewBox="0 0 480 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                  <rect width="480" height="240" fill="#F8F9FA"/>
+                  <!-- Grid -->
+                  <line x1="60" y1="20"  x2="460" y2="20"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="60"  x2="460" y2="60"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="100" x2="460" y2="100" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="140" x2="460" y2="140" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="180" x2="460" y2="180" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="220" x2="460" y2="220" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <!-- Y labels -->
+                  <text x="52" y="23"  fill="#9CA3AF" font-size="9" text-anchor="end">100</text>
+                  <text x="52" y="63"  fill="#9CA3AF" font-size="9" text-anchor="end">80</text>
+                  <text x="52" y="103" fill="#9CA3AF" font-size="9" text-anchor="end">60</text>
+                  <text x="52" y="143" fill="#9CA3AF" font-size="9" text-anchor="end">40</text>
+                  <text x="52" y="183" fill="#9CA3AF" font-size="9" text-anchor="end">20</text>
+                  <text x="52" y="223" fill="#9CA3AF" font-size="9" text-anchor="end">0</text>
+                  <!-- X labels: 2020-2025 -->
+                  <text x="80"  y="235" fill="#9CA3AF" font-size="9" text-anchor="middle">2020</text>
+                  <text x="160" y="235" fill="#9CA3AF" font-size="9" text-anchor="middle">2021</text>
+                  <text x="240" y="235" fill="#9CA3AF" font-size="9" text-anchor="middle">2022</text>
+                  <text x="320" y="235" fill="#9CA3AF" font-size="9" text-anchor="middle">2023</text>
+                  <text x="400" y="235" fill="#9CA3AF" font-size="9" text-anchor="middle">2024</text>
+                  <text x="440" y="235" fill="#9CA3AF" font-size="9" text-anchor="middle">2025</text>
+                  <!-- Tongatapu: 72,75,79,83,85,87 -->
+                  <polyline points="80,76 160,70 240,60 320,48 400,42 440,36" fill="none" stroke="#E57373" stroke-width="2" stroke-linejoin="round"/>
+                  <circle cx="80"  cy="76" r="3" fill="#E57373"/>
+                  <circle cx="160" cy="70" r="3" fill="#E57373"/>
+                  <circle cx="240" cy="60" r="3" fill="#E57373"/>
+                  <circle cx="320" cy="48" r="3" fill="#E57373"/>
+                  <circle cx="400" cy="42" r="3" fill="#E57373"/>
+                  <circle cx="440" cy="36" r="3" fill="#E57373"/>
+                  <!-- Vanuatu: 55,57,58,60,61,62 -->
+                  <polyline points="80,120 160,116 240,114 320,110 400,108 440,106" fill="none" stroke="#FFB74D" stroke-width="2" stroke-linejoin="round"/>
+                  <circle cx="80"  cy="120" r="3" fill="#FFB74D"/>
+                  <circle cx="160" cy="116" r="3" fill="#FFB74D"/>
+                  <circle cx="240" cy="114" r="3" fill="#FFB74D"/>
+                  <circle cx="320" cy="110" r="3" fill="#FFB74D"/>
+                  <circle cx="400" cy="108" r="3" fill="#FFB74D"/>
+                  <circle cx="440" cy="106" r="3" fill="#FFB74D"/>
+                  <!-- Cook Islands: 30,32,34,35,37,38 -->
+                  <polyline points="80,160 160,156 240,152 320,150 400,146 440,144" fill="none" stroke="#4FC3F7" stroke-width="2" stroke-linejoin="round"/>
+                  <circle cx="80"  cy="160" r="3" fill="#4FC3F7"/>
+                  <circle cx="160" cy="156" r="3" fill="#4FC3F7"/>
+                  <circle cx="240" cy="152" r="3" fill="#4FC3F7"/>
+                  <circle cx="320" cy="150" r="3" fill="#4FC3F7"/>
+                  <circle cx="400" cy="146" r="3" fill="#4FC3F7"/>
+                  <circle cx="440" cy="144" r="3" fill="#4FC3F7"/>
+                </svg>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC SCATTER ─────────────────────────────────── -->
+          @if (previewCtx() === 'pacific-scatter') {
+            <div class="nb__disburse">
+              <div class="nb__disburse-header">
+                <span class="nb__disburse-title">Flood Exposure vs Population at Risk</span>
+                <div class="nb__disburse-legend">
+                  <span class="nb__legend-dot" style="background:#E57373"></span><span>High risk</span>
+                  <span class="nb__legend-dot" style="background:#FFB74D"></span><span>Moderate</span>
+                  <span class="nb__legend-dot" style="background:#8DC63F"></span><span>Low risk</span>
+                </div>
+              </div>
+              <div class="nb__chart-wrap">
+                <svg viewBox="0 0 480 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+                  <rect width="480" height="260" fill="#F8F9FA"/>
+                  <!-- Grid -->
+                  <line x1="60" y1="20"  x2="460" y2="20"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="70"  x2="460" y2="70"  stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="120" x2="460" y2="120" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="170" x2="460" y2="170" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <line x1="60" y1="220" x2="460" y2="220" stroke="#E5E7EB" stroke-width="0.5"/>
+                  <!-- Axes -->
+                  <line x1="60" y1="20" x2="60" y2="220" stroke="#D1D5DB" stroke-width="1"/>
+                  <line x1="60" y1="220" x2="460" y2="220" stroke="#D1D5DB" stroke-width="1"/>
+                  <!-- Y labels (population at risk, thousands) -->
+                  <text x="52" y="23"  fill="#9CA3AF" font-size="9" text-anchor="end">60k</text>
+                  <text x="52" y="73"  fill="#9CA3AF" font-size="9" text-anchor="end">45k</text>
+                  <text x="52" y="123" fill="#9CA3AF" font-size="9" text-anchor="end">30k</text>
+                  <text x="52" y="173" fill="#9CA3AF" font-size="9" text-anchor="end">15k</text>
+                  <text x="52" y="223" fill="#9CA3AF" font-size="9" text-anchor="end">0</text>
+                  <!-- X labels (exposure index 0-100) -->
+                  <text x="60"  y="232" fill="#9CA3AF" font-size="9" text-anchor="middle">0</text>
+                  <text x="160" y="232" fill="#9CA3AF" font-size="9" text-anchor="middle">25</text>
+                  <text x="260" y="232" fill="#9CA3AF" font-size="9" text-anchor="middle">50</text>
+                  <text x="360" y="232" fill="#9CA3AF" font-size="9" text-anchor="middle">75</text>
+                  <text x="460" y="232" fill="#9CA3AF" font-size="9" text-anchor="middle">100</text>
+                  <text x="260" y="248" fill="#9CA3AF" font-size="9" text-anchor="middle">Exposure Index</text>
+                  <!-- Tongatapu: exposure=87, pop=52k -->
+                  <circle cx="408" cy="47" r="9" fill="#E57373" opacity="0.85"/>
+                  <text x="408" y="36" fill="#616161" font-size="8" text-anchor="middle">Tongatapu</text>
+                  <!-- Vanuatu: exposure=62, pop=44k -->
+                  <circle cx="308" cy="74" r="8" fill="#FFB74D" opacity="0.85"/>
+                  <text x="308" y="63" fill="#616161" font-size="8" text-anchor="middle">Vanuatu</text>
+                  <!-- Cook Islands: exposure=38, pop=14k -->
+                  <circle cx="212" cy="174" r="6" fill="#8DC63F" opacity="0.85"/>
+                  <text x="212" y="163" fill="#616161" font-size="8" text-anchor="middle">Cook Is.</text>
+                  <!-- Samoa: exposure=51, pop=20k -->
+                  <circle cx="264" cy="153" r="6" fill="#FFB74D" opacity="0.85"/>
+                  <text x="264" y="142" fill="#616161" font-size="8" text-anchor="middle">Samoa</text>
+                  <!-- Fiji: exposure=44, pop=30k -->
+                  <circle cx="236" cy="120" r="7" fill="#8DC63F" opacity="0.85"/>
+                  <text x="236" y="109" fill="#616161" font-size="8" text-anchor="middle">Fiji</text>
+                </svg>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC RECORD / DETAIL ─────────────────────────── -->
+          @if (previewCtx() === 'pacific-record') {
+            <div class="nb__comparison">
+              <div class="nb__comparison-header">
+                <span class="nb__comparison-title">Record Detail — Tongatapu, Tonga</span>
+                <span class="nb__comparison-subtitle">Site ID: PAC-TONGA-001</span>
+              </div>
+              <div class="nb__comparison-scroll">
+                <table class="nb__comparison-table">
+                  <tbody>
+                    <tr><td style="color:#5f6368;width:44%">Site Name</td><td>Tongatapu</td></tr>
+                    <tr><td style="color:#5f6368">Country</td><td>Tonga</td></tr>
+                    <tr><td style="color:#5f6368">Region</td><td>Pacific</td></tr>
+                    <tr><td style="color:#5f6368">Latitude / Longitude</td><td>−21.178 / −175.198</td></tr>
+                    <tr><td style="color:#5f6368">Exposure Index</td><td><strong>87</strong> <span style="color:#c62828;font-size:11px">(High)</span></td></tr>
+                    <tr><td style="color:#5f6368">Population at Risk</td><td>52,000</td></tr>
+                    <tr><td style="color:#5f6368">Key Hazard</td><td>Coastal inundation</td></tr>
+                    <tr><td style="color:#5f6368">Flood Return Period</td><td>1-in-50-year event</td></tr>
+                    <tr><td style="color:#5f6368">Sea-Level Rise Scenario</td><td>RCP 8.5 (2050)</td></tr>
+                    <tr><td style="color:#5f6368">Infrastructure Exposed</td><td>Roads, ports, public buildings</td></tr>
+                    <tr><td style="color:#5f6368">Data Source</td><td>Pacific Risk Atlas v2.1</td></tr>
+                    <tr><td style="color:#5f6368">Last Updated</td><td>14 Jun 2026</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC SCHEMA ──────────────────────────────────── -->
+          @if (previewCtx() === 'pacific-schema') {
+            <div class="nb__comparison">
+              <div class="nb__comparison-header">
+                <span class="nb__comparison-title">Schema — Pacific Risk Atlas</span>
+                <span class="nb__comparison-subtitle">12 fields · CSV / Parquet</span>
+              </div>
+              <div class="nb__comparison-scroll">
+                <table class="nb__comparison-table">
+                  <thead>
+                    <tr><th>Field</th><th>Type</th><th>Description</th><th>Sample</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td class="nb__comparison-project">site_id</td><td style="color:#5f6368;font-size:11.5px">STRING</td><td>Unique site identifier</td><td style="color:#9CA3AF;font-size:11px">PAC-TONGA-001</td></tr>
+                    <tr><td class="nb__comparison-project">site_name</td><td style="color:#5f6368;font-size:11.5px">STRING</td><td>Name of the site or locality</td><td style="color:#9CA3AF;font-size:11px">Tongatapu</td></tr>
+                    <tr><td class="nb__comparison-project">country</td><td style="color:#5f6368;font-size:11.5px">STRING</td><td>ISO 3166-1 country name</td><td style="color:#9CA3AF;font-size:11px">Tonga</td></tr>
+                    <tr><td class="nb__comparison-project">latitude</td><td style="color:#5f6368;font-size:11.5px">FLOAT</td><td>Decimal degrees north</td><td style="color:#9CA3AF;font-size:11px">−21.178</td></tr>
+                    <tr><td class="nb__comparison-project">longitude</td><td style="color:#5f6368;font-size:11.5px">FLOAT</td><td>Decimal degrees east</td><td style="color:#9CA3AF;font-size:11px">−175.198</td></tr>
+                    <tr><td class="nb__comparison-project">exposure_index</td><td style="color:#5f6368;font-size:11.5px">INTEGER</td><td>Composite flood exposure score (0–100)</td><td style="color:#9CA3AF;font-size:11px">87</td></tr>
+                    <tr><td class="nb__comparison-project">risk_level</td><td style="color:#5f6368;font-size:11.5px">STRING</td><td>Categorical risk tier</td><td style="color:#9CA3AF;font-size:11px">High</td></tr>
+                    <tr><td class="nb__comparison-project">population_at_risk</td><td style="color:#5f6368;font-size:11.5px">INTEGER</td><td>Estimated population in flood zone</td><td style="color:#9CA3AF;font-size:11px">52000</td></tr>
+                    <tr><td class="nb__comparison-project">key_hazard</td><td style="color:#5f6368;font-size:11.5px">STRING</td><td>Primary hazard type</td><td style="color:#9CA3AF;font-size:11px">Coastal inundation</td></tr>
+                    <tr><td class="nb__comparison-project">slr_scenario</td><td style="color:#5f6368;font-size:11.5px">STRING</td><td>Sea-level rise scenario applied</td><td style="color:#9CA3AF;font-size:11px">RCP 8.5</td></tr>
+                    <tr><td class="nb__comparison-project">return_period_yr</td><td style="color:#5f6368;font-size:11.5px">INTEGER</td><td>Flood return period in years</td><td style="color:#9CA3AF;font-size:11px">50</td></tr>
+                    <tr><td class="nb__comparison-project">last_updated</td><td style="color:#5f6368;font-size:11.5px">DATE</td><td>Date of last data refresh</td><td style="color:#9CA3AF;font-size:11px">2026-06-14</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC RAW / SAMPLE DATA ──────────────────────── -->
+          @if (previewCtx() === 'pacific-raw') {
+            <div class="nb__comparison">
+              <div class="nb__comparison-header">
+                <span class="nb__comparison-title">Raw Sample Data — Pacific Risk Atlas</span>
+                <span class="nb__comparison-subtitle">Showing first 8 of 3,240 records</span>
+              </div>
+              <div class="nb__comparison-scroll">
+                <table class="nb__comparison-table">
+                  <thead>
+                    <tr><th>site_id</th><th>site_name</th><th>country</th><th>exposure_index</th><th>risk_level</th><th>pop_at_risk</th><th>key_hazard</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td class="nb__comparison-project">PAC-TONGA-001</td><td>Tongatapu</td><td>Tonga</td><td class="nb__comparison-num">87</td><td><span class="nb__proc-status" style="background:rgba(229,115,115,0.12);color:#c62828;border-color:rgba(229,115,115,0.3)">High</span></td><td class="nb__comparison-num">52,000</td><td>Coastal inundation</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-VAN-001</td><td>Efate (Port Vila)</td><td>Vanuatu</td><td class="nb__comparison-num">62</td><td><span class="nb__proc-status" style="background:rgba(255,183,77,0.12);color:#e65100;border-color:rgba(255,183,77,0.3)">Moderate</span></td><td class="nb__comparison-num">44,000</td><td>Storm surge</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-COOK-001</td><td>Rarotonga</td><td>Cook Islands</td><td class="nb__comparison-num">38</td><td><span class="nb__proc-status nb__proc-status--active">Low</span></td><td class="nb__comparison-num">14,000</td><td>Flash flooding</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-SAMOA-001</td><td>Apia</td><td>Samoa</td><td class="nb__comparison-num">51</td><td><span class="nb__proc-status" style="background:rgba(255,183,77,0.12);color:#e65100;border-color:rgba(255,183,77,0.3)">Moderate</span></td><td class="nb__comparison-num">20,000</td><td>Tsunami inundation</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-FIJI-001</td><td>Suva</td><td>Fiji</td><td class="nb__comparison-num">44</td><td><span class="nb__proc-status nb__proc-status--active">Low</span></td><td class="nb__comparison-num">30,000</td><td>River flooding</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-PNG-001</td><td>Port Moresby</td><td>Papua New Guinea</td><td class="nb__comparison-num">71</td><td><span class="nb__proc-status" style="background:rgba(229,115,115,0.12);color:#c62828;border-color:rgba(229,115,115,0.3)">High</span></td><td class="nb__comparison-num">65,000</td><td>Urban flooding</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-SOL-001</td><td>Honiara</td><td>Solomon Islands</td><td class="nb__comparison-num">58</td><td><span class="nb__proc-status" style="background:rgba(255,183,77,0.12);color:#e65100;border-color:rgba(255,183,77,0.3)">Moderate</span></td><td class="nb__comparison-num">18,000</td><td>Coastal erosion</td></tr>
+                    <tr><td class="nb__comparison-project">PAC-KIRI-001</td><td>South Tarawa</td><td>Kiribati</td><td class="nb__comparison-num">93</td><td><span class="nb__proc-status" style="background:rgba(229,115,115,0.12);color:#c62828;border-color:rgba(229,115,115,0.3)">High</span></td><td class="nb__comparison-num">38,000</td><td>Sea-level inundation</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- ── PACIFIC RISK ATLAS TABLE ──────────────────────── -->
+          @if (previewCtx() === 'pacific-table') {
+            <div class="nb__comparison">
+              <div class="nb__comparison-header">
+                <span class="nb__comparison-title">Pacific SIDS Flood Exposure</span>
+                <span class="nb__comparison-subtitle">3 sites · ranked by exposure index</span>
+              </div>
+              <div class="nb__comparison-scroll">
+                <table class="nb__comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Site</th>
+                      <th>Country</th>
+                      <th>Exposure Index</th>
+                      <th>Risk Level</th>
+                      <th>Population at Risk</th>
+                      <th>Key Hazard</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="nb__comparison-row--selected">
+                      <td class="nb__comparison-project"><span class="nb__comparison-selected-dot"></span>Tongatapu</td>
+                      <td>Tonga</td>
+                      <td class="nb__comparison-num">87</td>
+                      <td><span class="nb__proc-status" style="background:rgba(229,115,115,0.12);color:#c62828;border-color:rgba(229,115,115,0.3)">High</span></td>
+                      <td class="nb__comparison-num">52,000</td>
+                      <td>Coastal inundation</td>
+                    </tr>
+                    <tr>
+                      <td class="nb__comparison-project">Efate (Port Vila)</td>
+                      <td>Vanuatu</td>
+                      <td class="nb__comparison-num">62</td>
+                      <td><span class="nb__proc-status" style="background:rgba(255,183,77,0.12);color:#e65100;border-color:rgba(255,183,77,0.3)">Moderate</span></td>
+                      <td class="nb__comparison-num">44,000</td>
+                      <td>Storm surge</td>
+                    </tr>
+                    <tr>
+                      <td class="nb__comparison-project">Rarotonga</td>
+                      <td>Cook Islands</td>
+                      <td class="nb__comparison-num">38</td>
+                      <td><span class="nb__proc-status nb__proc-status--active">Low</span></td>
+                      <td class="nb__comparison-num">14,000</td>
+                      <td>Flash flooding</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- ── COUNTRY INTELLIGENCE DASHBOARD ──────────────── -->
+          @if (previewCtx() === 'ci-dashboard') {
+            <div class="nb__dashboard">
+              @if (ciDashboardBuilding()) {
+                <div class="nb__dash-building">
+                  <div class="nb__dash-building-msg">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nb__dash-building-spin">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                    Creating dashboard…
+                  </div>
+                  <div class="nb__dash-skel-grid">
+                    <div class="nb__dash-skel-card"></div>
+                    <div class="nb__dash-skel-card"></div>
+                    <div class="nb__dash-skel-card"></div>
+                    <div class="nb__dash-skel-card"></div>
+                  </div>
+                </div>
+              } @else {
+                <div class="nb__dash-header">
+                  <span class="nb__dash-title">Country Comparison</span>
+                  <span class="nb__dash-subtitle">Bangladesh · Viet Nam · Cambodia · 2020–2024</span>
+                </div>
+                <div class="nb__dash-economies">
+                  @for (eco of ciEconomyLabels; track eco.code) {
+                    <button
+                      class="nb__dash-eco"
+                      [class.nb__dash-eco--active]="ciDashboardEconomy() === eco.code"
+                      type="button"
+                      (click)="ciDashboardEconomy.set(eco.code)">
+                      {{ eco.label }}
+                    </button>
+                  }
+                </div>
+                <div class="nb__dash-grid">
+                  @for (card of ciDashboardCards(); track card.key; let i = $index) {
+                    <div
+                      class="nb__dash-metric"
+                      [class.nb__dash-metric--drag-over]="ciDragOverIdx() === i"
+                      draggable="true"
+                      (dragstart)="onCiCardDragStart(i, $event)"
+                      (dragover)="onCiCardDragOver(i, $event)"
+                      (drop)="onCiCardDrop(i, $event)"
+                      (dragend)="onCiCardDragEnd()">
+                      <div class="nb__dash-drag-handle" title="Drag to reorder">
+                        <svg width="10" height="14" viewBox="0 0 10 14" fill="none">
+                          <circle cx="3" cy="2.5" r="1.2" fill="currentColor"/><circle cx="7" cy="2.5" r="1.2" fill="currentColor"/>
+                          <circle cx="3" cy="7"   r="1.2" fill="currentColor"/><circle cx="7" cy="7"   r="1.2" fill="currentColor"/>
+                          <circle cx="3" cy="11.5" r="1.2" fill="currentColor"/><circle cx="7" cy="11.5" r="1.2" fill="currentColor"/>
+                        </svg>
+                      </div>
+                      <app-metric-card
+                        [indKey]="card.key"
+                        [label]="card.label"
+                        [obs]="ciObs(card.key)"
+                        [economy]="ciDashboardEconomy()"
+                        [allEconomies]="ciAllCodes"
+                        [aiInsight]="ciInsight(card.key)"
+                      ></app-metric-card>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── BRIEFING NOTE (editable document) ────────────────────── -->
+          @if (previewCtx() === 'briefing') {
+            @if (briefingSelMenu(); as menu) {
+              <div class="nb__briefing-sel-menu"
+                [style.top.px]="menu.top"
+                [style.left.px]="menu.left"
+                (mousedown)="$event.preventDefault()">
+                <button class="nb__briefing-sel-btn" (click)="briefingExplainWithAI(menu.text)">
+                  <span class="nb__briefing-sel-border" aria-hidden="true">
+                    <span class="nb__briefing-sel-blob"></span>
+                    <span class="nb__briefing-sel-blob nb__briefing-sel-blob--2"></span>
+                  </span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Explain with AI
+                </button>
+              </div>
+            }
+            @if (briefingHasEdits()) {
+              <div class="nb__briefing-edit-bar">
+                <span class="nb__briefing-edit-time">Edited {{ formatBriefingEditTime(briefingLastEditTime()) }}</span>
+                <button class="nb__briefing-hist-btn" [disabled]="!briefingCanUndo()" title="Undo" (click)="briefingUndo()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 1 1 0 8h-1"/>
+                  </svg>
+                </button>
+                <button class="nb__briefing-hist-btn" [disabled]="!briefingCanRedo()" title="Redo" (click)="briefingRedo()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 14l4-4-4-4"/><path d="M19 10H8a4 4 0 1 0 0 8h1"/>
+                  </svg>
+                </button>
+              </div>
+            }
+            <div class="nb__briefing-doc"
+              #briefingDoc
+              (mouseup)="onBriefingMouseUp()"
+              (mousedown)="closeBriefingSelMenu()">
+              @for (sec of briefingSections(); track sec.heading) {
+                <div class="nb__briefing-sec">
+                  <h4 class="nb__briefing-h4">{{ sec.heading }}</h4>
+                  <p class="nb__briefing-p"
+                    contenteditable="true"
+                    data-body
+                    (input)="onBriefingEdit()">{{ sec.body }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          @if (previewCtx() === 'dashboard') {
+            <div class="nb__dashboard">
+              <div class="nb__dash-header">
+                <span class="nb__dash-title">{{ title() }} Dashboard</span>
+                <span class="nb__dash-subtitle">Asia &amp; Pacific · 2020–2024</span>
+              </div>
+              <div class="nb__dash-economies">
+                @for (eco of seaEconomyLabels; track eco.code) {
+                  <button
+                    class="nb__dash-eco"
+                    [class.nb__dash-eco--active]="dashboardEconomy() === eco.code"
+                    type="button"
+                    (click)="dashboardEconomy.set(eco.code)">
+                    {{ eco.label }}
+                  </button>
+                }
+              </div>
+              <div class="nb__dash-grid">
+                @for (card of dashboardCards(); track card.key; let i = $index) {
+                  <div
+                    class="nb__dash-metric"
+                    [class.nb__dash-metric--drag-over]="dragOverIdx() === i"
+                    draggable="true"
+                    (dragstart)="onCardDragStart(i, $event)"
+                    (dragover)="onCardDragOver(i, $event)"
+                    (drop)="onCardDrop(i, $event)"
+                    (dragend)="onCardDragEnd()">
+                    <div class="nb__dash-drag-handle" title="Drag to reorder">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                        <circle cx="2" cy="2" r="1"/><circle cx="8" cy="2" r="1"/>
+                        <circle cx="2" cy="5" r="1"/><circle cx="8" cy="5" r="1"/>
+                        <circle cx="2" cy="8" r="1"/><circle cx="8" cy="8" r="1"/>
+                      </svg>
+                    </div>
+                    <app-metric-card
+                      [indKey]="card.key"
+                      [label]="card.label"
+                      [obs]="seaObs(card.key)"
+                      [economy]="dashboardEconomy()"
+                      [allEconomies]="seaAllCodes"
+                      [aiInsight]="seaInsight(card.key)"
+                    ></app-metric-card>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (previewCtx() === 'doc' && previewDoc(); as doc) {
+            <div class="nb__pdf-viewer">
+              <!-- Page nav bar -->
+              <div class="nb__pdf-nav">
+                <button class="nb__pdf-nav-btn" type="button" [disabled]="docPage() <= 1" (click)="docPage.set(docPage() - 1)" aria-label="Previous page">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <span class="nb__pdf-nav-label">Page</span>
+                <span class="nb__pdf-nav-cur">{{ docPage() }}</span>
+                <span class="nb__pdf-nav-label">of {{ docTotalPages() }}</span>
+                <button class="nb__pdf-nav-btn" type="button" [disabled]="docPage() >= docTotalPages()" (click)="docPage.set(docPage() + 1)" aria-label="Next page">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <div style="flex:1"></div>
+                @if (doc.url) {
+                  <a class="nb__pdf-download" [href]="doc.url" target="_blank" rel="noopener">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download
+                  </a>
+                }
+              </div>
+              <!-- Canvas area -->
+              <div class="nb__pdf-canvas">
+                <div class="nb__pdf-page">
+                  <!-- ADB header strip -->
+                  <div class="nb__pdf-page-hdr">
+                    <div class="nb__pdf-page-logo">ADB</div>
+                    <div class="nb__pdf-page-org">Asian Development Bank</div>
+                  </div>
+                  <!-- Title area -->
+                  <div class="nb__pdf-page-title">{{ doc.title }}</div>
+                  <div class="nb__pdf-page-meta">Last updated {{ doc.updatedAt }} &nbsp;·&nbsp; Asia &amp; Pacific</div>
+                  <div class="nb__pdf-page-rule"></div>
+                  @if (doc.type === 'dataset') {
+                    <!-- Dataset: data table -->
+                    <div class="nb__pdf-page-label">Data Preview — Page {{ docPage() }}</div>
+                    <table class="nb__pdf-data-table">
+                      <thead>
+                        <tr><th>Economy</th><th>2022</th><th>2023</th><th>2024</th><th>2025 (proj.)</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>Bangladesh</td><td>7.1%</td><td>5.8%</td><td>6.4%</td><td>6.6%</td></tr>
+                        <tr><td>Cambodia</td><td>5.1%</td><td>5.7%</td><td>6.1%</td><td>6.3%</td></tr>
+                        <tr><td>India</td><td>7.2%</td><td>8.2%</td><td>6.8%</td><td>6.6%</td></tr>
+                        <tr><td>Indonesia</td><td>5.3%</td><td>5.1%</td><td>5.2%</td><td>5.0%</td></tr>
+                        <tr><td>Pakistan</td><td>6.0%</td><td>−0.5%</td><td>2.4%</td><td>3.5%</td></tr>
+                        <tr><td>Sri Lanka</td><td>−7.8%</td><td>−2.3%</td><td>4.5%</td><td>4.8%</td></tr>
+                        <tr><td>Viet Nam</td><td>8.0%</td><td>5.1%</td><td>6.8%</td><td>6.5%</td></tr>
+                        <tr><td>Philippines</td><td>7.6%</td><td>5.6%</td><td>5.8%</td><td>5.9%</td></tr>
+                      </tbody>
+                    </table>
+                    <div class="nb__pdf-page-footnote">Source: ADB KIDB / IMF WEO, April 2026. Figures are real GDP growth (%). 2025 projections as of Apr 2026.</div>
+                  } @else {
+                    <!-- Document / web: text layout -->
+                    <p class="nb__pdf-page-abstract">{{ doc.description }}</p>
+                    <div class="nb__pdf-page-section">Key Findings</div>
+                    <div class="nb__pdf-text-block">
+                      <div class="nb__pdf-line" style="width:96%"></div>
+                      <div class="nb__pdf-line" style="width:88%"></div>
+                      <div class="nb__pdf-line" style="width:92%"></div>
+                      <div class="nb__pdf-line" style="width:74%"></div>
+                    </div>
+                    <div class="nb__pdf-page-section">Regional Overview</div>
+                    <div class="nb__pdf-text-block">
+                      <div class="nb__pdf-line" style="width:98%"></div>
+                      <div class="nb__pdf-line" style="width:82%"></div>
+                      <div class="nb__pdf-line" style="width:90%"></div>
+                      <div class="nb__pdf-line" style="width:66%"></div>
+                      <div class="nb__pdf-line" style="width:95%"></div>
+                      <div class="nb__pdf-line" style="width:78%"></div>
+                    </div>
+                    <div class="nb__pdf-page-section">Policy Recommendations</div>
+                    <div class="nb__pdf-text-block">
+                      <div class="nb__pdf-line" style="width:91%"></div>
+                      <div class="nb__pdf-line" style="width:85%"></div>
+                      <div class="nb__pdf-line" style="width:60%"></div>
+                    </div>
+                    <div class="nb__pdf-page-footer">Page {{ docPage() }} of {{ docTotalPages() }}</div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          } <!-- /hasPreviewData -->
+
+        </div><!-- /nb__preview-canvas -->
+    </aside>
+
+  </div><!-- /nb__workspace -->
+
+  <!-- ── Publish / Share Modal ────────────────────────────────────────────── -->
+  @if (showPublishModal()) {
+    <div class="nb__pub-overlay" (click)="closePublishModal()">
+      <div class="nb__pub-modal" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="nb__pub-hd">
+          <span class="nb__pub-hd-title">{{ effectivelyPublished ? 'Share Workspace' : 'Publish Workspace' }}</span>
+          <button class="nb__add-close-btn" type="button" (click)="closePublishModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="nb__pub-body">
+
+          @if (!isOwnSpace && effectivelyPublished) {
+            <!-- Read-only view for other people's published spaces -->
+            <div class="nb__pub-section nb__pub-section--last">
+              <div class="nb__pub-readonly-notice">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                This space is published by another team. You can copy the link to share it.
+              </div>
+              <div class="nb__pub-link-row">
+                <div class="nb__pub-link-box">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                  <span class="nb__pub-link-url">{{ spacePublishUrl }}</span>
+                </div>
+                <button
+                  class="nb__pub-copy-btn"
+                  type="button"
+                  [class.nb__pub-copy-btn--copied]="linkCopied()"
+                  (click)="copySpaceLink()"
+                >
+                  @if (linkCopied()) {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Copied!
+                  } @else {
+                    Copy link
+                  }
+                </button>
+              </div>
+            </div>
+          } @else {
+
+          <!-- Visibility + Asset Inventory (combined card) -->
+          <div class="nb__pub-section">
+            <span class="nb__pub-section-label">Publishing visibility</span>
+            <div class="nb__pub-combo-card">
+
+              <!-- Row 1: Private Space -->
+              <div class="nb__pub-combo-row">
+                <div class="nb__pub-combo-icon nb__pub-combo-icon--lock">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <div class="nb__pub-combo-text">
+                  <span class="nb__pub-combo-title">Private Workspace</span>
+                  <span class="nb__pub-combo-desc">
+                    @if (effectivelyPublished) {
+                      Published — only members with access can view.
+                    } @else {
+                      Draft — only you and invited members can see it.
+                    }
+                  </span>
+                </div>
+                <span class="nb__pub-vis-badge" [class.nb__pub-vis-badge--live]="effectivelyPublished">
+                  {{ effectivelyPublished ? 'Live' : 'Draft' }}
+                </span>
+              </div>
+
+              <div class="nb__pub-combo-divider"></div>
+
+              <!-- Row 2: Asset Inventory toggle -->
+              <div class="nb__pub-combo-row">
+                <div class="nb__pub-combo-icon nb__pub-combo-icon--globe">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </div>
+                <div class="nb__pub-combo-text">
+                  <span class="nb__pub-combo-title">Add to DataNext Asset Inventory</span>
+                  <span class="nb__pub-combo-desc">Make discoverable to all ADB staff in the catalogue.</span>
+                </div>
+                <button
+                  class="nb__pub-toggle"
+                  [class.nb__pub-toggle--on]="publishMarketplace()"
+                  type="button"
+                  aria-label="Toggle Asset Inventory listing"
+                  (click)="publishMarketplace.update(v => !v)"
+                >
+                  <span class="nb__pub-toggle-thumb"></span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Members access -->
+          <div class="nb__pub-section">
+            <div class="nb__pub-members-header">
+              <span class="nb__pub-section-label" style="margin:0">Members access</span>
+              <span class="nb__pub-members-count">{{ spaceMembers().length }} member{{ spaceMembers().length !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="nb__pub-members-card">
+              <!-- Invite input -->
+              <div class="nb__pub-invite-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input
+                  class="nb__pub-invite-input"
+                  placeholder="Invite by name or email..."
+                  [value]="inviteInput()"
+                  (input)="inviteInput.set($any($event.target).value)"
+                />
+                @if (inviteInput()) {
+                  <button class="nb__pub-invite-send" type="button">Invite</button>
+                }
+              </div>
+              <!-- Member list -->
+              @for (member of spaceMembers(); track member.email) {
+                <div class="nb__pub-member-row">
+                  <div class="nb__pub-member-avatar" [style.background]="member.color">{{ member.initials }}</div>
+                  <div class="nb__pub-member-info">
+                    <span class="nb__pub-member-name">{{ member.name }}</span>
+                    <span class="nb__pub-member-email">{{ member.email }}</span>
+                  </div>
+                  <select
+                    class="nb__pub-member-role"
+                    [value]="member.role"
+                    (change)="updateMemberRole(member, $any($event.target).value)"
+                  >
+                    <option>Administrator</option>
+                    <option>Editor</option>
+                    <option>Viewer</option>
+                  </select>
+                  @if (member.role !== 'Administrator') {
+                    <button class="nb__pub-member-remove" type="button" title="Remove" (click)="removeMember(member)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Published link -->
+          <div class="nb__pub-section nb__pub-section--last">
+            <div class="nb__pub-link-row">
+              <div class="nb__pub-link-box" [class.nb__pub-link-box--disabled]="!effectivelyPublished">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+                <span class="nb__pub-link-url">{{ spacePublishUrl }}</span>
+              </div>
+              <button
+                class="nb__pub-copy-btn"
+                type="button"
+                [disabled]="!effectivelyPublished"
+                [class.nb__pub-copy-btn--copied]="linkCopied()"
+                (click)="copySpaceLink()"
+              >
+                @if (linkCopied()) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Copied!
+                } @else {
+                  Copy link
+                }
+              </button>
+            </div>
+            @if (!effectivelyPublished) {
+              <span class="nb__pub-link-hint">Publish this space to enable the shareable link.</span>
+            }
+          </div>
+
+          } <!-- /else isOwnSpace -->
+
+        </div><!-- /nb__pub-body -->
+
+        <!-- Footer -->
+        <div class="nb__pub-footer">
+          @if (!isOwnSpace && effectivelyPublished) {
+            <button class="nb__pub-done-btn" type="button" (click)="closePublishModal()">Done</button>
+          } @else if (effectivelyPublished) {
+            <button class="nb__pub-unpublish-btn" type="button" (click)="unpublishSpace()">Unpublish</button>
+            <button class="nb__pub-done-btn" type="button" (click)="closePublishModal()">Done</button>
+          } @else {
+            <button class="nb__pub-cancel-btn" type="button" (click)="closePublishModal()">Cancel</button>
+            <button class="nb__pub-publish-btn" type="button" (click)="publishSpace()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/>
+              </svg>
+              Publish Workspace
+            </button>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── Add Assets Modal ──────────────────────────────────────────────────── -->
+  @if (showAddAssets()) {
+    <div class="nb__add-overlay" (click)="closeAddAssets()">
+      <div class="nb__add-modal" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="nb__add-hd">
+          <span class="nb__add-hd-title">Add Assets</span>
+          <div class="nb__add-search-wrap">
+            <svg class="nb__add-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              class="nb__add-search"
+              placeholder="Search datasets, agents, tools..."
+              [value]="addAssetsSearch()"
+              (input)="addAssetsSearch.set($any($event.target).value)"
+            />
+          </div>
+          <button class="nb__add-close-btn" type="button" (click)="closeAddAssets()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="nb__add-body">
+
+          <!-- Filter sidebar -->
+          <aside class="nb__add-sidebar">
+
+            <!-- Header -->
+            <div class="search-page__sidebar-header" style="padding: 12px 16px 10px;">
+              <span class="sb__header-title">Filters</span>
+              @if (addAssetsTypes().size || addAssetsSectors().size || addAssetsAccesses().size || addAssetsRegions().size || addAssetsTrust().size) {
+                <span class="sb__active-badge">{{ addAssetsTypes().size + addAssetsSectors().size + addAssetsAccesses().size + addAssetsRegions().size + addAssetsTrust().size }} active</span>
+                <button class="sb__clear-all" type="button" (click)="clearAddFilters()">Clear</button>
+              }
+            </div>
+
+            <!-- Asset Type pills (with icons, matches catalogue) -->
+            <div class="search-page__sidebar-group" style="padding: 4px 16px 2px;">
+              <div class="search-page__sidebar-group-header" style="cursor:default;">
+                <span class="search-page__sidebar-group-name">Asset Type</span>
+                @if (addAssetsTypes().size > 0) {
+                  <button class="search-page__sidebar-clear" type="button" (click)="addAssetsTypes.set(emptySet)">Clear</button>
+                }
+              </div>
+              <div class="sb__pill-row">
+                @for (t of ['Dataset','Dashboard','AI Agent','AI Tool','AI Product','API','Corpus Document']; track t) {
+                  <button class="sb__pill"
+                    [class.sb__pill--active]="addAssetsTypes().has(t)"
+                    [class.sb__pill--muted]="t === 'AI Product'"
+                    [disabled]="t === 'AI Product'"
+                    type="button"
+                    (click)="t !== 'AI Product' && toggleAddType(t)">
+                    @switch (t) {
+                      @case ('Dataset') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                        </svg>
+                      }
+                      @case ('AI Agent') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+                        </svg>
+                      }
+                      @case ('AI Tool') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                      }
+                      @case ('Dashboard') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                      }
+                      @case ('AI Product') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                      }
+                      @case ('API') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M8 9l-3 3 3 3"/><path d="M16 9l3 3-3 3"/><path d="M14 4l-4 16"/>
+                        </svg>
+                      }
+                      @case ('Corpus Document') {
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                      }
+                    }
+                    {{ t }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Trust Status -->
+            <div class="search-page__sidebar-group" style="padding: 4px 16px 2px;">
+              <div class="search-page__sidebar-group-header" (click)="addTrustExpanded.update(v => !v)">
+                <span class="search-page__sidebar-group-name">Trust Status</span>
+                @if (addAssetsTrust().size > 0) {
+                  <button class="search-page__sidebar-clear" type="button" (click)="addAssetsTrust.set(emptySet); $event.stopPropagation()">Clear</button>
+                }
+                <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="addTrustExpanded()" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              @if (addTrustExpanded()) {
+                <div class="search-page__sidebar-options">
+                  @for (opt of addTrustOpts; track opt.val) {
+                    <label class="search-page__sidebar-option">
+                      <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="addAssetsTrust().has(opt.val)" (change)="toggleAddTrust(opt.val)" [name]="'add-trust-' + opt.val" />
+                      <span class="sb__opt-label">{{ opt.label }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Access -->
+            <div class="search-page__sidebar-group" style="padding: 4px 16px 2px;">
+              <div class="search-page__sidebar-group-header" (click)="addAccessExpanded.update(v => !v)">
+                <span class="search-page__sidebar-group-name">Access</span>
+                @if (addAssetsAccesses().size > 0) {
+                  <button class="search-page__sidebar-clear" type="button" (click)="addAssetsAccesses.set(emptySet); $event.stopPropagation()">Clear</button>
+                }
+                <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="addAccessExpanded()" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              @if (addAccessExpanded()) {
+                <div class="search-page__sidebar-options">
+                  @for (opt of addAccessOpts; track opt.val) {
+                    <label class="search-page__sidebar-option">
+                      <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="addAssetsAccesses().has(opt.val)" (change)="toggleAddAccess(opt.val)" [name]="'add-access-' + opt.val" />
+                      <span class="sb__opt-label">{{ opt.label }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Sector -->
+            <div class="search-page__sidebar-group" style="padding: 4px 16px 2px;">
+              <div class="search-page__sidebar-group-header" (click)="addSectorExpanded.update(v => !v)">
+                <span class="search-page__sidebar-group-name">Sector</span>
+                @if (addAssetsSectors().size > 0) {
+                  <button class="search-page__sidebar-clear" type="button" (click)="addAssetsSectors.set(emptySet); $event.stopPropagation()">Clear</button>
+                }
+                <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="addSectorExpanded()" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              @if (addSectorExpanded()) {
+                <div class="search-page__sidebar-options">
+                  @for (s of sectorGroups; track s) {
+                    <label class="search-page__sidebar-option">
+                      <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="addAssetsSectors().has(s)" (change)="toggleAddSector(s)" [name]="'add-sector-' + s" />
+                      <span class="sb__opt-label">{{ s }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Region -->
+            <div class="search-page__sidebar-group" style="padding: 4px 16px 2px;">
+              <div class="search-page__sidebar-group-header" (click)="addRegionExpanded.update(v => !v)">
+                <span class="search-page__sidebar-group-name">Region</span>
+                @if (addAssetsRegions().size > 0) {
+                  <button class="search-page__sidebar-clear" type="button" (click)="addAssetsRegions.set(emptySet); $event.stopPropagation()">Clear</button>
+                }
+                <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="addRegionExpanded()" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              @if (addRegionExpanded()) {
+                <div class="search-page__sidebar-options">
+                  @for (r of addRegionOpts; track r) {
+                    <label class="search-page__sidebar-option">
+                      <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="addAssetsRegions().has(r)" (change)="toggleAddRegion(r)" [name]="'add-region-' + r" />
+                      <span class="sb__opt-label">{{ r }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+          </aside>
+
+          <!-- Card grid -->
+          <div class="nb__add-grid-wrap">
+            <div class="nb__add-grid-meta">
+              <span class="nb__add-grid-count">{{ filteredAddAssets().length }} assets</span>
+              @if (addAssetsTypes().size || addAssetsSectors().size || addAssetsAccesses().size || addAssetsRegions().size || addAssetsTrust().size || addAssetsSearch()) {
+                <button class="nb__add-clear-filters" type="button" (click)="clearAddFilters()">
+                  Clear filters
+                </button>
+              }
+            </div>
+            <div class="nb__add-grid">
+              @for (asset of filteredAddAssets(); track asset.name) {
+                <div class="nb__widget-card">
+                  <app-asset-card
+                    [tag]="asset.type"
+                    [tagColor]="catalogueTagColor(asset.type)"
+                    [rating]="assetRating(asset.name)"
+                    [title]="asset.name"
+                    [description]="asset.description"
+                    [restricted]="asset.access === 'restricted'"
+                    [rai]="asset.trust_status === 'Responsible AI Verified' || asset.trust_status === 'Both'"
+                    [governanceVerified]="asset.trust_status === 'Governance Verified' || asset.trust_status === 'Both'"
+                    [showToggle]="true"
+                    [selected]="isAssetAdded(asset)"
+                    (addClick)="addAssetToSpace(asset)"
+                  ></app-asset-card>
+                </div>
+              }
+              @empty {
+                <div class="nb__add-empty">
+                  <p>No assets match your filters.</p>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div><!-- /nb__add-body -->
+      </div><!-- /nb__add-modal -->
+    </div><!-- /nb__add-overlay -->
+  }
+
+  @if (removeAssetConfirm(); as pending) {
+    <div class="nb__rm-overlay" (click)="cancelRemoveAsset()">
+      <div class="nb__pub-modal" style="width:min(400px,92vw)" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <div class="nb__pub-hd" style="border-bottom:none">
+          <span class="nb__pub-hd-title">Remove asset</span>
+          <button class="nb__add-close-btn" type="button" (click)="cancelRemoveAsset()" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div style="padding:0 20px 20px;font-size:14px;color:#616161;line-height:1.55;font-family:var(--font,system-ui,sans-serif)">
+          Remove <strong style="color:#212121;font-weight:500">{{ pending.item.name }}</strong> from this workspace?
+        </div>
+        <div class="nb__pub-footer" style="border-top:none;background:none">
+          <button class="nb__pub-cancel-btn" type="button" (click)="cancelRemoveAsset()">Cancel</button>
+          <button class="nb__rm-confirm-btn" type="button" (click)="confirmRemoveAsset()">Remove</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

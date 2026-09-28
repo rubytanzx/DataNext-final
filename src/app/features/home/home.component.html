@@ -1,0 +1,246 @@
+<div class="home scroll-hidden">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <div class="home__hero">
+
+    <div class="home__aurora" aria-hidden="true">
+      <app-aurora-light
+        [colorStops]="['#54c4ed', '#a4d165', '#54c4ed']"
+        [amplitude]="1.4"
+        [blend]="0.5"
+        [speed]="2.2"
+        [opacity]="0.7"
+      ></app-aurora-light>
+    </div>
+
+    <canvas class="home__sphere" aria-hidden="true"></canvas>
+
+    <div class="home__inner">
+      <h1 #greetingEl class="home__greeting">Welcome, Noah.</h1>
+      <p class="home__subtitle">What do you want to do today?</p>
+
+      <div class="home__search-wrap">
+        <div class="home__search-bar-wrap" (focusin)="onBarFocus()" (focusout)="onBarBlur()">
+          <adb-prompt-bar placeholder="" (submit)="submitFromBar($event)"></adb-prompt-bar>
+          @if (!barFocused()) {
+            <div class="home__search-ph" aria-hidden="true">
+              <span class="home__search-ph-static">Search for</span>
+              <span class="home__search-ph-clip">
+                @if (phTransitioning()) {
+                  <span class="home__search-ph-word home__search-ph-word--exit">{{ phSuggestions[phPrev()] }}</span>
+                  <span class="home__search-ph-word home__search-ph-word--enter">{{ phSuggestions[phIndex()] }}</span>
+                } @else {
+                  <span class="home__search-ph-word">{{ phSuggestions[phIndex()] }}</span>
+                }
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Suggested Prompts ── -->
+      <div class="home__prompts" (click)="$event.stopPropagation()">
+        <span class="home__prompts-label">Ideas to get started:</span>
+        <div class="home__prompts-chips">
+          @for (cat of promptCategories; track cat.label) {
+            <button
+              class="home__prompt-chip"
+              [class.home__prompt-chip--active]="activePromptCategory() === cat.label"
+              (click)="togglePromptCategory(cat.label, $event)"
+            >
+              {{ cat.label }}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                [style.transform]="activePromptCategory() === cat.label ? 'rotate(180deg)' : 'rotate(0deg)'"
+                style="transition: transform 0.18s ease; flex-shrink: 0">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+          }
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  @if (activePromptCategory() && dropdownPos()) {
+    <div class="home__prompts-dropdown"
+      [style.top.px]="dropdownPos()!.top"
+      [style.left.px]="dropdownPos()!.left"
+      [style.width.px]="dropdownPos()!.width"
+      (click)="$event.stopPropagation()">
+      @for (cat of promptCategories; track cat.label) {
+        @if (cat.label === activePromptCategory()) {
+          @for (prompt of cat.prompts; track prompt) {
+            <button class="home__prompt-item" (click)="applyPrompt(prompt)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              {{ prompt }}
+            </button>
+          }
+        }
+      }
+    </div>
+  }
+
+  <!-- ── Content ────────────────────────────────────────────────────────────── -->
+  <div class="home__body">
+    <div class="home__inner">
+
+      <!-- Continue where you left off -->
+      <div class="home__cta-banner home__cta-banner--continue" style="margin-bottom: 40px">
+        <div class="home__cta-text">
+          <strong class="home__cta-title">Continue where you left off</strong>
+          <p class="home__cta-desc">Pick up your latest Workspace, <strong class="home__cta-space-name">Southeast Asia Transport Portfolio</strong>, right where you stopped.</p>
+        </div>
+        <button class="home__cta-btn home__cta-btn--light" type="button" (click)="router.navigate(['/notebooks', '1'])">
+          Open Workspace
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <!-- Bookmarks -->
+      <section class="home__section">
+        <div class="home__section-header-row">
+          <h3 class="home__section-title">Recent Bookmarks</h3>
+          <button class="home__explore-btn" (click)="router.navigate(['/notebooks'])">
+            See all
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="home__card-row">
+          @for (item of recentlySaved; track item.title) {
+            <div class="home__use-card home__use-card--recommended" (click)="openAsset(item)" style="cursor:pointer">
+              <app-asset-card
+                [tag]="item.tag ?? ''"
+                [tagColor]="item.tagColor ?? 'blue'"
+                [title]="item.title"
+                [description]="item.description"
+                [users]="item.users"
+                [uses]="item.downloads"
+                [access]="item.access ?? ''"
+                [governanceVerified]="item.governanceVerified ?? false"
+                [rai]="item.rai ?? false"
+                [sectorTag]="item.sector ?? ''"
+                [geoTag]="item.region ?? ''"
+                [themes]="item.themes ?? []"
+                [saved]="true"
+                [showAddToWorkspace]="true"
+              ></app-asset-card>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Recommended Assets for You -->
+      <section class="home__section">
+        <div class="home__section-header-row">
+          <h3 class="home__section-title">Recommended Assets for You</h3>
+          <button class="home__explore-btn" (click)="router.navigate(['/catalogue'])">
+            See All
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="home__card-row">
+          @for (item of recommendedForYou; track item.title) {
+            <div class="home__use-card home__use-card--recommended" (click)="openAsset(item)" style="cursor:pointer">
+              <app-asset-card
+                [tag]="item.tag ?? ''"
+                [tagColor]="item.tagColor ?? 'blue'"
+                [title]="item.title"
+                [description]="item.description"
+                [users]="item.users"
+                [uses]="item.downloads"
+                [access]="item.access ?? ''"
+                [governanceVerified]="item.governanceVerified ?? false"
+                [rai]="item.rai ?? false"
+                [sectorTag]="item.sector ?? ''"
+                [geoTag]="item.region ?? ''"
+                [themes]="item.themes ?? []"
+                [showAddToWorkspace]="true"
+              ></app-asset-card>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Recently Added Workspaces -->
+      <section class="home__section">
+        <div class="home__section-header-row">
+          <h3 class="home__section-title">Recently Added Workspaces</h3>
+          <button class="home__explore-btn" (click)="exploreNotebooks()">
+            See all Workspaces
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="home__card-row">
+          @for (item of featuredSpaces; track item.title) {
+            <div class="home__use-card home__uc-image-card" style="cursor:pointer" (click)="openFeaturedSpace(item)">
+              <div class="home__uc-img" [style.backgroundImage]="'url(' + item.image + ')'"></div>
+              <div class="home__uc-body">
+                @if (item.region) {
+                  <div class="home__uc-region">{{ item.region }}</div>
+                }
+                <div class="home__use-card-title">{{ item.title }}</div>
+                <p class="home__use-card-desc">{{ item.description }}</p>
+                <div class="home__uc-meta">
+                  @if (item.datasets) {
+                    <span class="home__uc-meta-item">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                        <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+                      </svg>
+                      {{ item.datasets }} Datasets
+                    </span>
+                  }
+                  @if (item.platforms) {
+                    <span class="home__uc-meta-sep">·</span>
+                    <span class="home__uc-meta-item">{{ item.platforms }} Platform</span>
+                  }
+                  @if (item.tools) {
+                    <span class="home__uc-meta-sep">·</span>
+                    <span class="home__uc-meta-item">{{ item.tools }} Tools</span>
+                  }
+                  @if (item.author) {
+                    <span class="home__uc-meta-sep">·</span>
+                    <span class="home__uc-meta-item home__uc-meta-item--author">{{ item.author }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Have something to share (bottom, full-width) -->
+      <div class="home__cta-banner" style="margin-top: 40px">
+        <div class="home__cta-text">
+          <strong class="home__cta-title">Have something to share?</strong>
+          <p class="home__cta-desc">Contribute your data collections, tools, or agents to help ADB work smarter together.</p>
+        </div>
+        <button appPrimaryBtn type="button" (click)="router.navigate(['/contribute'])">Contribute an Asset</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+  <footer class="home__footer">
+    <span>&copy; 2026 Asian Development Bank.</span>
+    <a class="home__footer-link" href="#">ADB Contacts</a>
+    <a class="home__footer-link" href="#">Access to Information</a>
+    <a class="home__footer-link" href="#">Anticorruption and Integrity</a>
+    <a class="home__footer-link" href="#">Scams</a>
+    <a class="home__footer-link" href="#">Cybersecurity</a>
+    <a class="home__footer-link" href="#">Sitemap</a>
+    <a class="home__footer-link" href="#">Terms of Use</a>
+  </footer>
+
+</div>

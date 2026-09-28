@@ -1,0 +1,476 @@
+<div class="contrib">
+
+  <!-- Header: mirrors Space header, left side only -->
+  <div class="contrib__topbar">
+    <div class="contrib__header-left">
+      <img src="/adb-logo.svg" alt="ADB" class="contrib__logo" (click)="close()" style="cursor:pointer" title="Home" />
+      <button class="contrib__icon-btn" type="button" title="Back to Workspace" (click)="close()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      @if (editingTitle()) {
+        <input
+          class="contrib__title-input"
+          type="text"
+          [value]="title()"
+          (blur)="saveTitle($any($event.target).value)"
+          (keydown.enter)="saveTitle($any($event.target).value)"
+          (keydown.escape)="editingTitle.set(false)"
+          autofocus
+        />
+      } @else {
+        <span class="contrib__topbar-title" (click)="startEditTitle()" title="Click to rename">{{ title() }}</span>
+      }
+    </div>
+  </div>
+
+  <!-- Body: chat column + optional review panel -->
+  <div class="contrib__layout" [class.contrib__layout--split]="formDone()">
+
+    <!-- Left: chat -->
+    <div class="contrib__chat-col">
+
+      <div class="contrib__messages" #messagesEl>
+
+        @for (msg of messages(); track $index) {
+
+          <!-- User bubble -->
+          @if (msg.role === 'user') {
+            <div class="contrib__msg contrib__msg--user">
+              <div class="contrib__msg-bubble">{{ msg.text }}</div>
+              <div class="contrib__msg-avatar">NT</div>
+            </div>
+          }
+
+          <!-- Assistant message -->
+          @if (msg.role === 'assistant') {
+            <div class="contrib__msg contrib__msg--assistant">
+
+              @if (msg.text) {
+                <p class="contrib__msg-text">{{ msg.text }}</p>
+              }
+
+              <!-- Similar assets grid -->
+              @if (msg.showSimilar) {
+                <div class="contrib__msg-widgets">
+                  @for (asset of similarAssets; track asset.title) {
+                    <div class="contrib__widget-card">
+                      <app-asset-card
+                        [tag]="asset.tag"
+                        [tagColor]="asset.tagColor"
+                        [rating]="asset.rating"
+                        [title]="asset.title"
+                        [description]="asset.description"
+                        [users]="asset.users"
+                        [uses]="asset.downloads"
+                        [restricted]="!!asset.restricted"
+                        [showToggle]="false"
+                      ></app-asset-card>
+                    </div>
+                  }
+                </div>
+                @if (step() === 'await-proceed') {
+                  <div class="contrib__actions">
+                    <button class="contrib__action-btn" type="button" (click)="onPrompt('Yes, contribute anyway')">Yes, contribute anyway</button>
+                    <button class="contrib__action-btn" type="button" (click)="onPrompt('No, this covers my needs')">No, this covers my needs</button>
+                  </div>
+                }
+              }
+
+              <!-- Inline form widget -->
+              @if (msg.showForm && !formDone() && !largeDatasetMode()) {
+                <div class="contrib__form-widget">
+
+                  <!-- Upload zone (top) -->
+                  @if (fileAttached()) {
+                    <div class="contrib__upload-zone contrib__upload-zone--attached">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <div class="contrib__upload-zone-file">
+                        <span class="contrib__upload-zone-filename">{{ attachedFileName() }}</span>
+                        <span class="contrib__upload-zone-sub">Fields auto-filled · edit below if needed</span>
+                      </div>
+                      <button class="contrib__upload-zone-change" type="button" (click)="clearFile()">Change</button>
+                    </div>
+                  } @else if (uploadSkipped()) {
+                    <div class="contrib__upload-zone contrib__upload-zone--skipped">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9eaab5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/>
+                      </svg>
+                      <div class="contrib__upload-zone-file">
+                        <span class="contrib__upload-zone-filename">No file attached</span>
+                        <span class="contrib__upload-zone-sub">Fill in the details below — a data engineer will follow up about migration</span>
+                      </div>
+                      <button class="contrib__upload-zone-change" type="button" (click)="clearFile()">Undo</button>
+                    </div>
+                  } @else {
+                    <label class="contrib__upload-zone" (click)="onFileAttached(); $event.preventDefault()">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+                      </svg>
+                      <span class="contrib__upload-zone-title">Drop your asset file here, or click to upload</span>
+                      <span class="contrib__upload-zone-sub">CSV, Parquet, XLSX, JSON, GeoJSON, PDF · up to 100 GB · fields auto-fill from file</span>
+                      <button class="contrib__upload-skip-link" type="button" (click)="startLargeDataset(); $event.preventDefault(); $event.stopPropagation()">
+                        Contributing a dataset over 100 GB? Set it up with us
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                        </svg>
+                      </button>
+                      <input type="file" hidden accept=".csv,.parquet,.xlsx,.json,.geojson,.pdf" (change)="onFileAttached()" />
+                    </label>
+                  }
+
+                  <div class="contrib__form-grid" [class.contrib__form-grid--loading]="fileProcessing()">
+
+                    <div class="contrib__field contrib__field--full">
+                      <label class="contrib__field-label">Asset Title *</label>
+                      <input class="contrib__input" [class.contrib__input--error]="formErrors()['title']"
+                        type="text" [(ngModel)]="form.title" name="title"
+                        placeholder="e.g. Pacific Climate Vulnerability Index" />
+                      @if (formErrors()['title']) {
+                        <span class="contrib__field-err">{{ formErrors()['title'] }}</span>
+                      }
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Asset Type *</label>
+                      <select class="contrib__select" [(ngModel)]="form.type" name="type">
+                        <option>Dataset</option>
+                        <option>AI Agent</option>
+                        <option>AI Tool</option>
+                        <option>Portal</option>
+                        <option>AI Product</option>
+                      </select>
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Access Level *</label>
+                      <select class="contrib__select" [(ngModel)]="form.access" name="access">
+                        <option>Invite-only</option>
+                        <option>ADB-wide</option>
+                        <option>Public</option>
+                      </select>
+                    </div>
+
+                    <div class="contrib__field contrib__field--full">
+                      <label class="contrib__field-label">Description *</label>
+                      <textarea class="contrib__textarea"
+                        [class.contrib__textarea--error]="formErrors()['description']"
+                        [(ngModel)]="form.description" name="description" rows="3"
+                        placeholder="What does this asset contain and what is it used for?"></textarea>
+                      @if (formErrors()['description']) {
+                        <span class="contrib__field-err">{{ formErrors()['description'] }}</span>
+                      }
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Owning Department</label>
+                      <adb-chip-select
+                        [options]="deptOptions"
+                        [optionLabels]="deptLabels"
+                        placeholder="Search departments…"
+                        [(value)]="form.departments"
+                      ></adb-chip-select>
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Technical Contact</label>
+                      <input class="contrib__input" type="email" [(ngModel)]="form.contact" name="contact"
+                        placeholder="your@adb.org" />
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Sector Group</label>
+                      <select class="contrib__select" [(ngModel)]="form.sectorGroup" name="sectorGroup">
+                        <option value="">Select sector…</option>
+                        <option>Climate &amp; Environment</option>
+                        <option>Economic Research</option>
+                        <option>Infrastructure</option>
+                        <option>Trade &amp; Connectivity</option>
+                        <option>Social Development</option>
+                        <option>Energy</option>
+                      </select>
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Geographical Coverage</label>
+                      <adb-geo-select [(value)]="form.geoCoverage"></adb-geo-select>
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Time Period Covered</label>
+                      <input class="contrib__input" type="text" [(ngModel)]="form.timePeriod" name="timePeriod"
+                        placeholder="e.g. 2010–2025" />
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Update Frequency</label>
+                      <select class="contrib__select" [(ngModel)]="form.updateFreq" name="updateFreq">
+                        <option>Real-time</option>
+                        <option>Daily</option>
+                        <option>Weekly</option>
+                        <option>Monthly</option>
+                        <option>Quarterly</option>
+                        <option>Annual</option>
+                        <option>As needed</option>
+                      </select>
+                    </div>
+
+                    <div class="contrib__field contrib__field--full">
+                      <label class="contrib__field-label">Themes</label>
+                      <adb-chip-select
+                        [options]="themeOptions"
+                        placeholder="Select themes…"
+                        [(value)]="form.themes"
+                      ></adb-chip-select>
+                    </div>
+
+                  </div>
+
+                  <div class="contrib__form-footer">
+                    <button appPrimaryBtn type="button"
+                      (click)="submitForm()" [disabled]="thinking() || fileProcessing()">
+                      @if (thinking()) { Submitting… } @else { Submit for review }
+                    </button>
+                  </div>
+
+                </div>
+              }
+
+              <!-- Large dataset handoff mini-form -->
+              @if (msg.showLargeDatasetForm && !formDone()) {
+                <div class="contrib__form-widget contrib__form-widget--large">
+                  <div class="contrib__form-grid">
+
+                    <div class="contrib__field contrib__field--full">
+                      <label class="contrib__field-label">Dataset Name *</label>
+                      <input class="contrib__input" [class.contrib__input--error]="formErrors()['title']"
+                        type="text" [(ngModel)]="form.title" name="ldTitle"
+                        placeholder="e.g. National Microdata Survey 2024" />
+                      @if (formErrors()['title']) {
+                        <span class="contrib__field-err">{{ formErrors()['title'] }}</span>
+                      }
+                    </div>
+
+                    <div class="contrib__field contrib__field--full">
+                      <label class="contrib__field-label">Description *</label>
+                      <textarea class="contrib__textarea" [class.contrib__textarea--error]="formErrors()['description']"
+                        [(ngModel)]="form.description" name="ldDesc" rows="3"
+                        placeholder="What does this dataset contain, who collected it, and how is it used?"></textarea>
+                      @if (formErrors()['description']) {
+                        <span class="contrib__field-err">{{ formErrors()['description'] }}</span>
+                      }
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Approximate Size</label>
+                      <select class="contrib__select" [(ngModel)]="form.dataSize" name="ldSize">
+                        <option value="">Select range…</option>
+                        <option>100 GB – 1 TB</option>
+                        <option>1 TB – 10 TB</option>
+                        <option>10 TB+</option>
+                      </select>
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Technical Contact</label>
+                      <input class="contrib__input" type="email" [(ngModel)]="form.contact" name="ldContact"
+                        placeholder="your@adb.org" />
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Owning Department</label>
+                      <adb-chip-select
+                        [options]="deptOptions"
+                        [optionLabels]="deptLabels"
+                        placeholder="Search departments…"
+                        [(value)]="form.departments"
+                      ></adb-chip-select>
+                    </div>
+
+                    <div class="contrib__field">
+                      <label class="contrib__field-label">Geographical Coverage</label>
+                      <adb-geo-select [(value)]="form.geoCoverage"></adb-geo-select>
+                    </div>
+
+                  </div>
+
+                  <div class="contrib__form-footer">
+                    <button appPrimaryBtn type="button" (click)="submitLargeDataset()" [disabled]="thinking()">
+                      @if (thinking()) { Routing… } @else { Arrange transfer }
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Success badge -->
+              @if (msg.showSuccess) {
+                <div class="contrib__success">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Submitted for review
+                </div>
+              }
+
+            </div>
+          }
+
+        }
+
+        <!-- AI reasoning loader -->
+        @if (thinking()) {
+          <div class="contrib__msg contrib__msg--assistant contrib__msg--loader">
+            <ia-ai-reasoning-loader
+              [phases]="['Thinking', 'Processing', 'Preparing response']"
+            ></ia-ai-reasoning-loader>
+          </div>
+        }
+
+      </div>
+
+      <!-- Prompt bar -->
+      <div class="contrib__input-bar">
+        <adb-prompt-bar
+          [placeholder]="step() === 'done' ? 'Describe another asset to contribute…' : 'Describe the asset you want to contribute…'"
+          [loading]="thinking()"
+          (submit)="onPrompt($event)"
+        ></adb-prompt-bar>
+      </div>
+
+    </div>
+
+    <!-- Right: submission status panel (appears after form submitted) -->
+    @if (formDone()) {
+      <aside class="contrib__review-panel">
+
+        <!-- Submission Status: always visible, no toggle -->
+        <div class="contrib__status-section">
+          <span class="contrib__section-title">Submission Status</span>
+
+          <div class="contrib__stepper">
+
+            <!-- Step 1: Submission — always done -->
+            <div class="contrib__step contrib__step--done">
+              <div class="contrib__step-node contrib__step-node--done">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <span class="contrib__step-label">Submission</span>
+              <span class="contrib__step-sub">{{ submittedAt() }}</span>
+            </div>
+
+            <div class="contrib__step-connector contrib__step-connector--done"></div>
+
+            <!-- Step 2: Assessment -->
+            <div [class]="'contrib__step ' + (submissionStatus() === 'published' ? 'contrib__step--done' : 'contrib__step--active')">
+              <div [class]="'contrib__step-node ' + (submissionStatus() === 'published' ? 'contrib__step-node--done' : 'contrib__step-node--active')">
+                @if (submissionStatus() === 'published') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                } @else {
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                }
+              </div>
+              <span class="contrib__step-label">Assessment</span>
+              <span class="contrib__step-sub">{{ submissionStatus() === 'published' ? 'Completed' : '2–3 business days' }}</span>
+            </div>
+
+            <div [class]="'contrib__step-connector ' + (submissionStatus() === 'published' ? 'contrib__step-connector--complete' : '')"></div>
+
+            <!-- Step 3: Outcome -->
+            <div [class]="'contrib__step ' + (submissionStatus() === 'published' ? 'contrib__step--complete' : '')">
+              <div [class]="'contrib__step-node ' + (submissionStatus() === 'published' ? 'contrib__step-node--complete' : 'contrib__step-node--pending')">
+                @if (submissionStatus() === 'published') {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                }
+              </div>
+              <span class="contrib__step-label">Outcome</span>
+              <span class="contrib__step-sub">{{ submissionStatus() === 'published' ? 'Approved' : 'Pending' }}</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Asset Details: collapsible accordion -->
+        <div class="contrib__details-section">
+
+          <div class="contrib__details-header" (click)="panelCollapsed.set(!panelCollapsed())">
+            <span class="contrib__section-title">Asset Details</span>
+            <svg class="contrib__panel-chevron" [class.contrib__panel-chevron--up]="!panelCollapsed()"
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </div>
+
+          @if (!panelCollapsed()) {
+
+            <!-- Asset title + description -->
+            <div class="contrib__panel-asset">
+              <h3 class="contrib__asset-title">{{ form.title }}</h3>
+              @if (form.description) {
+                <p class="contrib__asset-desc">{{ form.description }}</p>
+              }
+            </div>
+
+            <!-- 2-column metadata grid -->
+            <div class="contrib__meta-grid">
+
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Type</span>
+                <span class="contrib__meta-value">{{ form.type }}</span>
+              </div>
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Access</span>
+                <span class="contrib__meta-value">{{ form.access || '—' }}</span>
+              </div>
+
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Update Frequency</span>
+                <span class="contrib__meta-value">{{ form.updateFreq || '—' }}</span>
+              </div>
+
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Department</span>
+                <span class="contrib__meta-value" [class.contrib__meta-value--empty]="!form.departments.length">{{ form.departments.join(', ') || '—' }}</span>
+              </div>
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Contact</span>
+                <span class="contrib__meta-value" [class.contrib__meta-value--empty]="!form.contact">{{ form.contact || '—' }}</span>
+              </div>
+
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Sector Group</span>
+                <span class="contrib__meta-value" [class.contrib__meta-value--empty]="!form.sectorGroup">{{ form.sectorGroup || '—' }}</span>
+              </div>
+              <div class="contrib__meta-cell">
+                <span class="contrib__meta-label">Time Period</span>
+                <span class="contrib__meta-value" [class.contrib__meta-value--empty]="!form.timePeriod">{{ form.timePeriod || '—' }}</span>
+              </div>
+
+              <div class="contrib__meta-cell contrib__meta-cell--full">
+                <span class="contrib__meta-label">Geographical Coverage</span>
+                <span class="contrib__meta-value" [class.contrib__meta-value--empty]="!form.geoCoverage.length">{{ form.geoCoverage.join(', ') || '—' }}</span>
+              </div>
+
+            </div>
+
+          }
+
+        </div>
+
+      </aside>
+    }
+
+  </div>
+
+</div>

@@ -1,0 +1,65 @@
+<div class="faq">
+
+  <!-- ── Page header (full width) ─────────────────────────────────────────────── -->
+  <div class="faq__page-header">
+    <h1 class="faq__title">Frequently Asked Questions</h1>
+    <p class="faq__subtitle">Answers to common questions about discovering assets, using AI features, managing access, and contributing to the catalog.</p>
+  </div>
+
+  <div class="faq__layout">
+
+    <!-- ── Sidebar ────────────────────────────────────────────────────────────── -->
+    <aside class="faq__sidebar">
+      <nav class="faq__sidebar-nav">
+        @for (section of sections; track section.id) {
+          <button
+            class="faq__sidebar-link"
+            [class.faq__sidebar-link--active]="activeSection() === section.id"
+            (click)="scrollTo(section.id)">
+            {{ section.label }}
+          </button>
+        }
+      </nav>
+    </aside>
+
+    <!-- ── Main content ───────────────────────────────────────────────────────── -->
+    <main class="faq__main">
+      @for (section of sections; track section.id) {
+        <section class="faq__section" [id]="section.id">
+          <h2 class="faq__section-title">{{ section.label }}</h2>
+
+          <div class="faq__accordion">
+            @for (item of section.items; track item.q; let i = $index) {
+              <div class="faq__item" [class.faq__item--open]="openItem() === (section.id + '-' + i)">
+                <button
+                  class="faq__question"
+                  (click)="toggle(section.id + '-' + i)"
+                  [attr.aria-expanded]="openItem() === (section.id + '-' + i)">
+                  <span>{{ item.q }}</span>
+                  <svg class="faq__chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                <div class="faq__answer" [class.faq__answer--open]="openItem() === (section.id + '-' + i)">
+                  <div class="faq__answer-inner">
+                    @for (para of paragraphs(item.a); track para) {
+                      <p [innerHTML]="para.replace(/\n/g, '<br>')"></p>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <div class="faq__footer-cta">
+        <p class="faq__footer-cta-text">Have other questions?</p>
+        <div class="faq__footer-cta-links">
+          <button class="faq__footer-btn faq__footer-btn--primary">Contact Support</button>
+        </div>
+      </div>
+    </main>
+
+  </div>
+</div>

@@ -1,0 +1,125 @@
+<div [style]="{
+  background: bg(),
+  border: '1px solid ' + bdr(),
+  borderRadius: '10px',
+  overflow: 'hidden',
+  fontFamily: font,
+  display: 'flex',
+  flexDirection: 'column',
+  height: 'auto'
+}">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px">
+    <span [style]="{
+      fontSize: '14px',
+      fontWeight: 300,
+      color: muted(),
+      flex: 1,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }">{{ label() }}</span>
+    <button
+      (click)="remove.emit()"
+      title="Remove metric"
+      [style]="{
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: muted(),
+        display: 'flex',
+        padding: '2px',
+        flexShrink: 0
+      }">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+      </svg>
+    </button>
+  </div>
+
+  <div style="padding: 0 16px 14px; flex: 1; display: flex; flex-direction: column">
+
+    <div [style]="{
+      fontSize: '32px',
+      fontWeight: 400,
+      color: txt(),
+      lineHeight: 1.1,
+      marginBottom: '2px',
+      fontFeatureSettings: numFmt
+    }">{{ latestValStr() }}</div>
+
+    @if (delta() && dStr()) {
+      <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 12px; font-size: 14px">
+        <span [style.color]="dCol()">{{ isUp() ? '▲' : '▼' }}</span>
+        <span [style]="{ color: dCol(), fontFeatureSettings: lnumFmt }">{{ dStr() }}</span>
+        <span [style.color]="muted()">vs {{ delta()!.prevYear }}</span>
+      </div>
+    } @else {
+      <div style="height: 22px; margin-bottom: 12px"></div>
+    }
+
+    @if (spark(); as sp) {
+      <div style="margin-bottom: 14px">
+        <svg viewBox="0 0 100 40" style="display: block; width: 100%; height: auto; max-height: 56px; overflow: visible">
+          <defs>
+            <linearGradient [attr.id]="fillGradientId()" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" [attr.stop-color]="col()" stop-opacity="0.15"/>
+              <stop offset="100%" [attr.stop-color]="col()" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path
+            [attr.d]="sparkFillPath()"
+            [attr.fill]="'url(#' + fillGradientId() + ')'"
+          />
+          <path
+            [attr.d]="sp.path"
+            fill="none"
+            [attr.stroke]="col()"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          @for (c of sp.coords; track $index) {
+            <circle [attr.cx]="c.x" [attr.cy]="c.y" r="2.2" [attr.fill]="col()"/>
+          }
+        </svg>
+        <div style="display: flex; justify-content: space-between; margin-top: 4px">
+          <span [style]="{ color: muted(), fontSize: '14px', fontFeatureSettings: lnumFmt }">{{ sp.firstYear }}</span>
+          <span [style]="{ color: muted(), fontSize: '14px', fontFeatureSettings: lnumFmt }">{{ sp.lastYear }}</span>
+        </div>
+      </div>
+    } @else {
+      <div style="height: 68px; margin-bottom: 14px; display: flex; align-items: center; justify-content: center">
+        <span [style.color]="muted()" style="font-size: 14px">No chart data</span>
+      </div>
+    }
+
+    @if (regional()) {
+      <div [style]="{ height: '1px', background: bdr(), marginBottom: '12px' }"></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px">
+        <div>
+          <div [style]="{ fontSize: '14px', fontWeight: 300, color: muted(), marginBottom: '4px' }">Regional Avg</div>
+          <div [style]="{ fontSize: '14px', fontWeight: 300, color: txt(), fontFeatureSettings: numFmt }">
+            {{ regionalAvgStr() }}
+          </div>
+        </div>
+        <div>
+          <div [style]="{ fontSize: '14px', fontWeight: 300, color: muted(), marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }">
+            Rank in Region
+            <span [title]="rankTooltip()" style="cursor: help; display: flex; align-items: center">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" [attr.stroke]="muted()" stroke-width="1.2"/>
+                <path d="M6 5.5v3M6 4v.5" [attr.stroke]="muted()" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </div>
+          <div [style]="{ fontSize: '14px', fontWeight: 300, color: txt(), fontFeatureSettings: numFmt }">
+            {{ rankStr() }}
+          </div>
+        </div>
+      </div>
+    }
+
+
+  </div>
+</div>

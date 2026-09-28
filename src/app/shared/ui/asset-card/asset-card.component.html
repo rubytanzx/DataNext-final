@@ -1,0 +1,366 @@
+@if (isNew) {
+  <span class="ac__new-badge">New!</span>
+}
+<div class="ac__tag-row">
+  @if (tag) {
+    <span class="ac__tag" [style.background]="tagChipStyle.background" [style.color]="tagChipStyle.color">
+      @switch (tag) {
+        @case ('Dataset') {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
+            <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+        }
+        @case ('AI Agent') {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/>
+          </svg>
+        }
+        @case ('Dashboard') {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        }
+        @case ('AI Product') {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        }
+        @case ('API') {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 9l-3 3 3 3"/>
+            <path d="M16 9l3 3-3 3"/>
+            <path d="M14 4l-4 16"/>
+          </svg>
+        }
+        @case ('AI Tool') {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        }
+        @default {
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        }
+      }
+      {{ tag }}
+    </span>
+  }
+  @if (rating) {
+    <span class="ac__rating">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      {{ rating }}
+    </span>
+  }
+  @if (showToggle) {
+    <button class="ac__toggle"
+            [class.ac__toggle--on]="selected"
+            type="button"
+            [attr.aria-label]="selected ? 'Remove' : 'Add to Workspace'"
+            (click)="onAddClick($event)">
+      @if (selected) {
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      } @else {
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      }
+    </button>
+  }
+</div>
+
+<div class="ac__title" [title]="title">{{ title }}</div>
+<p class="ac__desc">{{ description }}</p>
+
+<div class="ac__attrs">
+  <!-- Access level badge -->
+  @if (access === 'Restricted' || (!access && restricted)) {
+    <span class="ac__attr">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Restricted
+    </span>
+  } @else if (access === 'ADB Only' || access === 'All ADB') {
+    <span class="ac__attr ac__attr--adb">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Internal ADB
+    </span>
+  } @else if (access === 'Public') {
+    <span class="ac__attr ac__attr--public">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Public
+    </span>
+  }
+  <!-- Trust badges -->
+  @if (governanceVerified && rai) {
+    <span class="ac__trust-combined">
+      <span class="ac__trust-pill">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+        2 Verifications
+      </span>
+      <span class="ac__trust-dropdown">
+        <span class="ac__attr ac__attr--governance">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          Governance
+        </span>
+        <span class="ac__attr ac__attr--rai">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          Responsible AI
+        </span>
+      </span>
+    </span>
+  } @else {
+    @if (governanceVerified) {
+      <span class="ac__attr ac__attr--governance">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+        Governance
+      </span>
+    }
+    @if (rai) {
+      <span class="ac__attr ac__attr--rai">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+        Responsible AI
+      </span>
+    }
+  }
+  @if (verificationInProgress || (!governanceVerified && !rai)) {
+    <span class="ac__attr ac__attr--pending">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Verification in Progress
+    </span>
+  }
+</div>
+
+@if (sectorTag || geoTag) {
+  <div class="ac__sector-row">
+    @if (sectorTag) {
+      <span class="ac__attr ac__attr--sector" [title]="sectorTag">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+          <path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.3.3 0 0 1 .574.1l3.726 6.846A.7.7 0 0 1 14.97 10z"/>
+          <rect x="14" y="14" width="6" height="6" rx="1"/>
+          <circle cx="6" cy="17" r="3"/>
+        </svg>
+        <span class="ac__sector-label">{{ sectorTag }}</span>
+      </span>
+    }
+    @if (geoTag) {
+      <span class="ac__attr ac__attr--sector">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span class="ac__sector-label" [title]="geoTag">{{ geoTag }}</span>
+      </span>
+    }
+  </div>
+}
+
+@if (themes.length) {
+  <div class="ac__themes">
+    @for (theme of visibleThemes; track theme) {
+      <span class="ac__theme-chip">{{ theme }}</span>
+    }
+    @if (themeOverflow > 0) {
+      <span class="ac__theme-overflow">
+        <span class="ac__theme-chip ac__theme-chip--more">+{{ themeOverflow }}</span>
+        <span class="ac__theme-dropdown">
+          @for (theme of themes.slice(visibleThemes.length); track theme) {
+            <span class="ac__theme-dropdown-item">{{ theme }}</span>
+          }
+        </span>
+      </span>
+    }
+  </div>
+}
+
+@if (showFooter) {
+<div class="ac__footer" (click)="$event.stopPropagation()">
+  <div class="ac__stats">
+    @if (users) {
+      <span class="ac__stat">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        {{ users }}
+      </span>
+    }
+    @if (uses) {
+      <span class="ac__stat-sep">·</span>
+      <span class="ac__stat">
+        @switch (tag) {
+          @case ('AI Agent') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          }
+          @case ('AI Tool') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          }
+          @case ('Dashboard') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          }
+          @case ('AI Product') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          }
+          @case ('API') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 9l-3 3 3 3"/>
+              <path d="M16 9l3 3-3 3"/>
+              <path d="M14 4l-4 16"/>
+            </svg>
+          }
+          @default {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          }
+        }
+        {{ uses }}<span class="ac__stat-label">
+          @switch (tag) {
+            @case ('AI Agent') { runs }
+            @case ('AI Tool') { uses }
+            @case ('Dashboard') { uses }
+            @case ('AI Product') { active }
+            @case ('API') { calls }
+            @default { downloads }
+          }
+        </span>
+      </span>
+    }
+  </div>
+  <div class="ac__actions">
+    @if (!showToggle && showAddToWorkspace) {
+      <button class="ac__action-btn"
+              [class.ac__action-btn--ws-disabled]="addToWorkspaceDisabled"
+              type="button"
+              [attr.data-tooltip]="addToWorkspaceDisabled ? 'Coming soon' : 'Add to Workspace'"
+              (click)="addToWorkspaceDisabled ? $event.stopPropagation() : onAddClick($event)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+      </button>
+    }
+    <button class="ac__action-btn" type="button" [attr.data-tooltip]="ctaLabel"
+            [class.ac__action-btn--cta-disabled]="effectiveCtaDisabled"
+            (click)="$event.stopPropagation()">
+      @switch (tag) {
+        @case ('Dataset') {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        }
+        @case ('Corpus Document') {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        }
+        @case ('API') {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 9l-3 3 3 3"/>
+            <path d="M16 9l3 3-3 3"/>
+            <path d="M14 4l-4 16"/>
+          </svg>
+        }
+        @case ('AI Agent') {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>
+          </svg>
+        }
+        @case ('AI Tool') {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>
+          </svg>
+        }
+        @case ('Dashboard') {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>
+          </svg>
+        }
+        @case ('AI Product') {
+          <!-- External link for Launch Platform -->
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        }
+        @default {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        }
+      }
+    </button>
+    <button class="ac__action-btn" [class.ac__action-btn--saved]="saved" type="button" [attr.data-tooltip]="saved ? 'Unsave' : 'Save'" (click)="onSaveClick($event)">
+      <svg width="14" height="14" viewBox="0 0 24 24"
+           [attr.fill]="saved ? 'currentColor' : 'none'"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+}

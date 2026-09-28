@@ -1,0 +1,45 @@
+.prompt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1.5px solid #e0e0e0;
+  background: white;
+  cursor: pointer;
+  font-family: var(--font), sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #212121;
+  white-space: nowrap;
+
+  &:hover:not(.prompt-chip--ai) { background: #f5f5f5; }
+
+  &--ai {
+    border-color: transparent;
+    background:
+      linear-gradient(white, white) padding-box,
+      linear-gradient(90deg, #46C8D9, #AE5DED) border-box;
+
+    .prompt-chip__label {
+      background: linear-gradient(90deg, #46C8D9, #AE5DED);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    &:hover {
+      background:
+        linear-gradient(#f5f5f5, #f5f5f5) padding-box,
+        linear-gradient(90deg, #46C8D9, #AE5DED) border-box;
+    }
+  }
+}
+
+.prompt-chip__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  &:empty { display: none; }
+}

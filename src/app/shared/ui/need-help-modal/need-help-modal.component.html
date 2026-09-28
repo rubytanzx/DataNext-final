@@ -1,0 +1,77 @@
+@if (open) {
+  <div class="nh-overlay" (click)="onOverlayClick($event)">
+    <div class="nh-modal" role="dialog" aria-modal="true" aria-label="Need Help">
+
+      @if (!submitted) {
+        <div class="nh-header">
+          <div>
+            <h2 class="nh-title">Need Help?</h2>
+            <p class="nh-subtitle">We'll get back to you as soon as possible.</p>
+          </div>
+          <button class="nh-close" type="button" (click)="close()" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="nh-field">
+          <span class="nh-label">Category</span>
+          <div class="nh-chips">
+            @for (cat of categories; track cat) {
+              <button
+                class="nh-chip"
+                [class.nh-chip--active]="selectedCategory === cat"
+                type="button"
+                (click)="selectedCategory = cat">
+                {{ cat }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="nh-field">
+          <div class="nh-field-row">
+            <span class="nh-label">Page</span>
+            <button class="nh-page-toggle" type="button" (click)="includePageContext = !includePageContext">
+              {{ includePageContext ? 'Clear' : 'Include' }}
+            </button>
+          </div>
+          @if (includePageContext) {
+            <div class="nh-page-field">{{ currentPage }}</div>
+          } @else {
+            <div class="nh-page-field nh-page-field--cleared">Not included</div>
+          }
+        </div>
+
+        <div class="nh-field">
+          <label class="nh-label" for="nh-message">Message</label>
+          <textarea
+            id="nh-message"
+            class="nh-textarea"
+            [(ngModel)]="message"
+            placeholder="Describe what you need help with..."
+            rows="4">
+          </textarea>
+        </div>
+
+        <button class="nh-submit" type="button" [disabled]="!canSubmit" (click)="submit()">
+          Send Message
+        </button>
+
+      } @else {
+        <div class="nh-success">
+          <div class="nh-success-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h2 class="nh-title">Message Sent</h2>
+          <p class="nh-subtitle">Thank you! We'll get back to you shortly.</p>
+          <button class="nh-submit nh-submit--center" type="button" (click)="reset()">Close</button>
+        </div>
+      }
+
+    </div>
+  </div>
+}

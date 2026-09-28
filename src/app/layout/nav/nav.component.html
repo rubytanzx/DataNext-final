@@ -1,0 +1,237 @@
+<nav class="nav" [class.nav--collapsed]="navService.collapsed()" [class.nav--glass]="isHome()">
+
+  <!-- ── Collapsed state ── -->
+  @if (navService.collapsed()) {
+    <div class="nav__logo nav__logo--collapsed" (click)="navService.expand()" title="Expand sidebar">
+      <img src="/adb-logo.svg" class="adb-mark" alt="ADB" width="32" height="32" />
+      <span class="nav__logo-expand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="15" y1="3" x2="15" y2="21"/>
+          <polyline points="8 9 11 12 8 15"/>
+        </svg>
+      </span>
+    </div>
+
+    <div class="nav__icon-group">
+      <div class="nav__tip" data-tooltip="Discover">
+        <button class="nav__icon-btn" [class.nav__icon-btn--active]="isActive('/home')" (click)="navigateTo('/home')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </button>
+      </div>
+      <div class="nav__tip" data-tooltip="Assets Catalog">
+        <button class="nav__icon-btn" [class.nav__icon-btn--active]="isActive('/catalogue')" (click)="navigateTo('/catalogue')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/>
+            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            <line x1="12" y1="12" x2="12" y2="16"/>
+            <line x1="10" y1="14" x2="14" y2="14"/>
+          </svg>
+        </button>
+      </div>
+      <div class="nav__tip" data-tooltip="Workspaces">
+        <button class="nav__icon-btn" [class.nav__icon-btn--active]="isActive('/spaces')" (click)="navigateTo('/spaces')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="nav__tip" data-tooltip="My Library">
+        <button class="nav__icon-btn" [class.nav__icon-btn--active]="isActive('/notebooks')" (click)="navigateTo('/notebooks')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            <path d="M2 10h20"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav__spacer"></div>
+
+    <div class="nav__bottom-icons">
+      <div class="nav__tip" data-tooltip="Get Started">
+        <button class="nav__icon-btn" [class.nav__icon-btn--active]="isActive('/whats-new')" (click)="navigateTo('/whats-new')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="nav__tip" data-tooltip="FAQ">
+        <button class="nav__icon-btn" [class.nav__icon-btn--active]="isActive('/faq')" (click)="navigateTo('/faq')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5z"/>
+            <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="nav__tip" data-tooltip="Need Help?">
+        <button class="nav__icon-btn" (click)="showNeedHelp.set(true)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+      </div>
+      <div class="nav__avatar" title="Noah Tan"><span>NT</span></div>
+    </div>
+  }
+
+  <!-- ── Expanded state ── -->
+  @else {
+    <!-- Header -->
+    <div class="nav__header">
+      <div class="nav__logo-full" (click)="navigateTo('/home')" title="Home">
+        <img src="/adb-logo.svg" class="adb-logo-svg" alt="Asian Development Bank" width="32" height="32" />
+      </div>
+      <button class="nav__icon-btn" title="Collapse sidebar" (click)="navService.collapse()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+          <polyline points="16 15 13 12 16 9"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Product name -->
+    <div class="nav__product-name">
+      <svg width="80" height="25" viewBox="0 0 80 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.348 12.322C12.348 16.282 9.702 19 5.706 19H1.62C1.71 18.136 1.746 15.832 1.746 14.662V10.684C1.746 9.532 1.71 7.21 1.62 6.346C2.268 6.346 3.564 6.256 5.346 6.256C9.918 6.256 12.348 8.884 12.348 12.322ZM10.044 12.52C10.044 9.856 8.406 8.128 5.436 8.128C4.932 8.128 4.5 8.146 4.068 8.182C4.05 8.488 4.05 8.956 4.05 9.226V16.102C4.05 16.39 4.05 16.714 4.068 17.038C4.536 17.092 4.896 17.128 5.49 17.128C8.748 17.128 10.044 15.04 10.044 12.52ZM16.2637 19.234C14.6617 19.234 13.6357 18.298 13.6357 16.822C13.6357 15.112 15.1297 13.978 18.0277 13.978C18.2617 13.978 18.4957 13.996 18.7297 14.014L18.7477 13.762C18.7837 12.646 18.2977 12.106 17.1277 12.106C16.2457 12.106 15.2917 12.466 14.6797 12.898L14.3017 11.188C15.2197 10.648 16.3537 10.306 17.5237 10.306C19.8277 10.306 20.8897 11.566 20.8357 13.636L20.7457 17.002C20.7277 17.506 20.8717 17.704 21.2497 17.704C21.4477 17.704 21.6637 17.65 21.8977 17.578L21.7357 18.946C21.3577 19.09 20.9797 19.216 20.4937 19.216C19.7017 19.216 19.0177 18.784 18.8737 17.812C18.3697 18.658 17.3977 19.234 16.2637 19.234ZM16.9117 17.758C17.9017 17.758 18.6217 17.038 18.6757 15.958L18.7117 15.148C18.4777 15.13 18.2797 15.112 18.0457 15.112C16.2997 15.112 15.6697 15.778 15.6697 16.606C15.6697 17.272 16.0477 17.758 16.9117 17.758ZM28.2509 17.074L28.1969 18.784C27.7469 19.09 26.9909 19.27 26.3789 19.27C24.6869 19.27 23.8589 18.442 23.8589 16.57V12.178H22.3649L22.7969 10.504H23.8769L24.0389 8.74L26.0189 8.128V10.504H28.2329C28.1969 10.9 28.1789 11.53 28.1789 12.178H26.0189V16.39C26.0189 17.254 26.3429 17.488 26.9369 17.488C27.3869 17.488 27.8909 17.308 28.2509 17.074ZM31.9258 19.234C30.3238 19.234 29.2978 18.298 29.2978 16.822C29.2978 15.112 30.7918 13.978 33.6898 13.978C33.9238 13.978 34.1578 13.996 34.3918 14.014L34.4098 13.762C34.4458 12.646 33.9598 12.106 32.7898 12.106C31.9078 12.106 30.9538 12.466 30.3418 12.898L29.9638 11.188C30.8818 10.648 32.0158 10.306 33.1858 10.306C35.4898 10.306 36.5518 11.566 36.4978 13.636L36.4078 17.002C36.3898 17.506 36.5338 17.704 36.9118 17.704C37.1098 17.704 37.3258 17.65 37.5598 17.578L37.3978 18.946C37.0198 19.09 36.6418 19.216 36.1558 19.216C35.3638 19.216 34.6798 18.784 34.5358 17.812C34.0318 18.658 33.0598 19.234 31.9258 19.234ZM32.5738 17.758C33.5638 17.758 34.2838 17.038 34.3378 15.958L34.3738 15.148C34.1398 15.13 33.9418 15.112 33.7078 15.112C31.9618 15.112 31.3318 15.778 31.3318 16.606C31.3318 17.272 31.7098 17.758 32.5738 17.758Z" fill="url(#paint0_linear_151_4928)"/>
+        <path d="M39.62 19C39.728 18.136 39.818 15.832 39.836 14.662L39.908 10.342C39.926 9.19 39.908 7.03 39.836 6.166L40.304 6.04L48.62 15.67V10.684C48.62 9.532 48.584 7.21 48.476 6.346C49.178 6.346 49.862 6.328 50.474 6.256C50.402 6.778 50.348 8.218 50.33 8.92L50.204 16.516C50.186 17.218 50.186 18.676 50.24 19.18L49.772 19.306L41.528 9.82V16.408C41.528 17.11 41.546 18.496 41.6 19H39.62ZM60.327 14.554L59.247 15.202L54.333 15.346C54.459 17.02 55.323 17.866 56.925 17.866C58.185 17.866 59.121 17.308 59.931 16.642L59.859 18.334C58.941 18.946 57.951 19.324 56.763 19.324C53.991 19.324 52.677 17.362 52.677 15.112C52.677 12.52 54.315 10.468 56.871 10.468C59.319 10.468 60.327 12.304 60.327 14.554ZM54.369 14.104L58.779 13.978C58.599 12.592 58.023 11.854 56.781 11.854C55.449 11.854 54.603 12.826 54.369 14.104ZM63.297 10.576L65.241 13.672C65.907 12.646 66.825 11.26 67.185 10.684C67.743 10.684 68.607 10.666 69.093 10.612L66.159 14.752L66.627 15.454C67.311 16.552 68.355 18.064 68.985 18.946L67.221 19.198L65.151 15.904C64.359 16.966 63.333 18.496 62.973 19H61.101L64.215 14.86L63.891 14.392C63.135 13.186 62.127 11.692 61.515 10.81L63.297 10.576ZM78.1815 12.322C78.1275 12.682 78.0915 13.312 78.0735 13.726L75.4275 13.69H75.0855V14.248C75.0855 14.95 75.1035 16.48 75.1575 16.984H73.5915C73.6635 16.264 73.6995 14.77 73.7175 13.69H73.2315L70.6215 13.726C70.6575 13.402 70.6755 12.718 70.6755 12.322C71.5755 12.358 72.6375 12.376 73.7175 12.394C73.6995 11.314 73.6635 9.856 73.5915 9.154C74.0055 9.154 74.6895 9.1 75.1575 9.064C75.1035 9.586 75.0855 11.206 75.0855 11.89V12.394C76.0755 12.376 77.3175 12.358 78.1815 12.322Z" fill="#007DB7"/>
+        <defs>
+          <linearGradient id="paint0_linear_151_4928" x1="0" y1="12.5" x2="47.7413" y2="12.5" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#8DC63F"/>
+            <stop offset="1" stop-color="#007DB7"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- Primary nav -->
+    <div class="nav__primary">
+      <button class="nav__item" [class.nav__item--active]="isActive('/home')" (click)="navigateTo('/home')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav__item-icon">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Discover</span>
+      </button>
+
+      <button class="nav__item" [class.nav__item--active]="isActive('/catalogue')" (click)="navigateTo('/catalogue')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav__item-icon">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          <line x1="12" y1="12" x2="12" y2="16"/>
+          <line x1="10" y1="14" x2="14" y2="14"/>
+        </svg>
+        <span>Assets Catalog</span>
+      </button>
+
+      <button class="nav__item" [class.nav__item--active]="isActive('/spaces')" (click)="navigateTo('/spaces')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav__item-icon">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+        <span>Workspaces</span>
+      </button>
+
+      <button class="nav__item" [class.nav__item--active]="isActive('/notebooks')" (click)="navigateTo('/notebooks')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="nav__item-icon">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          <path d="M2 10h20"/>
+        </svg>
+        <span>My Library</span>
+      </button>
+    </div>
+
+    <!-- Divider -->
+    <div class="nav__divider"></div>
+
+    <!-- Search chats -->
+    <div class="nav__search-wrap">
+      <input
+        class="nav__search"
+        type="text"
+        placeholder="Search chat"
+        [(ngModel)]="searchQuery" />
+    </div>
+
+    <!-- Recent AI chats -->
+    <div class="nav__section-row">
+      <p class="nav__section-label">Recent Chats</p>
+      <button class="nav__view-all" type="button" (click)="navigateTo('/notebooks')" title="View all chats">
+        View all
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="nav__history">
+      @if (filteredHistory().length > 0) {
+        @for (item of filteredHistory(); track item.id ?? item.question) {
+          <button class="nav__history-item" (click)="openHistoryItem(item)" [title]="item.question">
+            {{ chatTitle(item) }}
+          </button>
+        }
+      } @else {
+        <p class="nav__history-empty">
+          {{ searchQuery ? 'No results for "' + searchQuery + '"' : 'No recent AI chats' }}
+        </p>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="nav__footer">
+      <div class="nav__footer-links">
+        <button class="nav__footer-link" [class.nav__footer-link--active]="isActive('/whats-new')" (click)="navigateTo('/whats-new')">
+          <!-- rocket -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+          </svg>
+          Get Started
+        </button>
+        <button class="nav__footer-link" [class.nav__footer-link--active]="isActive('/faq')" (click)="navigateTo('/faq')">
+          <!-- messages -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5z"/>
+            <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+          </svg>
+          FAQ
+        </button>
+        <button class="nav__footer-link" (click)="showNeedHelp.set(true)">
+          <!-- circle question mark -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/>
+          </svg>
+          Need Help?
+        </button>
+      </div>
+      <div class="nav__user">
+        <div class="nav__avatar"><span>NT</span></div>
+        <div class="nav__user-info">
+          <span class="nav__user-name">Noah Tan</span>
+          <span class="nav__user-role">ITD</span>
+        </div>
+      </div>
+    </div>
+  }
+</nav>
+
+<app-need-help-modal
+  [open]="showNeedHelp()"
+  (closeModal)="showNeedHelp.set(false)">
+</app-need-help-modal>

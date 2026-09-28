@@ -1,0 +1,904 @@
+<div class="search-page">
+
+  <!-- ── Toast ────────────────────────────────────────────────────── -->
+  @if (toastMsg) {
+    <div class="search-page__toast">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      {{ toastMsg }}
+    </div>
+  }
+
+  <!-- ── Scrollable outer area ───────────────────────────────────── -->
+  <div class="search-page__scroll" [class.search-page__scroll--ai]="activeTab === 'ai'">
+
+    <!-- ── Prompt bar — scrolls with content, hidden in AI tab ──── -->
+    @if (activeTab !== 'ai') {
+      <div class="search-page__bar-wrap" [class.search-page__bar-wrap--fading]="tabFading">
+        <form class="search-page__bar" (submit)="submitSearch($event)">
+          <div class="search-page__bar-input-wrap">
+            <input
+              class="search-page__bar-input"
+              [(ngModel)]="searchQuery"
+              name="searchbar"
+              aria-label="Search for data, dashboards, AI agents and more"
+              autocomplete="off"
+              spellcheck="false"
+              (focus)="onBarFocus()"
+              (blur)="onBarBlur()"
+            />
+            @if (!searchQuery && !barFocused()) {
+              <div class="search-page__bar-ph" aria-hidden="true">
+                <span class="search-page__bar-ph-static">Search for</span>
+                <span class="search-page__bar-ph-clip">
+                  @if (phTransitioning()) {
+                    <span class="search-page__bar-ph-word search-page__bar-ph-word--exit">{{ phSuggestions[phPrev()] }}</span>
+                    <span class="search-page__bar-ph-word search-page__bar-ph-word--enter">{{ phSuggestions[phIndex()] }}</span>
+                  } @else {
+                    <span class="search-page__bar-ph-word">{{ phSuggestions[phIndex()] }}</span>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+          @if (searchQuery) {
+            <button type="button" class="search-page__bar-clear" (click)="searchQuery=''" aria-label="Clear">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+          <button type="submit" class="search-page__bar-submit" [disabled]="!searchQuery.trim()" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    }
+    <div class="search-page__card" [class.search-page__card--ai]="activeTab === 'ai'">
+
+      <!-- ── Tab bar ─────────────────────────────────────────────── -->
+      <div class="search-page__tabs">
+        <!-- Ask AI tab (gradient text + underline when active) -->
+        <button
+          class="search-page__tab"
+          [class.search-page__tab--ai-active]="activeTab === 'ai'"
+          (click)="setTab('ai')"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-page__tab-star">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            <path d="M5 3v4M19 17v4M3 5h4M17 19h4"/>
+          </svg>
+          Ask AI
+        </button>
+        <!-- Search Results tab -->
+        <button
+          class="search-page__tab"
+          [class.search-page__tab--results-active]="activeTab === 'results'"
+          (click)="setTab('results')"
+        >
+          Search Results
+        </button>
+      </div>
+
+      <!-- ── Tab content (fades on switch) ───────────────────────── -->
+      <div class="search-page__content">
+
+        <!-- ── Initial suggested prompts (no query yet) ────────── -->
+        @if (!searchQuery.trim()) {
+          <div class="search-page__suggestions">
+            <p class="search-page__suggestions-label">Try asking</p>
+            <button class="search-page__suggestion search-page__suggestion--dashboard" type="button" (click)="applyDashboardSuggestion()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+              </svg>
+              {{ dashboardPrompt }}
+            </button>
+            @for (q of suggestedPrompts; track q) {
+              <button class="search-page__suggestion" type="button" (click)="applySuggestion(q)">
+                {{ q }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- ── Loading beam (first 2s after query) ──────────────── -->
+        @if (!isLoaded && searchQuery.trim()) {
+          <div class="search-page__loading">
+            <div class="search-page__beam-glow"></div>
+            <div class="search-page__beam-stripe"></div>
+            <p class="search-page__loading-text">Looking up resources…</p>
+          </div>
+        }
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- ASK AI TAB                                                -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        @if (isLoaded && activeTab === 'ai') {
+          <div class="search-page__ai-view">
+
+            <!-- User query bubble -->
+            <div class="search-page__msg search-page__msg--user">
+              <div class="search-page__msg-bubble search-page__msg-bubble--user">
+                {{ searchQuery }}
+              </div>
+            </div>
+
+            <!-- Reasoning loader (while waiting for AI response) -->
+            @if (!aiResponseVisible) {
+              <div class="search-page__msg search-page__msg--ai">
+                <ia-ai-reasoning-loader
+                  [phases]="reasoningPhases"
+                  [phaseDuration]="1500"
+                  [thoughts]="defaultThoughts"
+                />
+              </div>
+            }
+
+            <!-- AI response (shown after 4s) -->
+            @if (aiResponseVisible) {
+              <div class="search-page__msg search-page__msg--ai search-page__msg--animate">
+                <div class="search-page__ai-response">
+                  <p class="search-page__ai-response-text">{{ aiSummaryText }}</p>
+
+                  <!-- Related queries -->
+                  <div class="search-page__related">
+                    <div class="search-page__related-label">Related queries</div>
+                    @if (!relatedLoaded) {
+                      @for (w of skeletonWidths; track w) {
+                        <div class="search-page__related-skeleton" [style.width.%]="w"></div>
+                      }
+                    } @else {
+                      @for (q of relatedQueries; track q) {
+                        <button class="search-page__related-query" (click)="sendFollowUp(q)">{{ q }}</button>
+                      }
+                    }
+                  </div>
+
+                  <!-- Response actions -->
+                  <div class="search-page__resp-actions">
+                    <button class="search-page__resp-btn" [class.search-page__resp-btn--active]="chatCopied" type="button" (click)="copyChatResponse()" title="Copy response">
+                      @if (chatCopied) {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      } @else {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      }
+                    </button>
+                    <span class="search-page__resp-divider"></span>
+                    <button class="search-page__resp-btn" [class.search-page__resp-btn--thumb-up]="chatThumbsState === 'up'" type="button" (click)="setChatThumb('up')" aria-label="Helpful">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                    </button>
+                    <button class="search-page__resp-btn" [class.search-page__resp-btn--thumb-down]="chatThumbsState === 'down'" type="button" (click)="setChatThumb('down')" aria-label="Not helpful">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+                    </button>
+                  </div>
+
+                  @if (chatFeedbackOpen) {
+                    <div class="search-page__feedback-panel">
+                      <div class="search-page__feedback-header">
+                        <span class="search-page__feedback-title">{{ chatThumbsState === 'up' ? 'What did you like about this response? Your feedback keeps us on the right track' : 'What went wrong? Help us improve.' }}</span>
+                        <button class="search-page__feedback-close" type="button" (click)="closeChatFeedback()">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                      </div>
+                      <div class="search-page__feedback-options">
+                        @for (opt of (chatThumbsState === 'up' ? feedbackOptions : feedbackOptionsDown); track opt) {
+                          <button class="search-page__feedback-opt" [class.search-page__feedback-opt--selected]="chatFeedbackSelected.includes(opt)" type="button" (click)="toggleChatFeedbackOption(opt)">{{ opt }}</button>
+                        }
+                      </div>
+                      <textarea class="search-page__feedback-input" [(ngModel)]="chatFeedbackText" placeholder="Input text" rows="3"></textarea>
+                      <button class="search-page__feedback-submit" type="button" (click)="submitChatFeedback()">Submit</button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Follow-up messages -->
+            @for (msg of messages; track msg.id) {
+              @if (isUserMsg(msg)) {
+                <div class="search-page__msg search-page__msg--user search-page__msg--animate">
+                  <div class="search-page__msg-bubble search-page__msg-bubble--user">
+                    {{ msg.text }}
+                    @if (msg.attachments?.length) {
+                      <div class="sw__attachments">
+                        @for (a of msg.attachments; track a.id) {
+                          <span class="sw__attachment-chip">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            {{ a.name }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @if (isThinkingMsg(msg)) {
+                <div class="search-page__msg search-page__msg--ai search-page__msg--animate search-page__msg--full">
+                  <ia-ai-reasoning-loader
+                    [phaseDuration]="1500"
+                    [thoughts]="msg.agentic ? erdiAiThoughts : defaultThoughts"
+                    [tasks]="msg.agentic ? erdiAiTasks : []"
+                  />
+                </div>
+              }
+              @if (isAIMsg(msg)) {
+                <div class="search-page__msg search-page__msg--ai search-page__msg--animate">
+                  <div class="search-page__ai-response">
+                    <p class="search-page__ai-response-text">{{ msg.text }}</p>
+
+                    <!-- ── Inline widgets ────────────────────────── -->
+                    @if (msg.widgets?.length) {
+                      <div class="sw__grid">
+                        @for (w of msg.widgets; track w.id) {
+                          <div class="sw__card sw__card--{{ w.widgetType }}"
+                               [class.sw__card--selected]="isWidgetSelected(w.id)"
+                               (click)="onCardClick(w)">
+
+                            <!-- Selection toggle (not shown for asset cards — footer button handles it) -->
+                            @if (w.widgetType !== 'asset') {
+                              <button class="sw__toggle" type="button"
+                                      [class.sw__toggle--on]="isWidgetSelected(w.id)"
+                                      (click)="toggleWidget(w.id, $event)"
+                                      [attr.aria-label]="isWidgetSelected(w.id) ? 'Remove' : 'Add to Workspace'">
+                                @if (isWidgetSelected(w.id)) {
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                } @else {
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                }
+                              </button>
+                            }
+
+                            <!-- Type tag (hidden for asset-style cards) -->
+                            @if (w.widgetType !== 'asset') {
+                              <div class="sw__card-header">
+                                <span class="sw__type-tag sw__type-tag--{{ w.widgetType }}">
+                                  @switch (w.widgetType) {
+                                    @case ('chart') {
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                    }
+                                    @case ('table') {
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+                                    }
+                                    @case ('dataset') {
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+                                    }
+                                    @case ('document') {
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    }
+                                    @default {
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                    }
+                                  }
+                                  {{ widgetTypeLabel(w.widgetType) }}
+                                </span>
+                              </div>
+                            }
+
+                            <!-- ── Chart ── -->
+                            @if (w.widgetType === 'chart' && w.chartBars) {
+                              <div class="sw__chart-title">{{ w.title }}</div>
+                              <div class="sw__chart">
+                                @for (bar of w.chartBars; track bar.label) {
+                                  <div class="sw__chart-col">
+                                    <span class="sw__chart-val">{{ bar.value }}%</span>
+                                    <div class="sw__chart-bar"
+                                         [class.sw__chart-bar--peak]="bar.value === maxChartVal(w.chartBars!)"
+                                         [style.height.px]="bar.value / maxChartVal(w.chartBars!) * 68">
+                                    </div>
+                                    <span class="sw__chart-label">{{ bar.label }}</span>
+                                  </div>
+                                }
+                              </div>
+                              <p class="sw__card-source">{{ w.description }}</p>
+                            }
+
+                            <!-- ── Table ── -->
+                            @if (w.widgetType === 'table' && w.tableHeaders) {
+                              <div class="sw__widget-title">{{ w.title }}</div>
+                              <div class="sw__table-wrap">
+                                <table class="sw__table">
+                                  <thead>
+                                    <tr>
+                                      @for (h of w.tableHeaders; track h) {
+                                        <th class="sw__th">{{ h }}</th>
+                                      }
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    @for (row of w.tableRows; track $index) {
+                                      <tr>
+                                        @for (cell of row; track $index) {
+                                          <td class="sw__td">{{ cell }}</td>
+                                        }
+                                      </tr>
+                                    }
+                                  </tbody>
+                                </table>
+                              </div>
+                              <p class="sw__card-source">{{ w.description }}</p>
+                            }
+
+                            <!-- ── Dataset ── -->
+                            @if (w.widgetType === 'dataset') {
+                              <div class="sw__dataset">
+                                <div class="sw__asset-icon sw__asset-icon--data">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                                    <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
+                                    <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                                  </svg>
+                                </div>
+                                <div class="sw__asset-body">
+                                  <div class="sw__widget-title">{{ w.title }}</div>
+                                  <p class="sw__widget-desc">{{ w.description }}</p>
+                                  @if (w.metaBadges?.length) {
+                                    <div class="sw__badges">
+                                      @for (b of w.metaBadges; track b) {
+                                        <span class="sw__badge">{{ b }}</span>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            }
+
+                            <!-- ── Document ── -->
+                            @if (w.widgetType === 'document') {
+                              <div class="sw__doc-top">
+                                <div class="sw__asset-icon sw__asset-icon--doc">{{ w.fileExt }}</div>
+                                <div>
+                                  <div class="sw__widget-title">{{ w.title }}</div>
+                                  <span class="sw__asset-meta">{{ w.fileExt }} · {{ w.fileSize }}</span>
+                                </div>
+                              </div>
+                              @if (w.docExcerpt) {
+                                <p class="sw__doc-excerpt">{{ w.docExcerpt }}</p>
+                              }
+                              <p class="sw__card-source">{{ w.description }}</p>
+                            }
+
+                            <!-- ── File (uploaded) ── -->
+                            @if (w.widgetType === 'file') {
+                              <div class="sw__file">
+                                <div class="sw__asset-icon sw__asset-icon--file">{{ w.fileExt }}</div>
+                                <div class="sw__asset-body">
+                                  <div class="sw__widget-title">{{ w.title }}</div>
+                                  <span class="sw__asset-meta">{{ w.fileExt }} · {{ w.fileSize }}</span>
+                                  <p class="sw__widget-desc">{{ w.description }}</p>
+                                </div>
+                              </div>
+                            }
+
+                            <!-- ── Asset (catalogue card style) ── -->
+                            @if (w.widgetType === 'asset') {
+                              <app-asset-card
+                                [tag]="w.displayType ?? ''"
+                                [tagColor]="widgetTagColor(w)"
+                                [rating]="w.rating"
+                                [title]="w.title"
+                                [description]="w.description"
+                                [users]="w.users"
+                                [uses]="w.downloads"
+                                [showToggle]="true"
+                                [selected]="isWidgetSelected(w.id)"
+                                (addClick)="toggleWidget(w.id, $event)"
+                              ></app-asset-card>
+                            }
+
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Response actions -->
+                    <div class="search-page__resp-actions">
+                      <button class="search-page__resp-btn" [class.search-page__resp-btn--active]="msgCopied[msg.id]" type="button" (click)="copyMsgResponse(msg.id, msg.text)" title="Copy response">
+                        @if (msgCopied[msg.id]) {
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        } @else {
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        }
+                      </button>
+                      <span class="search-page__resp-divider"></span>
+                      <button class="search-page__resp-btn" [class.search-page__resp-btn--thumb-up]="msgThumbsState[msg.id] === 'up'" type="button" (click)="setMsgThumb(msg.id, 'up')" aria-label="Helpful">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                      </button>
+                      <button class="search-page__resp-btn" [class.search-page__resp-btn--thumb-down]="msgThumbsState[msg.id] === 'down'" type="button" (click)="setMsgThumb(msg.id, 'down')" aria-label="Not helpful">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"/></svg>
+                      </button>
+                    </div>
+
+                    @if (msgFeedbackOpen[msg.id]) {
+                      <div class="search-page__feedback-panel">
+                        <div class="search-page__feedback-header">
+                          <span class="search-page__feedback-title">{{ msgThumbsState[msg.id] === 'up' ? 'What did you like about this response? Your feedback keeps us on the right track' : 'What went wrong? Help us improve.' }}</span>
+                          <button class="search-page__feedback-close" type="button" (click)="closeMsgFeedback(msg.id)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </div>
+                        <div class="search-page__feedback-options">
+                          @for (opt of (msgThumbsState[msg.id] === 'up' ? feedbackOptions : feedbackOptionsDown); track opt) {
+                            <button class="search-page__feedback-opt" [class.search-page__feedback-opt--selected]="(msgFeedbackSelected[msg.id] || []).includes(opt)" type="button" (click)="toggleMsgFeedbackOption(msg.id, opt)">{{ opt }}</button>
+                          }
+                        </div>
+                        <textarea class="search-page__feedback-input" [(ngModel)]="msgFeedbackText[msg.id]" placeholder="Input text" rows="3"></textarea>
+                        <button class="search-page__feedback-submit" type="button" (click)="submitMsgFeedback(msg.id)">Submit</button>
+                      </div>
+                    }
+
+                  </div>
+                </div>
+              }
+            }
+
+          </div>
+
+          <!-- Follow-up input (bottom of AI view) -->
+          <div class="search-page__ai-bottom">
+            <!-- Selection pill + space CTA -->
+            <div class="sw__pill" [class.sw__pill--visible]="hasSelection" (click)="closePillDrop()">
+              <div class="sw__pill-info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                {{ selectedCount }} asset{{ selectedCount !== 1 ? 's' : '' }} selected
+              </div>
+              <div class="sw__pill-drop-wrap" (click)="$event.stopPropagation()">
+                <button class="sw__pill-cta" type="button" (click)="togglePillDrop($event)">
+                  Add {{ selectedCount }} Asset{{ selectedCount !== 1 ? 's' : '' }} to a Workspace
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                </button>
+                @if (pillDropOpen) {
+                  <div class="sw__pill-dropdown">
+                    <button class="sw__pill-opt sw__pill-opt--new" type="button" (click)="addToSpace()">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                      Create new Space
+                    </button>
+                    <div class="sw__pill-divider"></div>
+                    @for (nb of notebooks; track nb) {
+                      <button class="sw__pill-opt" type="button" (click)="addToSpace(nb)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
+                        {{ nb }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <adb-prompt-bar
+              placeholder="Ask a follow-up question…"
+              (submit)="sendFollowUp($event)"
+              (attach)="onFileAttach($event)"
+            >
+              @for (f of pendingFiles; track f.id) {
+                <adb-upload-item slot="uploads" [filename]="f.name" [size]="f.size" [status]="f.status" />
+              }
+            </adb-prompt-bar>
+          </div>
+        }
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SEARCH RESULTS TAB                                        -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        @if (isLoaded && activeTab === 'results') {
+          <div class="search-page__results-view">
+
+            <!-- AI Summary card -->
+            <div class="search-page__summary">
+              <div class="search-page__summary-label-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(126,211,86,1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  <path d="M5 3v4M19 17v4M3 5h4M17 19h4"/>
+                </svg>
+                <span class="search-page__summary-label">AI Search Overview</span>
+              </div>
+
+              <div class="search-page__summary-body" [class.search-page__summary-body--expanded]="summaryExpanded">
+                <p>{{ aiFullText }}</p>
+              </div>
+
+              <div class="search-page__summary-toggle-wrap">
+                <button type="button" class="search-page__summary-toggle" (click)="toggleSummary()">
+                  <svg [style.transform]="summaryExpanded ? 'rotate(180deg)' : 'none'" style="transition: transform 0.2s ease; flex-shrink:0;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                  {{ summaryExpanded ? 'Show less' : 'Show more' }}
+                </button>
+              </div>
+
+              <div class="search-page__summary-footer">
+                <div class="search-page__summary-footer-left">
+                  <div class="search-page__summary-sources-row">
+                    <div class="search-page__summary-avatars">
+                      <span class="search-page__summary-avatar" style="background:#007DB7; z-index:1; left:0">ADB</span>
+                      <span class="search-page__summary-avatar" style="background:#1B5E20; z-index:2; left:14px">S</span>
+                    </div>
+                    <span class="search-page__summary-sources-label">2 Source(s)</span>
+                  </div>
+                  <p class="search-page__summary-disclaimer">AI responses may include mistakes.</p>
+                </div>
+                <div class="search-page__summary-thumbs">
+                  <button class="search-page__thumb" [class.search-page__thumb--active]="thumbsState === 'up'" (click)="setThumb('up')" aria-label="Helpful">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
+                    </svg>
+                  </button>
+                  <button class="search-page__thumb" [class.search-page__thumb--active]="thumbsState === 'down'" (click)="setThumb('down')" aria-label="Not helpful">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="search-page__summary-followup-wrap">
+              <button type="button" class="search-page__followup-btn" (click)="setTab('ai')">
+                <svg class="search-page__followup-btn-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/>
+                </svg>
+                <span class="search-page__followup-btn-text">Follow-up with AI</span>
+              </button>
+            </div>
+
+            <hr class="search-page__divider" />
+
+            <!-- Toolbar: count + keyword filter + sort by -->
+            <div class="search-page__toolbar">
+              <div class="search-page__count">{{ resultCount }}</div>
+              <div class="search-page__filter-row">
+                <div class="search-page__keyword-field">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input class="search-page__keyword-input" [ngModel]="filterKeyword" (ngModelChange)="onFilterKeywordChange($event)" name="kw" placeholder="Filter results by keywords" autocomplete="off" />
+                </div>
+                <button class="search-page__sort-btn" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/>
+                  </svg>
+                  Sort by
+                </button>
+              </div>
+            </div>
+
+            <!-- Keyword filter loading state -->
+            @if (filterLoading) {
+              <div style="display:flex; justify-content:center; padding: 16px 0 0">
+                <ia-search-loader width="480px" height="240px"></ia-search-loader>
+              </div>
+            }
+
+            <!-- Two-column body: sidebar + main -->
+            <div class="search-page__body" [style.display]="filterLoading ? 'none' : ''"  >
+
+              <!-- ── Left sidebar ───────────────────────────────────── -->
+              <aside class="search-page__sidebar">
+
+                <!-- Header -->
+                <div class="search-page__sidebar-header">
+                  <span class="sb__header-title">Filters</span>
+                  @if (activeFilterCount > 0) {
+                    <span class="sb__active-badge">{{ activeFilterCount }} active</span>
+                    <button class="sb__clear-all" type="button" (click)="clearAllFilters()">Clear all</button>
+                  }
+                </div>
+
+                <!-- ASSET TYPE -->
+                <div class="search-page__sidebar-group">
+                  <button class="search-page__sidebar-group-header sb__group-hdr--btn" type="button"
+                    (click)="srGroupExpanded['assetType'] = !srGroupExpanded['assetType']">
+                    <span class="search-page__sidebar-group-name">Asset Type</span>
+                    <span class="sb__group-hdr-right">
+                      @if (srFilters.assetTypes.size > 0) {
+                        <span class="search-page__sidebar-clear sb__inline-clear" (click)="srClearDim('assetTypes'); $event.stopPropagation()">Clear</span>
+                      }
+                      <svg class="sb__chevron" [class.sb__chevron--open]="srGroupExpanded['assetType']" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                  </button>
+                  @if (srGroupExpanded['assetType'] && srAssetTypeFacets.length > 0) {
+                    <div class="search-page__sidebar-options">
+                      @for (facet of srAssetTypeFacets; track facet[0]) {
+                        <label class="search-page__sidebar-option">
+                          <input type="checkbox" class="search-page__sidebar-checkbox"
+                            [checked]="srFilters.assetTypes.has(facet[0])"
+                            (change)="srToggle('assetTypes', facet[0])" [name]="'at-' + facet[0]" />
+                          <span class="sb__opt-label">{{ facet[0] }}</span>
+                          <span class="sb__opt-count">{{ facet[1] }}</span>
+                        </label>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- TRUST STATUS -->
+                @if (srTrustStatusFacets.length > 0) {
+                  <div class="search-page__sidebar-group">
+                    <button class="search-page__sidebar-group-header sb__group-hdr--btn" type="button"
+                      (click)="srGroupExpanded['trustStatus'] = !srGroupExpanded['trustStatus']">
+                      <span class="search-page__sidebar-group-name">Trust Status</span>
+                      <span class="sb__group-hdr-right">
+                        @if (srFilters.trustStatuses.size > 0) {
+                          <span class="search-page__sidebar-clear sb__inline-clear" (click)="srClearDim('trustStatuses'); $event.stopPropagation()">Clear</span>
+                        }
+                        <svg class="sb__chevron" [class.sb__chevron--open]="srGroupExpanded['trustStatus']" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </button>
+                    @if (srGroupExpanded['trustStatus']) {
+                      <div class="search-page__sidebar-options">
+                        @for (facet of srTrustStatusFacets; track facet[0]) {
+                          <label class="search-page__sidebar-option">
+                            <input type="checkbox" class="search-page__sidebar-checkbox"
+                              [checked]="srFilters.trustStatuses.has(facet[0])"
+                              (change)="srToggle('trustStatuses', facet[0])" [name]="'ts-' + facet[0]" />
+                            <span class="sb__opt-label">{{ facet[0] }}</span>
+                            <span class="sb__opt-count">{{ facet[1] }}</span>
+                          </label>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- ACCESS -->
+                @if (srAccessFacets.length > 0) {
+                  <div class="search-page__sidebar-group">
+                    <button class="search-page__sidebar-group-header sb__group-hdr--btn" type="button"
+                      (click)="srGroupExpanded['access'] = !srGroupExpanded['access']">
+                      <span class="search-page__sidebar-group-name">Access</span>
+                      <span class="sb__group-hdr-right">
+                        @if (srFilters.access.size > 0) {
+                          <span class="search-page__sidebar-clear sb__inline-clear" (click)="srClearDim('access'); $event.stopPropagation()">Clear</span>
+                        }
+                        <svg class="sb__chevron" [class.sb__chevron--open]="srGroupExpanded['access']" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </button>
+                    @if (srGroupExpanded['access']) {
+                      <div class="search-page__sidebar-options">
+                        @for (facet of srAccessFacets; track facet[0]) {
+                          <label class="search-page__sidebar-option">
+                            <input type="checkbox" class="search-page__sidebar-checkbox"
+                              [checked]="srFilters.access.has(facet[0])"
+                              (change)="srToggle('access', facet[0])" [name]="'ac-' + facet[0]" />
+                            <span class="sb__opt-label">{{ facet[0] }}</span>
+                            <span class="sb__opt-count">{{ facet[1] }}</span>
+                          </label>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- SECTOR (collapsible, default collapsed) -->
+                @if (srSectorFacets.length > 0) {
+                  <div class="search-page__sidebar-group">
+                    <button class="search-page__sidebar-group-header sb__group-hdr--btn" type="button"
+                      (click)="srGroupExpanded['sector'] = !srGroupExpanded['sector']">
+                      <span class="search-page__sidebar-group-name">Sector</span>
+                      <span class="sb__group-hdr-right">
+                        @if (srFilters.sectors.size > 0) {
+                          <span class="search-page__sidebar-clear sb__inline-clear" (click)="srClearDim('sectors'); $event.stopPropagation()">Clear</span>
+                        }
+                        <svg class="sb__chevron" [class.sb__chevron--open]="srGroupExpanded['sector']" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </button>
+                    @if (srGroupExpanded['sector']) {
+                      <div class="search-page__sidebar-options">
+                        @for (facet of srSectorFacets; track facet[0]) {
+                          <label class="search-page__sidebar-option">
+                            <input type="checkbox" class="search-page__sidebar-checkbox"
+                              [checked]="srFilters.sectors.has(facet[0])"
+                              (change)="srToggle('sectors', facet[0])" [name]="'sec-' + facet[0]" />
+                            <span class="sb__opt-label">{{ facet[0] }}</span>
+                            <span class="sb__opt-count">{{ facet[1] }}</span>
+                          </label>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- REGION (collapsible, default collapsed) -->
+                @if (srRegionFacets.length > 0) {
+                  <div class="search-page__sidebar-group">
+                    <button class="search-page__sidebar-group-header sb__group-hdr--btn" type="button"
+                      (click)="srGroupExpanded['region'] = !srGroupExpanded['region']">
+                      <span class="search-page__sidebar-group-name">Region</span>
+                      <span class="sb__group-hdr-right">
+                        @if (srFilters.regions.size > 0) {
+                          <span class="search-page__sidebar-clear sb__inline-clear" (click)="srClearDim('regions'); $event.stopPropagation()">Clear</span>
+                        }
+                        <svg class="sb__chevron" [class.sb__chevron--open]="srGroupExpanded['region']" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </button>
+                    @if (srGroupExpanded['region']) {
+                      <div class="search-page__sidebar-options">
+                        @for (facet of srRegionFacets; track facet[0]) {
+                          <label class="search-page__sidebar-option">
+                            <input type="checkbox" class="search-page__sidebar-checkbox"
+                              [checked]="srFilters.regions.has(facet[0])"
+                              (change)="srToggle('regions', facet[0])" [name]="'reg-' + facet[0]" />
+                            <span class="sb__opt-label">{{ facet[0] }}</span>
+                            <span class="sb__opt-count">{{ facet[1] }}</span>
+                          </label>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- TIME PERIOD COVERED (collapsible, default collapsed) -->
+                <div class="search-page__sidebar-group">
+                  <button class="search-page__sidebar-group-header sb__group-hdr--btn" type="button"
+                    (click)="srGroupExpanded['timePeriod'] = !srGroupExpanded['timePeriod']">
+                    <span class="search-page__sidebar-group-name">Time Period Covered</span>
+                    <span class="sb__group-hdr-right">
+                      @if (yearFrom !== 2015 || yearTo !== 2026) {
+                        <span class="search-page__sidebar-clear sb__inline-clear" (click)="yearFrom = 2015; yearTo = 2026; $event.stopPropagation()">Clear</span>
+                      }
+                      <svg class="sb__chevron" [class.sb__chevron--open]="srGroupExpanded['timePeriod']" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                  </button>
+                  @if (srGroupExpanded['timePeriod']) {
+                    <div class="sb__slider-wrap">
+                      <div class="sb__slider-labels">
+                        <span>{{ yearFrom }}</span>
+                        <span>{{ yearTo }}</span>
+                      </div>
+                      <div class="sb__slider-track">
+                        <div class="sb__slider-fill" [style.left.%]="yearFromPct" [style.right.%]="100 - yearToPct"></div>
+                        <input class="sb__slider" type="range" min="2000" max="2030"
+                          [ngModel]="yearFrom" (ngModelChange)="onYearFromChange($event)" name="yearFrom" />
+                        <input class="sb__slider sb__slider--to" type="range" min="2000" max="2030"
+                          [ngModel]="yearTo" (ngModelChange)="onYearToChange($event)" name="yearTo" />
+                      </div>
+                    </div>
+                  }
+                </div>
+
+              </aside>
+
+              <!-- ── Main results area ──────────────────────────────── -->
+              <main class="search-page__main">
+
+                <!-- Result sections grouped by asset type -->
+                @for (section of resultSections; track section.label) {
+                  <div class="search-page__section">
+                    <div class="search-page__section-header">
+                      <span class="search-page__section-title">{{ section.label }}</span>
+                      <button class="search-page__see-all" type="button">
+                        See all
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                      </button>
+                    </div>
+                    <div class="sr__grid">
+                      @for (item of section.items; track item.id) {
+                        <ng-container *ngTemplateOutlet="srCardTpl; context: { $implicit: item }"></ng-container>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Empty state -->
+                @if (resultSections.length === 0) {
+                  <div class="search-page__empty">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <p class="search-page__empty-title">No results match these filters.</p>
+                    <p class="search-page__empty-sub">Try removing one or more filters.</p>
+                    <button class="search-page__empty-cta" type="button" (click)="clearAllFilters()">Clear filters</button>
+                  </div>
+                }
+
+              </main>
+            </div><!-- /.search-page__body -->
+
+          </div>
+        }
+
+      </div><!-- /.search-page__content -->
+
+    </div><!-- /.search-page__card -->
+  </div><!-- /.search-page__scroll -->
+
+</div><!-- /.search-page -->
+
+<!-- ── Shared search result card template ─────────────────────── -->
+<ng-template #srCardTpl let-item>
+  <div class="sr__card" (click)="closeCardDrop()">
+    <div class="sr__card-tag-row">
+      <span class="sr__card-tag sr__card-tag--{{ typeSlugSr(itemDisplayType(item)) }}">
+        @switch (itemDisplayType(item)) {
+          @case ('Dataset') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          }
+          @case ('AI Agent') {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+            </svg>
+          }
+          @default {
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M2 12h20"/>
+              <path d="M12 2c-2.5 2.5-4 5.7-4 10s1.5 7.5 4 10M12 2c2.5 2.5 4 5.7 4 10s-1.5 7.5-4 10"/>
+            </svg>
+          }
+        }
+        {{ itemDisplayType(item) }}
+      </span>
+      @if (item.rating) {
+        <span class="sr__card-rating">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+          {{ ratingNum(item.rating) }}
+        </span>
+      }
+    </div>
+    <h4 class="sr__card-title">{{ item.title }}</h4>
+    <p class="sr__card-desc">{{ item.description }}</p>
+    <div class="sr__card-footer">
+      @if (item.audience) {
+        <span class="sr__card-audience">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          {{ item.audience }}
+        </span>
+      }
+      <div class="sr__card-actions">
+        <div class="sr__add-wrap" (click)="$event.stopPropagation()">
+          <button class="sr__card-action-btn" type="button" title="Add to Workspace"
+                  (click)="toggleCardDrop(item.id, $event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </button>
+          @if (openDropCardId === item.id) {
+            <div class="sr__add-dropdown">
+              <button class="sr__add-opt sr__add-opt--new" (click)="closeCardDrop()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Add to New Workspace
+              </button>
+              <div class="sr__add-divider"></div>
+              @for (nb of notebooks; track nb) {
+                <button class="sr__add-opt" (click)="closeCardDrop()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                  </svg>
+                  {{ nb }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+        <button class="sr__card-action-btn" type="button" title="Download" (click)="$event.stopPropagation()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <button class="sr__card-action-btn" type="button" title="Save" (click)="$event.stopPropagation()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>

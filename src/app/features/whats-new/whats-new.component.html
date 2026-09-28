@@ -1,0 +1,209 @@
+<div class="wn">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <section class="wn__hero">
+    <div class="wn__aurora" aria-hidden="true">
+      <app-aurora-light
+        [colorStops]="['#54c4ed', '#a4d165', '#54c4ed']"
+        [amplitude]="1.4"
+        [blend]="0.5"
+        [speed]="2.2"
+        [opacity]="0.7"
+      ></app-aurora-light>
+    </div>
+
+    <canvas class="wn__sphere" aria-hidden="true"></canvas>
+
+    <div class="wn__hero-inner">
+
+      <!-- Left: text -->
+      <div class="wn__hero-left">
+        <h1 class="wn__hero-h1">
+          <span class="wn__hero-static">From Intent to</span>
+          <span class="wn__hero-rotator-mask">
+            <span class="wn__hero-rotator-track">
+              <span class="wn__hero-rotator-word">Discovery</span>
+              <span class="wn__hero-rotator-word">Connection</span>
+              <span class="wn__hero-rotator-word">Reuse</span>
+              <span class="wn__hero-rotator-word">Impact</span>
+              <span class="wn__hero-rotator-word">Discovery</span>
+            </span>
+          </span>
+        </h1>
+        <p class="wn__hero-sub">
+          <span class="wn__hero-brand"><span class="wn__hero-brand-data">Data</span><span class="wn__hero-brand-nex">Nex+</span></span> connects you to ADB's growing ecosystem of data and AI assets, helping you discover and build on capabilities that already exist.
+        </p>
+        <p class="wn__hero-sub">
+          Find what you need, build on what's available, and turn knowledge into action.
+        </p>
+        <button class="wn__hero-cta" (click)="navigateToDiscover()">
+          <svg class="wn__hero-cta-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/>
+          </svg>
+          <span class="wn__hero-cta-text">Start Discovering</span>
+        </button>
+      </div>
+
+      <!-- Right: product trailer video -->
+      <div class="wn__hero-video" aria-label="Product walkthrough">
+        <video
+          #heroVideo
+          class="wn__hero-video-player"
+          src="datanex-trailer.mp4"
+          [muted]="true"
+          autoplay
+          loop
+          playsinline
+          (mouseenter)="heroVideo.controls = true"
+          (mouseleave)="heroVideo.controls = false"
+          aria-label="DataNex+ product trailer"
+        ></video>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── Better Decisions ──────────────────────────────────────────────────── -->
+  <section class="wn__value wn__reveal">
+    <div class="wn__value-head">
+      <h2 class="wn__value-h2">Better Decisions, Greater Impact</h2>
+    </div>
+    <div class="wn__value-cards">
+      @for (tab of tabs; track tab.id) {
+        <div class="wn__value-card">
+          <div class="wn__value-card-inner">
+            <h3 class="wn__value-card-title">
+              <div class="wn__value-card-title-row">
+                @if (tab.id === 'discover') {
+                  <svg class="wn__value-card-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M8 16l2 -6l6 -2l-2 6l-6 2"/>
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>
+                    <path d="M12 3l0 2"/>
+                    <path d="M12 19l0 2"/>
+                    <path d="M3 12l2 0"/>
+                    <path d="M19 12l2 0"/>
+                  </svg>
+                }
+                @if (tab.id === 'connect') {
+                  <svg class="wn__value-card-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
+                    <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    <path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/>
+                  </svg>
+                }
+                @if (tab.id === 'reuse') {
+                  <svg class="wn__value-card-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M12 17l-2 2l2 2"/>
+                    <path d="M10 19h9a2 2 0 0 0 1.75 -2.75l-.55 -1"/>
+                    <path d="M8.536 11l-.732 -2.732l-2.732 .732"/>
+                    <path d="M7.804 8.268l-4.5 7.794a2 2 0 0 0 1.506 2.89l1.141 .024"/>
+                    <path d="M15.464 11l2.732 .732l.732 -2.732"/>
+                    <path d="M18.196 11.732l-4.5 -7.794a2 2 0 0 0 -3.256 -.14l-.591 .976"/>
+                  </svg>
+                }
+                <span class="wn__value-card-title-accent">{{ tabContent[tab.id].accent }}</span>
+              </div>
+              <span class="wn__value-card-title-rest">{{ tabContent[tab.id].titleRest }}</span>
+            </h3>
+            @for (para of tabContent[tab.id].body; track $index) {
+              <p class="wn__value-card-para">{{ para }}</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ── Assets ─────────────────────────────────────────────────────────────── -->
+  <section class="wn__assets wn__reveal">
+    <div class="wn__assets-inner">
+<p class="wn__assets-statement">Over <span class="wn__assets-count" data-target="100" data-suffix="+">0</span> assets, across all ADB sectors</p>
+      <button class="app-primary-btn" (click)="navigateToAssets()">
+        Explore All Assets
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Contribute ─────────────────────────────────────────────────────────── -->
+  <section class="wn__contribute wn__reveal">
+    <div class="wn__contribute-card">
+    <div class="wn__contribute-inner">
+      <h2 class="wn__contribute-h2">Contribute to the DataNex+ Asset Catalog</h2>
+      <p class="wn__contribute-sub">
+        Have a dataset, AI tool, digital product, knowledge resource, or reusable component
+        that could benefit others? Contribute it to DataNex+ to help colleagues discover, reuse,
+        and build on capabilities from across ADB. By growing the catalog together, we can reduce
+        duplication and make valuable institutional assets easier to find and use.
+      </p>
+      <button class="app-primary-btn" (click)="navigateToContribute()">
+        Contribute an Asset
+      </button>
+    </div>
+    </div>
+  </section>
+
+  <!-- ── What's Next ────────────────────────────────────────────────────────── -->
+  <section class="wn__next">
+    <!-- Section header -->
+    <div class="wn__next-head wn__reveal">
+      <h2 class="wn__next-h2">What&rsquo;s Next</h2>
+    </div>
+
+    <div class="wn__next-divider"></div>
+    <div class="wn__roadmap wn__reveal">
+      @for (item of roadmapItems; track item.quarter; let i = $index) {
+        <div class="wn__roadmap-card">
+          <div class="wn__roadmap-icon" aria-hidden="true">
+            @if (i === 0) {
+              <!-- coins — More Assets — blue gradient -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs><linearGradient id="wn-grad-blue" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9DDFF0"/><stop offset="100%" stop-color="#00B6DA"/></linearGradient></defs>
+                <path stroke="url(#wn-grad-blue)" stroke="none" d="M0 0h24v24H0z" fill="none"/><path stroke="url(#wn-grad-blue)" d="M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3"/><path stroke="url(#wn-grad-blue)" d="M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4"/><path stroke="url(#wn-grad-blue)" d="M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0c1.856 -.536 3 -1.526 3 -2.598c0 -1.072 -1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0c-1.856 .536 -3 1.526 -3 2.598"/><path stroke="url(#wn-grad-blue)" d="M3 6v10c0 .888 .772 1.45 2 2"/><path stroke="url(#wn-grad-blue)" d="M3 11c0 .888 .772 1.45 2 2"/>
+              </svg>
+            }
+            @if (i === 1) {
+              <!-- layers — Interact with Assets — green gradient -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs><linearGradient id="wn-grad-green" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C8E89A"/><stop offset="100%" stop-color="#8DC63F"/></linearGradient></defs>
+                <polygon stroke="url(#wn-grad-green)" fill="none" points="12 2 2 7 12 12 22 7 12 2"/><polyline stroke="url(#wn-grad-green)" fill="none" points="2 17 12 22 22 17"/><polyline stroke="url(#wn-grad-green)" fill="none" points="2 12 12 17 22 12"/>
+              </svg>
+            }
+            @if (i === 2) {
+              <!-- sparkles — Smarter Search — amber gradient -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs><linearGradient id="wn-grad-amber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFE99A"/><stop offset="100%" stop-color="#FFC107"/></linearGradient></defs>
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path stroke="url(#wn-grad-amber)" d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6"/>
+              </svg>
+            }
+          </div>
+          <div class="wn__roadmap-body">
+            <p class="wn__roadmap-release">{{ item.quarter }}</p>
+            <p class="wn__roadmap-title">{{ item.title }}</p>
+            @for (para of item.desc.split('\n\n'); track para) {
+              <p class="wn__roadmap-desc">{{ para }}</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+  <footer class="wn__footer">
+    <div class="wn__footer-copy">
+      <span>&copy; 2026 Asian Development Bank.</span>
+      <a class="wn__footer-link" href="#">ADB Contacts</a>
+      <a class="wn__footer-link" href="#">Access to Information</a>
+      <a class="wn__footer-link" href="#">Anticorruption and Integrity</a>
+      <a class="wn__footer-link" href="#">Scams</a>
+      <a class="wn__footer-link" href="#">Cybersecurity</a>
+      <a class="wn__footer-link" href="#">Sitemap</a>
+      <a class="wn__footer-link" href="#">Terms of Use</a>
+    </div>
+  </footer>
+</div>

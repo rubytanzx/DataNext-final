@@ -1,0 +1,386 @@
+<div class="cat">
+
+  <!-- ── Left sidebar ───────────────────────────────────────────────────── -->
+  <aside class="cat__sidebar">
+
+    <div class="search-page__sidebar-header">
+      <span class="sb__header-title">Filters</span>
+      @if (activeFilterCount > 0) {
+        <span class="sb__active-badge">{{ activeFilterCount }} active</span>
+      }
+      @if (activeFilterCount > 0) {
+        <button class="sb__clear-all" type="button" (click)="clearFilters()">Clear</button>
+      }
+    </div>
+
+    <!-- CAPABILITY TYPE (pills) -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header">
+        <span class="search-page__sidebar-group-name">Asset Type</span>
+        @if (selectedCapabilities.size > 0) {
+          <button class="search-page__sidebar-clear" type="button" (click)="clearCapabilities()">Clear</button>
+        }
+      </div>
+      <div class="sb__pill-row">
+        @for (cap of capabilityOptions; track cap) {
+          <button class="sb__pill"
+            [class.sb__pill--active]="selectedCapabilities.has(cap)"
+            [class.sb__pill--muted]="!inScopeTypes.has(cap)"
+            type="button" (click)="toggleCapability(cap)">
+            @switch (cap) {
+              @case ('Dataset') {
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              }
+              @case ('AI Agent') {
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+                </svg>
+              }
+              @case ('AI Tool') {
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+              }
+              @case ('Dashboard') {
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              }
+              @case ('AI Product') {
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              }
+              @case ('API') {
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 9l-3 3 3 3"/><path d="M16 9l3 3-3 3"/><path d="M14 4l-4 16"/>
+                </svg>
+              }
+            }
+            {{ cap }}
+            <span class="sb__pill-count">{{ typeCounts()[cap] }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- TRUST STATUS -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header" (click)="toggleSidebarGroup(sidebarGroups[0])">
+        <span class="search-page__sidebar-group-name">Trust Status</span>
+        @if (hasSidebarSelections(sidebarGroups[0])) {
+          <button class="search-page__sidebar-clear" type="button" (click)="clearSidebarGroup(sidebarGroups[0], $event)">Clear</button>
+        }
+        <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="sidebarGroups[0].expanded"
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+      @if (sidebarGroups[0].expanded) {
+        <div class="search-page__sidebar-options">
+          @for (opt of sidebarGroups[0].options; track opt.label) {
+            <label class="search-page__sidebar-option">
+              <input type="checkbox" class="search-page__sidebar-checkbox" [(ngModel)]="opt.checked" [name]="'trust-' + opt.label" (ngModelChange)="sidebarVersion.update(v => v + 1)" />
+              <span class="sb__opt-label">{{ opt.label }}</span>
+              @if (opt.count !== undefined) {
+                <span class="sb__opt-count">{{ opt.count }}</span>
+              }
+            </label>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ACCESS -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header" (click)="toggleSidebarGroup(sidebarGroups[1])">
+        <span class="search-page__sidebar-group-name">Access</span>
+        @if (hasSidebarSelections(sidebarGroups[1])) {
+          <button class="search-page__sidebar-clear" type="button" (click)="clearSidebarGroup(sidebarGroups[1], $event)">Clear</button>
+        }
+        <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="sidebarGroups[1].expanded"
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+      @if (sidebarGroups[1].expanded) {
+        <div class="search-page__sidebar-options">
+          @for (opt of sidebarGroups[1].options; track opt.label) {
+            <label class="search-page__sidebar-option">
+              <input type="checkbox" class="search-page__sidebar-checkbox" [(ngModel)]="opt.checked" [name]="'access-' + opt.label" (ngModelChange)="sidebarVersion.update(v => v + 1)" />
+              <span class="sb__opt-label">{{ opt.label }}</span>
+              @if (opt.count !== undefined) {
+                <span class="sb__opt-count">{{ opt.count }}</span>
+              }
+            </label>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- COLLAPSIBLE accordion groups (Sector, Themes, Geographical Coverage) -->
+    @for (group of sidebarGroups.slice(2); track group.name) {
+      <div class="search-page__sidebar-group">
+        <div class="search-page__sidebar-group-header" (click)="toggleSidebarGroup(group)">
+          <span class="search-page__sidebar-group-name">{{ group.name }}</span>
+          @if (hasSidebarSelections(group)) {
+            <button class="search-page__sidebar-clear" type="button" (click)="clearSidebarGroup(group, $event)">Clear</button>
+          }
+          <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="group.expanded"
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </div>
+
+        @if (group.expanded) {
+          @if (group.geoGroups) {
+            <!-- Geographical Coverage: region checkboxes with nested countries -->
+            <div class="search-page__sidebar-options">
+            @for (rg of group.geoGroups; track rg.name) {
+              <div class="cat__geo-rg">
+                <div class="cat__geo-rg-hd">
+                  <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="rg.checked"
+                         [name]="'geo-' + rg.name" (change)="toggleGeoRegion(rg)" />
+                  <button class="cat__geo-rg-label" type="button" (click)="rg.expanded = !rg.expanded; $event.stopPropagation()">
+                    {{ rg.name }}
+                    <svg class="cat__geo-rg-chevron" [class.cat__geo-rg-chevron--open]="rg.expanded"
+                         width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                  </button>
+                </div>
+                @if (rg.expanded) {
+                  <div class="search-page__sidebar-options cat__geo-country-opts">
+                    @for (opt of rg.options; track opt.label) {
+                      <label class="search-page__sidebar-option">
+                        <input type="checkbox" class="search-page__sidebar-checkbox" [(ngModel)]="opt.checked"
+                               [name]="'geo-c-' + opt.label" (ngModelChange)="onGeoCountryChange(rg)" />
+                        <span class="sb__opt-label">{{ opt.label }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+            }
+            </div>
+          } @else {
+            <div class="search-page__sidebar-options">
+              @for (opt of group.options; track opt.label) {
+                <label class="search-page__sidebar-option">
+                  <input type="checkbox" class="search-page__sidebar-checkbox" [(ngModel)]="opt.checked" [name]="group.name + '-' + opt.label" (ngModelChange)="sidebarVersion.update(v => v + 1)" />
+                  <span class="sb__opt-label">{{ opt.label }}</span>
+                  @if (opt.count !== undefined) {
+                    <span class="sb__opt-count">{{ opt.count }}</span>
+                  }
+                </label>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- TIME PERIOD COVERED -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header">
+        <span class="search-page__sidebar-group-name">Time Period Covered</span>
+        @if (yearFrom !== yearMin || yearTo !== yearMax) {
+          <button class="search-page__sidebar-clear" type="button" (click)="yearFrom = yearMin; yearTo = yearMax">Clear</button>
+        }
+      </div>
+      <div class="sb__slider-wrap">
+        <div class="sb__slider-labels">
+          <span>{{ yearFrom }}</span>
+          <span>{{ yearTo }}</span>
+        </div>
+        <div class="sb__slider-track">
+          <div class="sb__slider-fill" [style.left.%]="yearFromPct" [style.right.%]="100 - yearToPct"></div>
+          <input class="sb__slider" type="range" [min]="yearMin" [max]="yearMax"
+            [ngModel]="yearFrom" (ngModelChange)="onYearFromChange($event)" name="yearFrom" />
+          <input class="sb__slider sb__slider--to" type="range" [min]="yearMin" [max]="yearMax"
+            [ngModel]="yearTo" (ngModelChange)="onYearToChange($event)" name="yearTo" />
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main content ───────────────────────────────────────────────────── -->
+  <main class="cat__main">
+
+    <!-- Page header + search row -->
+    <div class="cat__page-header">
+      <div class="cat__page-meta">
+        <h1 class="cat__page-title">All Assets</h1>
+        <p class="cat__page-desc">Explore datasets, AI agents, tools, portals, and platforms from ADB and partner organisations.</p>
+      </div>
+      <div class="cat__search-wrap">
+        <svg class="cat__search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        @if (showNewOnly()) {
+          <button class="cat__search-chip" type="button" (click)="showNewOnly.set(false)">
+            New
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        }
+        <input class="cat__search" type="text" placeholder="Filter assets by keywords" [(ngModel)]="searchValue" />
+        @if (hasFilters()) {
+          <button class="cat__search-clear" (click)="clearFilters()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Clear
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Hero banner -->
+    @if (!hasFilters()) {
+      <div class="cat__hero-card">
+        <div class="cat__hero-inner">
+          <div class="cat__hero-text">
+            <p class="cat__hero-eyebrow">Latest Updates</p>
+            <h2 class="cat__hero-title">Fresh additions to DataNex+</h2>
+            <button class="cat__hero-btn" (click)="browseNew()">
+              Explore new additions
+            </button>
+          </div>
+          <div class="cat__hero-stats" aria-hidden="true">
+            <div class="cat__hero-stat">
+              <span class="cat__hero-stat-n">47</span>
+              <span class="cat__hero-stat-l">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+                Datasets
+              </span>
+            </div>
+            <div class="cat__hero-stat-divider"></div>
+            <div class="cat__hero-stat">
+              <span class="cat__hero-stat-n">6</span>
+              <span class="cat__hero-stat-l">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+                </svg>
+                AI Agents
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Featured strip -->
+    @if (!hasFilters()) {
+      <div class="cat__section">
+        <div class="cat__section-header">
+          <h3 class="cat__section-title">Featured</h3>
+        </div>
+        <div class="cat__featured-wrap" [class.cat__featured-wrap--scrolled]="featuredScrolled()" [class.cat__featured-wrap--at-end]="featuredAtEnd()">
+          <div class="cat__featured-scroll" (scroll)="onFeaturedScroll($event.target)">
+            @for (item of featuredItems(); track item.id) {
+              <div class="cat__featured-item">
+                <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: item, renderId: 'featured:' + item.id }"></ng-container>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Type sections -->
+    @for (section of sections(); track section.label) {
+      @if (section.items.length > 0) {
+        <div class="cat__section">
+          <div class="cat__section-header">
+            <h3 class="cat__section-title">{{ section.label }}</h3>
+            @if (!hasFilters()) {
+              <span class="cat__see-all" (click)="setType(section.type)">See all</span>
+            }
+          </div>
+          <div class="cat__grid">
+            @for (item of section.items; track item.id) {
+              <ng-container *ngTemplateOutlet="cardTpl; context: { $implicit: item, renderId: section.label + ':' + item.id }"></ng-container>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Empty state -->
+    @if (hasFilters() && filtered().length === 0) {
+      <div class="cat__empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d0d0d0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <p class="cat__empty-label">No assets match your filters</p>
+        <p class="cat__empty-sub">Try a different search or select a different category.</p>
+        <button class="cat__empty-clear" (click)="clearFilters()">Clear filters</button>
+      </div>
+    }
+
+  </main>
+</div>
+
+@if (addedSnack()) {
+  <div class="cat__snack">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    {{ addedSnack() }}
+  </div>
+}
+
+<!-- ── Shared card template ──────────────────────────────────────────────── -->
+<ng-template #cardTpl let-item let-renderId="renderId">
+  <div class="cat__card" [class.cat__card--dropdown-open]="openDropdownId() === renderId" (click)="openAsset(item)">
+    <app-asset-card
+      [tag]="item.type"
+      [tagColor]="tagColor(item.type)"
+      [rating]="(item.rating | number:'1.1-1') ?? ''"
+      [title]="item.title"
+      [description]="item.description"
+      [users]="formatViews(item.views)"
+      [uses]="formatViews(item.downloads)"
+      [access]="item.access"
+      [rai]="item.rai"
+      [governanceVerified]="item.governanceVerified"
+      [verificationInProgress]="!!item.verificationInProgress"
+      [isNew]="!!item.isNew"
+      [saved]="savedIds().has(item.id)"
+      [showToggle]="false"
+      [showAddToWorkspace]="item.type !== 'AI Product'" [addToWorkspaceDisabled]="false"
+      [unlisted]="!!item.unlisted"
+      [sectorTag]="item.sectorGroup ?? ''"
+      [geoTag]="item.region ?? ''"
+      [themes]="item.themes ?? []"
+      (addClick)="toggleAddDropdown(renderId, $event)"
+      (saveClick)="toggleSave(item.id, $event)"
+    ></app-asset-card>
+
+    <!-- Add-to-Space dropdown — outside app-asset-card but inside positioned wrapper -->
+    @if (openDropdownId() === renderId) {
+      <div class="cat__notebook-dropdown" (click)="$event.stopPropagation()">
+        <button class="cat__notebook-opt cat__notebook-opt--new" (click)="addToNewNotebook(item, $event)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Add to New Workspace
+        </button>
+        <div class="cat__notebook-divider"></div>
+        @for (nb of notebooks; track nb.id) {
+          <button class="cat__notebook-opt" (click)="addToExistingNotebook(item, nb, $event)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            {{ nb.label }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

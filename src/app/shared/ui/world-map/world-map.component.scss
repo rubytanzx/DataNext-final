@@ -1,0 +1,252 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #e6eaee;
+}
+
+.wmv {
+  @keyframes wmv-card-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  &__map {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    min-height: 0;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__stage {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+
+  &__svg {
+    width: 100%;
+    height: 100%;
+
+    /* stylelint-disable-next-line selector-pseudo-element-no-unknown */
+    ::ng-deep svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+
+      path {
+        transition: opacity 0.15s;
+
+        &:hover {
+          opacity: 0.75;
+        }
+      }
+    }
+  }
+
+  &__pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  &__pin-ring {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(0, 125, 183, 0.22);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: wmv-pin-pulse 2.2s ease-out infinite;
+  }
+
+  @keyframes wmv-pin-pulse {
+    0%   { transform: translate(-50%, -50%) scale(1);   opacity: 0.8; }
+    60%  { transform: translate(-50%, -50%) scale(1.9); opacity: 0.1; }
+    100% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; }
+  }
+
+  &__pin-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #007DB7;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+  }
+
+  &__pin-label {
+    font-size: 9px;
+    font-weight: 500;
+    color: #221F1B;
+    font-family: var(--font, system-ui, sans-serif);
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 1px 4px;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+  }
+
+  &__tooltip {
+    position: absolute;
+    background: #212121;
+    color: #fff;
+    font-size: 12px;
+    font-family: var(--font, system-ui, sans-serif);
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &__controls {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+  }
+
+  &__card {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    width: 200px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+    display: flex;
+    overflow: hidden;
+    z-index: 20;
+    animation: wmv-card-in 0.18s ease;
+  }
+
+  &__card-accent {
+    width: 4px;
+    flex-shrink: 0;
+  }
+
+  &__card-inner {
+    flex: 1;
+    padding: 12px 12px 12px 10px;
+    min-width: 0;
+  }
+
+  &__card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  &__card-badge {
+    font-size: 10px;
+    font-weight: 500;
+    font-family: var(--font, system-ui, sans-serif);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
+  }
+
+  &__card-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: #9e9e9e;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: #f5f5f5;
+      color: #424242;
+    }
+  }
+
+  &__card-name {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #212121;
+    font-family: var(--font, system-ui, sans-serif);
+    line-height: 1.2;
+  }
+
+  &__card-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 4px;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  &__card-meta-label {
+    font-size: 10px;
+    color: #9e9e9e;
+    font-family: var(--font, system-ui, sans-serif);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__card-meta-value {
+    font-size: 12px;
+    font-weight: 500;
+    color: #424242;
+    font-family: var(--font, system-ui, sans-serif);
+  }
+
+  &__zoom-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #dde4ec;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 16px;
+    line-height: 1;
+    color: #424242;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.15s;
+
+    &:hover {
+      background: #f0f4f8;
+    }
+  }
+}

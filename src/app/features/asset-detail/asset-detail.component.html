@@ -1,0 +1,2165 @@
+<div class="ad">
+
+  <!-- ── Breadcrumb (full width) ── -->
+  <nav class="ad__breadcrumb">
+    <span class="ad__breadcrumb-link" (click)="goHome()">Home</span>
+    <svg class="ad__breadcrumb-sep" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    <span class="ad__breadcrumb-link" (click)="goDataAssets()">Assets Catalog</span>
+    <svg class="ad__breadcrumb-sep" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    <span class="ad__breadcrumb-current">{{ asset().title }}</span>
+  </nav>
+
+  <!-- ── Header: meta on left, actions on right ── -->
+  <div class="ad__header">
+    <div class="ad__header-main">
+
+      <!-- Category + ID -->
+      <div class="ad__category-row">
+        <span class="ad__v2-type-chip ad__v2-type-chip--{{ typeTagColor() }}">
+          @switch (assetTypeLabel()) {
+            @case ('Dataset') {
+              <svg class="ad__v2-type-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+              </svg>
+            }
+            @case ('AI Agent') {
+              <svg class="ad__v2-type-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/>
+              </svg>
+            }
+            @case ('AI Tool') {
+              <svg class="ad__v2-type-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+            }
+            @case ('AI Platform') {
+              <svg class="ad__v2-type-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            }
+          }
+          {{ assetTypeLabel() }}
+        </span>
+        <span class="ad__asset-id">ID: {{ asset().assetId }}</span>
+      </div>
+
+      <!-- Title -->
+      <div class="ad__title-row">
+        <h1 class="ad__title">{{ asset().title }}</h1>
+      </div>
+
+      <!-- Row 1: Access · Rating · Views · Downloads · Trust badges -->
+      <div class="ad__meta-row">
+        <span class="ad__meta-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          {{ asset().access === 'ADB Only' || asset().access === 'All ADB' ? 'Internal ADB' : asset().access }}
+          <span class="ad__access-tip-wrap">
+            <svg class="ad__access-tip-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span class="ad__access-tooltip">
+              @if (asset().access === 'Restricted') {
+                This asset has sharing restrictions. Access must be requested and approved by the asset owner before use.
+              } @else if (asset().access === 'Public') {
+                This asset is publicly available. Anyone can discover and access it without restrictions.
+              } @else {
+                This asset is available to all ADB staff and approved consultants. No additional access request is needed.
+              }
+            </span>
+          </span>
+        </span>
+        @if (!asset().enhancedLayout) {
+          <span class="ad__meta-dot"></span>
+          <span class="ad__meta-item ad__meta-item--rating">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            {{ asset().rating }} ({{ asset().ratingCount }} Ratings)
+          </span>
+          <span class="ad__meta-dot"></span>
+          <span class="ad__meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            {{ asset().views }} views
+          </span>
+        }
+        @if (asset().downloads) {
+          <span class="ad__meta-dot"></span>
+          <span class="ad__meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {{ asset().downloads }} Downloads
+          </span>
+        }
+        @if (asset().governanceVerified) {
+          <span class="ad__meta-dot"></span>
+          <span class="ad__meta-item ad__meta-item--governance">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            Governance Verified
+          </span>
+        }
+        @if (asset().rai) {
+          <span class="ad__meta-dot"></span>
+          <span class="ad__meta-item ad__meta-item--rai">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            Responsible AI Verified
+          </span>
+        }
+      </div>
+
+
+    </div><!-- /ad__header-main -->
+
+    <!-- Action buttons (top right) -->
+    <div class="ad__header-right">
+    <div class="ad__header-actions">
+
+      <!-- Bookmark -->
+      <button class="ad__bookmark-btn" [class.ad__bookmark-btn--active]="bookmarked()" (click)="toggleBookmark()" title="Bookmark">
+        <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="bookmarked() ? '#007DB7' : 'none'" stroke="#007DB7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+
+      <!-- Primary CTA — restricted assets with sample data: Try + Request Access pair -->
+      @if (canTrySample() && asset().requestAccessCta) {
+        <button class="ad__try-btn" (click)="downloadAsset()">
+          <span class="ad__try-btn-border">
+            <span class="ad__try-btn-blob"></span>
+            <span class="ad__try-btn-blob ad__try-btn-blob--2"></span>
+          </span>
+          {{ ctaFirstItemLabel() }}
+          <span class="ad__try-btn-icon">
+            @if (isApi()) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+            } @else {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+                <path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/>
+              </svg>
+            }
+          </span>
+        </button>
+        <button appPrimaryBtn (click)="ctaAction()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Request Access
+        </button>
+
+      <!-- Primary CTA — chevron-dropdown for Dataset & API, plain button for all others -->
+      } @else if (showSecondaryWorkspace()) {
+        <div class="ad__add-wrap" (click)="$event.stopPropagation()">
+          <button appPrimaryBtn (click)="toggleNotebookDropdown($event)">
+            {{ ctaLabel() }}
+            <svg class="ad__add-chevron" [class.ad__add-chevron--open]="notebookOpen()"
+              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          @if (notebookOpen()) {
+            <div class="ad__notebook-dropdown">
+              <!-- First item: Download Asset / Use Agent / Use Tool / Request API Key -->
+              <button class="ad__notebook-opt" (click)="downloadAsset()">
+                @if (ctaIsDownload()) {
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                } @else if (ctaFirstItemIsAI()) {
+                  <!-- Tabler sparkles -->
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+                    <path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/>
+                  </svg>
+                } @else {
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                  </svg>
+                }
+                {{ ctaFirstItemLabel() }}
+              </button>
+              <!-- Second item: Use in Workspace → nested submenu -->
+              <div class="ad__notebook-ws-wrap">
+                <button class="ad__notebook-opt ad__notebook-opt--ws">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                  </svg>
+                  Use in Workspace
+                  <svg class="ad__notebook-opt-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </button>
+                <!-- Nested submenu -->
+                <div class="ad__notebook-submenu">
+                  <button class="ad__notebook-opt ad__notebook-opt--new" (click)="addToNewNotebook($event)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add to New Workspace
+                  </button>
+                  @for (nb of notebooks; track nb.id) {
+                    <button class="ad__notebook-opt" (click)="addToExistingNotebook(nb.id, $event)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                      </svg>
+                      {{ nb.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <button appPrimaryBtn (click)="ctaAction()">
+          @if (asset().requestAccessCta) {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          } @else {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          }
+          {{ ctaLabel() }}
+        </button>
+      }
+
+      <!-- More menu -->
+      <div class="ad__more-wrap" (click)="$event.stopPropagation()">
+        <button class="ad__btn ad__btn--icon" aria-label="More options" title="More options"
+                (click)="toggleMoreMenu($event)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <circle cx="12" cy="5" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="12" cy="19" r="2"/>
+          </svg>
+        </button>
+        @if (moreOpen()) {
+          <div class="ad__more-dropdown">
+            <button class="ad__more-opt" type="button" (click)="copyLink()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              Copy Link
+            </button>
+            <button class="ad__more-opt" type="button" (click)="citeAsset()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+              </svg>
+              Cite Asset
+            </button>
+            <div class="ad__more-divider"></div>
+            <button class="ad__more-opt ad__more-opt--danger" type="button" (click)="reportIssue()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Report an Issue
+            </button>
+          </div>
+        }
+      </div>
+
+    </div><!-- /ad__header-actions -->
+
+    @if (canTrySample() && asset().requestAccessCta) {
+      <p class="ad__try-hint">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Explore sample responses before requesting access.
+      </p>
+    }
+    </div><!-- /ad__header-right -->
+
+  </div><!-- /ad__header -->
+
+  <!-- ── Tabs (standard layout only) ── -->
+  @if (!singleScroll()) {
+    <div #tabsSentinel class="ad__tabs-sentinel"></div>
+    <div class="ad__tabs" [class.ad__tabs--stuck]="tabsStuck()">
+      <button class="ad__tab" [class.ad__tab--active]="activeTab() === 'overview'" (click)="setTab('overview')">Overview</button>
+      <button class="ad__tab" [class.ad__tab--active]="activeTab() === 'preview'" (click)="setTab('preview')">{{ previewTabLabel() }}</button>
+      @if (isApiDataset() || (asset().apiDoc && isApi())) {
+        <button class="ad__tab" [class.ad__tab--active]="activeTab() === 'docs'" (click)="setTab('docs')">Documentation</button>
+      }
+      <button class="ad__tab" [class.ad__tab--active]="activeTab() === 'versions'" (click)="setTab('versions')">Versions</button>
+      @if (asset().category !== 'AI Agents' && asset().category !== 'AI Tools' && assetTypeLabel() !== 'AI Platform') {
+        <button class="ad__tab" [class.ad__tab--active]="activeTab() === 'usecase'" (click)="setTab('usecase')">Project Usage</button>
+      }
+      @if (asset().isOwner) {
+        <button class="ad__tab ad__tab--owner" [class.ad__tab--active]="activeTab() === 'access'" (click)="setTab('access')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Access
+          @if (accessRequests().length) {
+            <span class="ad__tab-badge">{{ accessRequests().length }}</span>
+          }
+        </button>
+      }
+      <div class="ad__tabs-rule"></div>
+    </div>
+  }
+
+  <!-- ── Shared content blocks (used by both layouts) ── -->
+  <ng-template #overviewBlock>
+
+    <!-- ── Overview ── -->
+    <div class="ad__v2">
+
+      <!-- Short description -->
+      @if (asset().shortDescription) {
+        <p class="ad__v2-short-desc" style="color:#1a1a1a">{{ asset().shortDescription }}</p>
+      }
+
+      <!-- Key overview fields -->
+      <div class="ad__table ad__table--v2">
+        @if (assetTypeLabel() === 'Dataset') {
+          @for (field of [
+            { label: 'Purpose', key: 'purpose' },
+            { label: 'Intended Use', key: 'intended' },
+            { label: 'Target Audience', key: 'target audience' }
+          ]; track field.label) {
+            <div class="ad__row" [class.ad__row--empty]="!overviewField(field.key)">
+              <span class="ad__row-label">{{ field.label }}</span>
+              <span class="ad__row-value">{{ overviewField(field.key) || '—' }}</span>
+            </div>
+          }
+        }
+        <div class="ad__row" [class.ad__row--empty]="!overviewField('geograph')">
+          <span class="ad__row-label">Geographical Coverage</span>
+          <span class="ad__row-value">{{ overviewField('geograph') || '—' }}</span>
+        </div>
+        @if (assetTypeLabel() === 'Dataset') {
+          <div class="ad__row" [class.ad__row--empty]="!overviewField('time period')">
+            <span class="ad__row-label">Time Period</span>
+            <span class="ad__row-value">{{ overviewField('time period') || '—' }}</span>
+          </div>
+        }
+        @if (asset().parentProduct) {
+          <div class="ad__row">
+            <span class="ad__row-label">Platform</span>
+            <button class="ad__row-link" type="button" (click)="openPlatform()">
+              {{ asset().parentProduct }}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+
+  </ng-template>
+
+  <ng-template #viewerBlock>
+    <div class="ad__viewer">
+
+      <h3 class="ad__content-heading">{{ assetTypeLabel() === 'AI Platform' || assetTypeLabel() === 'Portal' ? 'At a Glance' : 'Data Explorer' }}</h3>
+
+      @if (asset().viewerImages) {
+        @let imgs = asset().viewerImages!;
+        @let activeIdx = activeViewerIdx() < imgs.length ? activeViewerIdx() : 0;
+
+        @if (assetTypeLabel() === 'AI Platform' || assetTypeLabel() === 'Portal') {
+          <!-- Gallery layout for AI products -->
+          <div class="ad__viewer-gallery">
+            <div class="ad__viewer-gallery-main">
+              <img [src]="imgs[activeIdx].src" [alt]="imgs[activeIdx].label" class="ad__viewer-gallery-main-img" loading="lazy" />
+            </div>
+            <div class="ad__viewer-gallery-thumbs">
+              @for (img of imgs; track img.label; let i = $index) {
+                <div class="ad__viewer-gallery-thumb"
+                     [class.ad__viewer-gallery-thumb--active]="activeIdx === i"
+                     (click)="setViewerImg(i)">
+                  <img [src]="img.src" [alt]="img.label" loading="lazy" />
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- Card grid for datasets -->
+          <div class="ad__viewer-image-grid">
+            @for (img of imgs; track img.label) {
+              <div class="ad__viewer-img-card">
+                <div class="ad__viewer-img-wrap">
+                  <img [src]="img.src" [alt]="img.label" class="ad__viewer-img" loading="lazy" />
+                </div>
+                <div class="ad__viewer-img-meta">
+                  <span class="ad__viewer-img-label">{{ img.label }}</span>
+                  @if (img.sublabel) { <span class="ad__viewer-img-sub">{{ img.sublabel }}</span> }
+                  @if (img.meta) { <span class="ad__viewer-img-tag">{{ img.meta }}</span> }
+                </div>
+              </div>
+            }
+          </div>
+          @if (asset().viewerColumns) {
+            <p class="ad__viewer-note">{{ imgs.length }} composite tiles · VIIRS DNB · 500m resolution</p>
+          }
+        }
+      } @else {
+        <div class="ad__viewer-scroll">
+          <table class="ad__viewer-table">
+            <thead>
+              <tr>
+                @for (col of asset().viewerColumns!; track col.name) {
+                  <th class="ad__viewer-th">
+                    <span class="ad__viewer-col-name">{{ col.name }}</span>
+                    <span class="ad__viewer-col-type">{{ col.type }}</span>
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of asset().viewerRows!; track $index) {
+                <tr class="ad__viewer-tr">
+                  @for (col of asset().viewerColumns!; track col.name) {
+                    <td class="ad__viewer-td" [class.ad__viewer-td--num]="col.type === 'float' || col.type === 'integer'">
+                      @if (col.name === 'assessment') {
+                        <span class="ad__viewer-badge"
+                          [style.background]="assessmentBadge(row[col.name]).bg"
+                          [style.color]="assessmentBadge(row[col.name]).color">
+                          {{ row[col.name] }}
+                        </span>
+                      } @else {
+                        {{ row[col.name] }}
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="ad__viewer-note">Showing a sample of 10 rows · Full dataset contains {{ asset().rowCount }} rows</p>
+      }
+
+      @if (asset().viewerColumns && !asset().viewerImages) {
+        <h3 class="ad__content-heading ad__content-heading--spaced">Column Legend</h3>
+        <div class="ad__legend">
+          <div class="ad__legend-header">
+            <span>Column</span>
+            <span>Type</span>
+            <span>Description</span>
+          </div>
+          @for (col of asset().viewerColumns!; track col.name) {
+            <div class="ad__legend-row">
+              <span class="ad__legend-name">{{ col.name }}</span>
+              <span class="ad__legend-type">{{ col.type }}</span>
+              <span class="ad__legend-desc">{{ col.description ?? '—' }}</span>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  </ng-template>
+
+  <ng-template #feedbackBlock>
+    <div class="ad__feedback">
+      <div class="ad__feedback-banner" (mouseleave)="bannerHoverRating.set(0)">
+        <svg class="ad__feedback-waves" viewBox="0 0 1000 80" preserveAspectRatio="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0,20 C120,45 240,8 360,32 C480,56 600,12 720,36 C840,60 920,28 1000,38" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <path d="M0,45 C100,20 250,68 400,48 C550,28 680,72 820,52 C920,38 960,60 1000,55" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+          <path d="M0,62 C160,38 300,74 460,58 C620,42 760,76 900,62 L1000,66" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+          <path d="M0,10 C200,36 380,4 560,26 C740,48 880,16 1000,22" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+          <path d="M0,35 C80,58 200,28 340,50 C480,72 620,30 760,54 C880,70 960,44 1000,48" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        </svg>
+        <span class="ad__feedback-banner-label">Your feedback is important to us</span>
+        <div class="ad__feedback-banner-stars" role="radiogroup" aria-label="Rate this asset">
+          @for (s of starRange; track s) {
+            <button class="ad__feedback-banner-star-btn" type="button"
+              [attr.aria-label]="s + (s === 1 ? ' star' : ' stars')"
+              (mouseenter)="bannerHoverRating.set(s)"
+              (click)="openFeedbackModal(s)">
+              @if (s <= (bannerHoverRating() || pendingRating())) {
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="0.5">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              } @else {
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              }
+            </button>
+          }
+        </div>
+      </div>
+      <div class="ad__feedback-summary">
+        <h3 class="ad__content-heading">Community Reviews</h3>
+        <span class="ad__feedback-count">{{ allFeedback().length }} ratings</span>
+      </div>
+      <div class="ad__feedback-list">
+        @for (entry of feedbackPaged(); track entry.id) {
+          <div class="ad__fb-item">
+            <div class="ad__fb-item-top">
+              <div class="ad__fb-item-stars">
+                @for (s of starRange; track s) {
+                  @if (s <= entry.rating) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="0.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e0e0e0" stroke-width="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                }
+              </div>
+              <span class="ad__fb-item-user">{{ entry.user }}</span>
+              <span class="ad__fb-item-date">{{ entry.date }}</span>
+            </div>
+            @if (entry.comment) {
+              <p class="ad__fb-item-comment">{{ entry.comment }}</p>
+            }
+            @if (entry.project) {
+              <div class="ad__fb-item-project" style="cursor:pointer" (click)="goToProject(entry)">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+                {{ entry.project }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+      @if (totalPages() > 1) {
+        <div class="ad__paginator">
+          <button class="ad__paginator-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)" aria-label="Previous page">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          @for (p of pageRange(); track p) {
+            <button class="ad__paginator-btn" [class.ad__paginator-btn--active]="p === currentPage()" (click)="goToPage(p)" [attr.aria-label]="'Page ' + p" [attr.aria-current]="p === currentPage() ? 'page' : null">{{ p }}</button>
+          }
+          <button class="ad__paginator-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)" aria-label="Next page">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  <!-- ── Versions block ──────────────────────────────────────────────────── -->
+  <ng-template #versionsBlock>
+    @if (asset().versions?.length) {
+      <div class="ad__versions">
+        @for (v of asset().versions!; track v.version; let first = $first) {
+          <div class="ad__version-row" [class.ad__version-row--current]="first">
+            <div class="ad__version-left">
+              <div class="ad__version-dot" [class.ad__version-dot--current]="first"></div>
+              <div class="ad__version-line" [class.ad__version-line--hidden]="$last"></div>
+            </div>
+            <div class="ad__version-body">
+              <div class="ad__version-header">
+                <code class="ad__version-tag">{{ v.version }}</code>
+                @if (first) {
+                  <span class="ad__version-badge ad__version-badge--current">Current</span>
+                }
+                <span class="ad__version-meta">{{ v.releaseDate }} · {{ v.author }}</span>
+                @if (v.size) {
+                  <span class="ad__version-size">{{ v.size }}</span>
+                }
+              </div>
+              <p class="ad__version-summary">{{ v.summary }}</p>
+              @if (v.changes.length) {
+                <ul class="ad__version-changes">
+                  @for (c of v.changes; track c) {
+                    <li>{{ c }}</li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="ad__versions-empty">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+        </svg>
+        <p class="ad__versions-empty-text">No version history recorded for this asset.</p>
+      </div>
+    }
+  </ng-template>
+
+  <ng-template #useCaseBlock>
+    @if (asset().useCases && asset().useCases!.length > 0) {
+      <div class="ad__usecase-add-banner">
+        <span class="ad__usecase-add-text">Don't see your project here?</span>
+        <button appSecondaryBtn type="button" (click)="openAddProjectModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Add your project
+        </button>
+      </div>
+      <div class="ad__usecase-list">
+        @for (uc of asset().useCases!; track uc.projectNumber) {
+          <div class="ad__usecase-card" [class.ad__usecase-card--expanded]="expandedUseCase() === uc.projectNumber">
+            <div class="ad__usecase-card-meta">
+              <span class="ad__usecase-status" [class.ad__usecase-status--active]="uc.status === 'Active'" [class.ad__usecase-status--approved]="uc.status === 'Approved'" [class.ad__usecase-status--closed]="uc.status === 'Closed'">{{ uc.status }}</span>
+              <span class="ad__usecase-year">Approval year: {{ uc.year }}</span>
+              @if (projectRating(uc.projectNumber) > 0) {
+                <button class="ad__usecase-rating" type="button" (click)="openFeedbackDrawer(uc.projectNumber, $event)">
+                  @for (s of [1,2,3,4,5]; track s) {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                         [attr.fill]="s <= projectRating(uc.projectNumber) ? '#f5a623' : 'none'"
+                         [attr.stroke]="s <= projectRating(uc.projectNumber) ? '#f5a623' : '#ccc'"
+                         stroke-width="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                  <span class="ad__usecase-rating-val">{{ projectRating(uc.projectNumber) }}</span>
+                </button>
+              }
+            </div>
+            <a class="ad__usecase-title" [href]="uc.url" target="_blank" rel="noopener">
+              <span class="ad__usecase-project-num">{{ uc.projectNumber }}:</span> {{ uc.projectTitle }}
+            </a>
+            <div class="ad__usecase-card-footer">
+              <span class="ad__usecase-country-label">Country/Economy:</span>
+              <span class="ad__usecase-country">{{ uc.country }}</span>
+            </div>
+            <button class="ad__usecase-usage-row" (click)="toggleUseCase(uc.projectNumber)">
+              <svg class="ad__usecase-usage-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="6" height="18"/><rect x="9" y="8" width="6" height="13"/><rect x="16" y="13" width="6" height="8"/>
+              </svg>
+              <span>{{ uc.usageSummary }}</span>
+              <svg class="ad__usecase-chevron" [class.ad__usecase-chevron--open]="expandedUseCase() === uc.projectNumber" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
+            </button>
+            @if (expandedUseCase() === uc.projectNumber) {
+              <div class="ad__usecase-detail">
+                <p class="ad__usecase-detail-text">{{ uc.usageDetail }}</p>
+                <div class="ad__usecase-detail-actions">
+                  <a class="ad__usecase-action-btn" [href]="uc.url" target="_blank" rel="noopener">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    View project page
+                  </a>
+                  <button class="ad__usecase-action-btn" (click)="askAboutUsage(uc)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+                    Ask about this usage
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="ad__usecase-empty">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <p class="ad__usecase-empty-text">No related projects have been linked to this asset yet.</p>
+      </div>
+    }
+  </ng-template>
+
+  <ng-template #accessBlock>
+    <div class="ad__access">
+
+      <!-- 1. General access settings row -->
+      <div class="ad__access-general">
+        <span class="ad__access-general-label">General access</span>
+        <div class="ad__access-general-body">
+          <div class="ad__access-general-left">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <div class="ad__access-general-text">
+              <span class="ad__access-general-name ad__access-general-name--{{ accessLevel().toLowerCase() }}">{{ accessLevelLabel(accessLevel()) }}</span>
+              <span class="ad__access-general-desc">
+                @if (accessLevel() === 'Open') { Anyone in ADB can discover and view this asset. }
+                @else if (accessLevel() === 'Restricted') { People can discover this asset in the catalogue, but must request access. }
+                @else { Only people you've added can access this asset. }
+              </span>
+            </div>
+          </div>
+          @if (!accessLevelEdit()) {
+            <button class="ad__access-text-btn" type="button" (click)="accessLevelEdit.set(true)">Change</button>
+          }
+        </div>
+
+        @if (accessLevelEdit()) {
+          <div class="ad__access-level-edit">
+            <div class="ad__access-segmented">
+              @for (lvl of accessLevelOptions; track lvl) {
+                <button class="ad__access-seg-btn" type="button"
+                  [class.ad__access-seg-btn--active]="accessLevel() === lvl"
+                  (click)="accessLevel.set($any(lvl))">
+                  @if (lvl === 'Open') { Open }
+                  @else if (lvl === 'Restricted') { Restricted }
+                  @else { Limited }
+                </button>
+              }
+            </div>
+            <div class="ad__access-level-actions">
+              <button class="ad__access-save-btn" type="button" (click)="saveAccessLevel(accessLevel())">Save</button>
+              <button class="ad__access-cancel-btn" type="button" (click)="accessLevelEdit.set(false)">Cancel</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- 2. Pending requests — flat approval queue -->
+      @if (accessRequests().length) {
+        <div class="ad__access-section">
+          <div class="ad__access-section-head">
+            <span class="ad__access-heading">Requests</span>
+            <span class="ad__access-count-badge">{{ accessRequests().length }}</span>
+          </div>
+          <div class="ad__access-requests">
+            @for (req of accessRequests(); track req.id) {
+              <div class="ad__access-req">
+                <div class="ad__access-avatar">{{ initials(req.name) }}</div>
+                <div class="ad__access-req-info">
+                  <span class="ad__access-req-name">{{ req.name }}</span>
+                  <span class="ad__access-req-dept">{{ req.department }}</span>
+                </div>
+                <span class="ad__access-req-date">{{ req.requestedDate }}</span>
+                <div class="ad__access-req-actions">
+                  <button class="ad__access-approve" type="button" (click)="approveRequest(req)">Approve</button>
+                  <button class="ad__access-decline" type="button" (click)="declineRequest(req)">Decline</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- 3. People & Groups — permissions list -->
+      <div class="ad__access-section">
+        <div class="ad__access-section-head">
+          <span class="ad__access-heading">People &amp; Groups</span>
+        </div>
+
+        <div class="ad__access-add-row">
+          <div class="ad__access-add-input-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.35">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              class="ad__access-add-input"
+              type="email"
+              placeholder="Add by name or email"
+              [value]="addPeopleEmail()"
+              (input)="addPeopleEmail.set($any($event.target).value)"
+              (keydown.enter)="addPerson()">
+          </div>
+          <select class="ad__access-role-select" [value]="addPeopleRole()" (change)="addPeopleRole.set($any($event.target).value)">
+            <option value="Viewer">Viewer</option>
+            <option value="Editor">Editor</option>
+          </select>
+          <button class="ad__access-add-btn" type="button" (click)="addPerson()">Invite</button>
+        </div>
+
+        <div class="ad__access-entries">
+          <div class="ad__access-list-header">
+            <span></span>
+            <span>Person / group</span>
+            <span>Access</span>
+            <span></span>
+          </div>
+          @for (entry of accessEntries(); track entry.id) {
+            <div class="ad__access-entry">
+              <div class="ad__access-avatar" [class.ad__access-avatar--group]="entry.type === 'group'">
+                @if (entry.type === 'group') {
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                } @else {
+                  {{ initials(entry.name) }}
+                }
+              </div>
+              <div class="ad__access-entry-info">
+                <span class="ad__access-entry-name">{{ entry.name }}</span>
+                <span class="ad__access-entry-email">{{ entry.email }}</span>
+              </div>
+              <select class="ad__access-role-select ad__access-role-select--inline"
+                [value]="entry.role"
+                (change)="changeRole(entry, $any($event.target).value)">
+                <option value="Viewer">Viewer</option>
+                <option value="Editor">Editor</option>
+              </select>
+              <button class="ad__access-remove-btn" type="button" title="Remove" (click)="removeAccess(entry)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+
+  <!-- ── Source & Governance tab (enhanced only) ── -->
+  <ng-template #sourceBlock>
+    <div class="ad__table">
+      @for (field of [
+        { label: 'Source',                    key: 'source' },
+        { label: 'License Type',              key: 'license' },
+        { label: 'Permitted Use',             key: 'permitted' },
+        { label: 'Redistribution Restrictions', key: 'redistribution' },
+        { label: 'Publication Restrictions',  key: 'publication' },
+        { label: 'Access',                     key: 'confidentiality' }
+      ]; track field.label) {
+        <div class="ad__row" [class.ad__row--empty]="!governanceField(field.key)">
+          <span class="ad__row-label">{{ field.label }}</span>
+          <span class="ad__row-value">{{ governanceField(field.key) || '—' }}</span>
+        </div>
+      }
+      <div class="ad__row" [class.ad__row--empty]="!asset().limitations">
+        <span class="ad__row-label">Limitations</span>
+        <span class="ad__row-value">{{ asset().limitations || '—' }}</span>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- ── Technical Information tab (enhanced only) ── -->
+  <ng-template #technicalBlock>
+    <div class="ad__table">
+      @for (field of [
+        { label: 'Format', value: asset().format },
+        { label: 'Size',   value: asset().dataSize }
+      ]; track field.label) {
+        <div class="ad__row" [class.ad__row--empty]="!field.value">
+          <span class="ad__row-label">{{ field.label }}</span>
+          <span class="ad__row-value">{{ field.value || '—' }}</span>
+        </div>
+      }
+      <div class="ad__row" [class.ad__row--empty]="!governanceField('update method')">
+        <span class="ad__row-label">Update Method</span>
+        <span class="ad__row-value">{{ governanceField('update method') || '—' }}</span>
+      </div>
+      <div class="ad__row" [class.ad__row--empty]="!asset().updateFrequency">
+        <span class="ad__row-label">Update Frequency</span>
+        <span class="ad__row-value">{{ asset().updateFrequency || '—' }}</span>
+      </div>
+      <div class="ad__row" [class.ad__row--empty]="!currentVersion()">
+        <span class="ad__row-label">Current Version</span>
+        <span class="ad__row-value">{{ currentVersion() || '—' }}</span>
+      </div>
+      <div class="ad__row" [class.ad__row--empty]="!asset().lastUpdated">
+        <span class="ad__row-label">Last Updated</span>
+        <span class="ad__row-value">{{ asset().lastUpdated || '—' }}</span>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #apiDocBlock>
+    @if (asset().apiDoc; as doc) {
+      <div class="ad__apidoc">
+
+        <section class="ad__apidoc-section">
+          <h4 class="ad__apidoc-heading">Getting started</h4>
+          <p class="ad__apidoc-intro">{{ doc.gettingStarted }}</p>
+        </section>
+
+        <section class="ad__apidoc-section">
+          <div class="ad__apidoc-row">
+            <span class="ad__apidoc-label">Base URL</span>
+            <span class="ad__apidoc-value ad__apidoc-value--mono">{{ doc.baseUrl }}</span>
+            <button class="ad__apidoc-copy-btn" [class.ad__apidoc-copy-btn--copied]="copiedUrl()" type="button" (click)="copyUrl(doc.baseUrl)" title="Copy URL">
+              @if (copiedUrl()) {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              } @else {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              }
+            </button>
+          </div>
+          <div class="ad__apidoc-row">
+            <span class="ad__apidoc-label">Authentication</span>
+            <span class="ad__apidoc-value">{{ doc.authentication }}</span>
+          </div>
+        </section>
+
+        <section class="ad__apidoc-section">
+          <h4 class="ad__apidoc-heading">Endpoints</h4>
+          <div class="ad__apidoc-endpoints">
+            @for (ep of doc.endpoints; track ep.path) {
+              <div class="ad__apidoc-endpoint">
+                <button class="ad__apidoc-endpoint-row" type="button" (click)="toggleEndpoint(ep.path)">
+                  <span class="ad__apidoc-method ad__apidoc-method--{{ ep.method.toLowerCase() }}">{{ ep.method }}</span>
+                  <span class="ad__apidoc-path">{{ ep.path }}</span>
+                  <span class="ad__apidoc-ep-desc">{{ ep.description }}</span>
+                  <svg class="ad__apidoc-chevron" [class.ad__apidoc-chevron--open]="expandedEndpoint() === ep.path" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="ad__apidoc-section">
+          <h4 class="ad__apidoc-heading">Example request</h4>
+          <div class="ad__apidoc-example">
+            <code class="ad__apidoc-code">{{ doc.exampleRequest }}</code>
+            <button class="ad__apidoc-copy-btn" [class.ad__apidoc-copy-btn--copied]="copiedTask() === doc.exampleRequest" type="button" (click)="copyTask(doc.exampleRequest)" title="Copy">
+              @if (copiedTask() === doc.exampleRequest) {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              } @else {
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              }
+            </button>
+          </div>
+        </section>
+
+        @if (doc.docsUrl) {
+          <a class="ad__apidoc-full-link" [href]="doc.docsUrl" target="_blank" rel="noopener">
+            View full API documentation
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        }
+
+      </div>
+    }
+  </ng-template>
+
+  <ng-template #capabilitiesBlock>
+    @if (asset().agentCapabilities; as cap) {
+      <div class="ad__capabilities">
+
+        <section class="ad__cap-section">
+          <h4 class="ad__cap-heading">What it can do</h4>
+          <ul class="ad__cap-list">
+            @for (item of cap.whatItCanDo; track item) {
+              <li class="ad__cap-item">{{ item }}</li>
+            }
+          </ul>
+        </section>
+
+        <section class="ad__cap-section">
+          <h4 class="ad__cap-heading">Example tasks</h4>
+          <div class="ad__cap-tasks">
+            @for (task of cap.exampleTasks; track task) {
+              <div class="ad__cap-task">
+                <span class="ad__cap-task-text">{{ task }}</span>
+                <button class="ad__cap-task-copy" [class.ad__cap-task-copy--copied]="copiedTask() === task" type="button" (click)="copyTask(task)" title="Copy prompt">
+                  @if (copiedTask() === task) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="ad__cap-section">
+          <h4 class="ad__cap-heading">Inputs &amp; outputs</h4>
+          <div class="ad__cap-io">
+            <div class="ad__cap-io-row">
+              <span class="ad__cap-io-label">Accepts</span>
+              <span class="ad__cap-io-value">{{ cap.accepts.join(', ') }}</span>
+            </div>
+            <div class="ad__cap-io-row">
+              <span class="ad__cap-io-label">Produces</span>
+              <span class="ad__cap-io-value">{{ cap.produces.join(', ') }}</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="ad__cap-cta">
+          <button type="button" class="ad__use-agent-btn" (click)="canTrySample() ? downloadAsset() : ctaAction()">
+            <span class="ad__use-agent-border" aria-hidden="true">
+              <span class="ad__use-agent-blob"></span>
+              <span class="ad__use-agent-blob ad__use-agent-blob--2"></span>
+            </span>
+            <span>{{ canTrySample() ? 'Try Agent' : 'Use Agent' }}</span>
+            <span class="ad__use-agent-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" width="15" height="15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                  <linearGradient id="use-agent-icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#68c5ea"/>
+                    <stop offset="100%" stop-color="#ae5ded"/>
+                  </linearGradient>
+                </defs>
+                <path stroke="url(#use-agent-icon-grad)" d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+      </div>
+    } @else if (asset().toolCapabilities; as tc) {
+      <div class="ad__capabilities">
+
+        <section class="ad__cap-section">
+          <h4 class="ad__cap-heading">What it can do</h4>
+          <ul class="ad__cap-list">
+            @for (item of tc.whatItCanDo; track item) {
+              <li class="ad__cap-item">{{ item }}</li>
+            }
+          </ul>
+        </section>
+
+        @if (tc.exampleUse) {
+          <section class="ad__cap-section">
+            <h4 class="ad__cap-heading">{{ tc.exampleUseLabel ?? 'Example use' }}</h4>
+            <div class="ad__cap-io">
+              <div class="ad__cap-io-row">
+                <span class="ad__cap-io-label">Input</span>
+                <span class="ad__cap-io-value">{{ tc.exampleUse.input }}</span>
+              </div>
+              <div class="ad__cap-io-row">
+                <span class="ad__cap-io-label">Output</span>
+                <span class="ad__cap-io-value">{{ tc.exampleUse.output }}</span>
+              </div>
+            </div>
+          </section>
+        }
+
+        <section class="ad__cap-section">
+          @if (tc.ioSectionLabel) {
+            <h4 class="ad__cap-heading">{{ tc.ioSectionLabel }}</h4>
+          } @else {
+            <h4 class="ad__cap-heading">Inputs &amp; outputs</h4>
+          }
+          <div class="ad__cap-io">
+            @for (row of tc.inputOutput; track row.label) {
+              <div class="ad__cap-io-row">
+                <span class="ad__cap-io-label">{{ row.label }}</span>
+                <span class="ad__cap-io-value">{{ row.value }}</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <div class="ad__cap-cta">
+          <button type="button" class="ad__use-agent-btn" (click)="canTrySample() ? downloadAsset() : ctaAction()">
+            <span class="ad__use-agent-border" aria-hidden="true">
+              <span class="ad__use-agent-blob"></span>
+              <span class="ad__use-agent-blob ad__use-agent-blob--2"></span>
+            </span>
+            <span>{{ canTrySample() ? 'Try Tool' : (tc.ctaLabel ?? 'Use Tool') }}</span>
+            <span class="ad__use-agent-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" width="15" height="15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                  <linearGradient id="use-tool-icon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#68c5ea"/>
+                    <stop offset="100%" stop-color="#ae5ded"/>
+                  </linearGradient>
+                </defs>
+                <path stroke="url(#use-tool-icon-grad)" d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+      </div>
+    }
+  </ng-template>
+
+  <ng-template #sidebarBlock>
+    <aside class="ad__sidebar">
+
+      <!-- Contact -->
+      <div class="ad__sidebar-section">
+        <h4 class="ad__sidebar-heading">Contact</h4>
+        <div class="ad__sidebar-item">
+          <span class="ad__sidebar-label">Owner</span>
+          <span class="ad__sidebar-value ad__sidebar-value--bold">{{ asset().department }}</span>
+        </div>
+        @if (asset().pic) {
+          <div class="ad__sidebar-divider"></div>
+          <div class="ad__sidebar-item">
+            <span class="ad__sidebar-label">Technical Contact</span>
+            <span class="ad__sidebar-value">{{ picName() }}</span>
+            @if (picEmail()) {
+              <a class="ad__sidebar-email" [href]="'mailto:' + picEmail()">{{ picEmail() }}</a>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Geographic Coverage (pills) -->
+      @if ((asset().geoCoverage?.length || asset().geoTags?.length)) {
+        <div class="ad__sidebar-section">
+          <h4 class="ad__sidebar-heading">Geographic Coverage</h4>
+          <div class="ad__sidebar-geo-pills">
+            @for (tag of (asset().geoCoverage ?? asset().geoTags)!; track tag) {
+              <span class="ad__sidebar-geo-pill">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                {{ tag }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Sector -->
+      <div class="ad__sidebar-section">
+        <h4 class="ad__sidebar-heading">Sector</h4>
+        <span class="ad__sidebar-value">{{ asset().sector || '—' }}</span>
+      </div>
+
+      <!-- Themes -->
+      <div class="ad__sidebar-section">
+        <h4 class="ad__sidebar-heading">Themes</h4>
+        @if (asset().themes?.length) {
+          <div class="ad__sidebar-theme-chips">
+            @for (theme of asset().themes!; track theme) {
+              <span class="ad__sidebar-theme-chip">{{ theme }}</span>
+            }
+          </div>
+        } @else {
+          <span class="ad__sidebar-value">—</span>
+        }
+      </div>
+
+    </aside>
+  </ng-template>
+
+  <!-- ── Standard tabbed layout ── -->
+  @if (!singleScroll()) {
+    <div class="ad__body">
+      <div class="ad__content">
+        @if (activeTab() === 'overview') {
+          <ng-container *ngTemplateOutlet="overviewBlock"></ng-container>
+          <h3 class="ad__content-heading ad__content-heading--spaced">Source &amp; Ownership</h3>
+          <ng-container *ngTemplateOutlet="sourceBlock"></ng-container>
+          <h3 class="ad__content-heading ad__content-heading--spaced">Technical Details</h3>
+          <ng-container *ngTemplateOutlet="technicalBlock"></ng-container>
+        }
+        @if (activeTab() === 'preview') {
+          @if (showCapabilities()) {
+            <ng-container *ngTemplateOutlet="capabilitiesBlock"></ng-container>
+          } @else if (showTechnicalDoc()) {
+            <ng-container *ngTemplateOutlet="apiDocBlock"></ng-container>
+          } @else {
+            <ng-container *ngTemplateOutlet="viewerBlock"></ng-container>
+          }
+        }
+        @if (activeTab() === 'docs') { <ng-container *ngTemplateOutlet="apiDocBlock"></ng-container> }
+        @if (activeTab() === 'versions') { <ng-container *ngTemplateOutlet="versionsBlock"></ng-container> }
+        @if (activeTab() === 'usecase') { <ng-container *ngTemplateOutlet="useCaseBlock"></ng-container> }
+        @if (activeTab() === 'access') { <ng-container *ngTemplateOutlet="accessBlock"></ng-container> }
+      </div>
+      <ng-container *ngTemplateOutlet="sidebarBlock"></ng-container>
+    </div>
+  }
+
+  <!-- ── Single-scroll layout (fishing asset) ── -->
+  @if (singleScroll()) {
+    <div class="ad__body ad__body--scroll">
+      <div class="ad__content">
+        <ng-container *ngTemplateOutlet="overviewBlock"></ng-container>
+        @if (isDataset) {
+          <h3 class="ad__content-heading ad__content-heading--spaced">Preview</h3>
+          <ng-container *ngTemplateOutlet="viewerBlock"></ng-container>
+        }
+        <div class="ad__scroll-section-gap"></div>
+      </div>
+      <ng-container *ngTemplateOutlet="sidebarBlock"></ng-container>
+    </div>
+  }
+
+  <!-- ── Related assets (always at the same vertical position) ── -->
+  @if (asset().relatedAssets?.length) {
+    <div class="ad__related">
+      <h3 class="ad__related-title">Related Assets</h3>
+      <div class="ad__related-grid">
+        @for (r of asset().relatedAssets!; track r.title) {
+          <div class="ad__related-card">
+            <app-asset-card
+              [tag]="r.tag"
+              [tagColor]="r.tagColor"
+              [rating]="r.rating"
+              [title]="r.title"
+              [description]="r.description"
+              [users]="r.users"
+              [uses]="r.downloads"
+              [restricted]="r.restricted ?? false"
+              [rai]="r.rai ?? false"
+            ></app-asset-card>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Snackbar ─────────────────────────────────────────────────────── -->
+  @if (snackbarVisible()) {
+    <div class="ad__snackbar" role="status" aria-live="polite">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Bookmarked
+    </div>
+  }
+
+  <!-- ── Access snackbar ──────────────────────────────────────────────── -->
+  @if (accessSnack()) {
+    <div class="ad__snackbar" role="status" aria-live="polite">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      {{ accessSnack() }}
+    </div>
+  }
+
+  <!-- ── Project Feedback Drawer ─────────────────────────────────────── -->
+  @if (feedbackDrawerProject()) {
+    <div class="ad__fb-drawer-overlay" (click)="closeFeedbackDrawer()"></div>
+    <div class="ad__fb-drawer" #fbDrawer [style.width.px]="fbDrawerWidth()">
+      <div class="ad__fb-drawer-resize" (mousedown)="startDrawerResize($event)"></div>
+      <div class="ad__fb-drawer-header">
+        <h3 class="ad__fb-drawer-title">Project Feedback</h3>
+        <button class="ad__fb-drawer-close" type="button" (click)="closeFeedbackDrawer()" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="ad__fb-drawer-summary">
+        <span class="ad__fb-drawer-avg">{{ projectRating(feedbackDrawerProject()!) }}</span>
+        <div class="ad__fb-drawer-stars">
+          @for (s of [1,2,3,4,5]; track s) {
+            <svg width="14" height="14" viewBox="0 0 24 24"
+                 [attr.fill]="s <= projectRating(feedbackDrawerProject()!) ? '#F59E0B' : 'none'"
+                 [attr.stroke]="s <= projectRating(feedbackDrawerProject()!) ? '#F59E0B' : '#e0e0e0'"
+                 stroke-width="1.5">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          }
+        </div>
+        <span class="ad__fb-drawer-count">{{ feedbackDrawerEntries().length }} {{ feedbackDrawerEntries().length === 1 ? 'rating' : 'ratings' }}</span>
+      </div>
+      <div class="ad__feedback-list">
+        @for (entry of feedbackDrawerEntries(); track entry.id) {
+          <div class="ad__fb-item">
+            <div class="ad__fb-item-top">
+              <div class="ad__fb-item-stars">
+                @for (s of starRange; track s) {
+                  @if (s <= entry.rating) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="0.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e0e0e0" stroke-width="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                }
+              </div>
+              <span class="ad__fb-item-user">{{ entry.user }}</span>
+              <span class="ad__fb-item-date">{{ entry.date }}</span>
+            </div>
+            @if (entry.comment) {
+              <p class="ad__fb-item-comment">{{ entry.comment }}</p>
+            }
+          </div>
+        }
+        <!-- Skeleton while submitting -->
+        @if (drawerSkeleton()) {
+          <div class="ad__fb-item ad__fb-item--skeleton">
+            <div class="ad__fb-item-top">
+              <div class="ad__fb-skel ad__fb-skel--stars"></div>
+              <div class="ad__fb-skel ad__fb-skel--user"></div>
+              <div class="ad__fb-skel ad__fb-skel--date"></div>
+            </div>
+            <div class="ad__fb-skel ad__fb-skel--comment"></div>
+            <div class="ad__fb-skel ad__fb-skel--comment-short"></div>
+          </div>
+        }
+        <!-- New card after skeleton -->
+        @if (drawerNewEntry(); as entry) {
+          <div class="ad__fb-item ad__fb-item--new">
+            <div class="ad__fb-item-top">
+              <div class="ad__fb-item-stars">
+                @for (s of starRange; track s) {
+                  @if (s <= entry.rating) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="0.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e0e0e0" stroke-width="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                }
+              </div>
+              <span class="ad__fb-item-user">{{ entry.user }}</span>
+              <span class="ad__fb-item-date">{{ entry.date }}</span>
+            </div>
+            @if (entry.comment) {
+              <p class="ad__fb-item-comment">{{ entry.comment }}</p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Add feedback form -->
+      <div class="ad__fb-drawer-form">
+        @if (true) {
+          <p class="ad__fb-drawer-form-label">Leave your feedback</p>
+          <div class="ad__fb-drawer-form-stars" (mouseleave)="drawerHoverRating.set(0)">
+            @for (s of starRange; track s) {
+              <button type="button" class="ad__fb-drawer-star-btn"
+                      (mouseenter)="drawerHoverRating.set(s)"
+                      (click)="drawerRating.set(s)">
+                @if (s <= drawerDisplayRating()) {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="0.5">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                } @else {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d0d0d0" stroke-width="1.5">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                }
+              </button>
+            }
+          </div>
+          <textarea class="ad__fb-drawer-textarea"
+                    placeholder="Share your experience with this dataset on this project…"
+                    rows="3"
+                    [value]="drawerComment()"
+                    (input)="drawerComment.set($any($event.target).value)"></textarea>
+          <div class="ad__fb-drawer-form-footer">
+            <button appPrimaryBtn type="button" [disabled]="!drawerCanSubmit()" (click)="submitDrawerFeedback()">
+              Submit
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Feedback Modal ──────────────────────────────────────────────── -->
+  @if (feedbackModalOpen()) {
+    <div class="ad__modal-overlay" (click)="closeFeedbackModal()" role="dialog" aria-modal="true" aria-label="Leave feedback">
+      <div class="ad__modal-card" (click)="$event.stopPropagation()">
+        <button class="ad__modal-close" type="button" (click)="closeFeedbackModal()" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+        <h2 class="ad__modal-title">Leave a Review</h2>
+        <p class="ad__modal-subtitle">How would you rate this asset?</p>
+
+        <!-- Star rating -->
+        <div class="ad__modal-stars" role="radiogroup" aria-label="Star rating">
+          @for (s of starRange; track s) {
+            <button
+              class="ad__modal-star-btn"
+              type="button"
+              [attr.aria-label]="s + ' star' + (s === 1 ? '' : 's')"
+              (mouseenter)="hoverRating.set(s)"
+              (mouseleave)="hoverRating.set(0)"
+              (click)="pendingRating.set(s)">
+              @if (s <= displayRating()) {
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="0.5">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              } @else {
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              }
+            </button>
+          }
+        </div>
+
+        <!-- Comment -->
+        <div class="ad__modal-comment-wrap">
+          <label class="ad__modal-label" for="fb-comment">Add Comments</label>
+          <textarea
+            id="fb-comment"
+            class="ad__modal-textarea"
+            maxlength="400"
+            rows="4"
+            [placeholder]="pendingRating() > 0 && pendingRating() < 5 ? 'Comments are required for ratings below 5.' : 'Share your experience (optional for 5-star ratings).'"
+            (input)="commentText.set($any($event.target).value)">{{ commentText() }}</textarea>
+          <span class="ad__modal-char-count">Characters: {{ commentText().length }}/400</span>
+        </div>
+
+        <!-- Anonymous toggle -->
+        <label class="ad__modal-anon">
+          <input type="checkbox" [checked]="submitAnonymous()" (change)="submitAnonymous.set($any($event.target).checked)">
+          <span>Submit anonymously</span>
+        </label>
+
+        <!-- Submit -->
+        <button
+          class="ad__modal-submit"
+          type="button"
+          [disabled]="!canSubmit()"
+          (click)="submitFeedback()">
+          Submit Review
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Request Access Modal ───────────────────────────────────────────── -->
+  @if (requestAccessModalOpen()) {
+    <div class="ad__modal-overlay" (click)="closeRequestAccessModal()" role="dialog" aria-modal="true" aria-label="Request Access">
+      <div class="ad__modal-card ad__modal-card--access" (click)="$event.stopPropagation()">
+        <button class="ad__modal-close" type="button" (click)="closeRequestAccessModal()" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+        <h2 class="ad__modal-title">Request Access</h2>
+        <p class="ad__modal-subtitle">Provide required details to access the asset "{{ asset().title }}".</p>
+
+        <div class="ad__ra-user-wrap">
+          <p class="ad__ra-label">Requesting as</p>
+          <div class="ad__ra-user">
+            <span class="ad__ra-avatar">RT</span>
+            <div class="ad__ra-user-info">
+              <span class="ad__ra-name">Ruby Tan</span>
+              <span class="ad__ra-meta">ruby.tan&#64;accenture.com · Information Technology Department</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad__modal-comment-wrap">
+          <label class="ad__modal-label" for="ra-reason">Reason for Access Request</label>
+          <textarea
+            id="ra-reason"
+            class="ad__modal-textarea"
+            maxlength="255"
+            rows="5"
+            placeholder="Enter a justification for how you plan to use this asset"
+            (input)="requestReason.set($any($event.target).value)">{{ requestReason() }}</textarea>
+        </div>
+
+        <p class="ad__ra-policy">By requesting access, you consent to sharing your ADB details with the Asset Owner and agree to ADB's <a href="#" class="ad__ra-link">Terms of Use</a> and <a href="#" class="ad__ra-link">Access to Information</a> policies.</p>
+
+        <div class="ad__ra-actions">
+          <button class="ad__ra-cancel" type="button" (click)="closeRequestAccessModal()">Cancel</button>
+          <button class="ad__modal-submit" type="button" (click)="submitAccessRequest()">Submit Request</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Request submitted snackbar ─────────────────────────────────────── -->
+  @if (requestSubmitted()) {
+    <div class="ad__snackbar ad__snackbar--wide" role="status" aria-live="polite">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Access request submitted &bull; Ref: DN-REQ-84502 &bull; Expected review: 14–48 hours
+    </div>
+  }
+
+  <!-- ── Add Project Modal ─────────────────────────────────────────────── -->
+  @if (addProjectModalOpen()) {
+    <div class="ad__modal-overlay" (click)="closeAddProjectModal()" role="dialog" aria-modal="true" aria-label="Add your project">
+      <div class="ad__modal-card" (click)="$event.stopPropagation()">
+        <button class="ad__modal-close" type="button" (click)="closeAddProjectModal()" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+        @if (addProjectSubmitted()) {
+          <div class="ad__modal-success">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <h2 class="ad__modal-title">Project added</h2>
+            <p class="ad__modal-subtitle">Your project has been submitted and will appear once reviewed.</p>
+            <button class="ad__modal-submit" type="button" (click)="closeAddProjectModal()">Done</button>
+          </div>
+        } @else {
+          <h2 class="ad__modal-title">Add your project</h2>
+          <p class="ad__modal-subtitle">Link a project that uses <strong>{{ asset().title }}</strong>.</p>
+
+          <div class="ad__modal-comment-wrap ad__modal-autocomplete-wrap">
+            <label class="ad__modal-label" for="ap-number">Project number <span class="ad__modal-required">*</span></label>
+            <input id="ap-number" class="ad__modal-input" type="text" placeholder="e.g. 58419-001"
+                   [value]="addProjectNumber()"
+                   (input)="addProjectNumber.set($any($event.target).value)"
+                   (focus)="addProjectNumFocus.set(true)"
+                   (blur)="$any($event.relatedTarget)?.closest?.('.ad__modal-suggestions') ? null : addProjectNumFocus.set(false)"
+                   autocomplete="off">
+            @if (projectNumSuggestions().length > 0) {
+              <ul class="ad__modal-suggestions">
+                @for (p of projectNumSuggestions(); track p.number) {
+                  <li class="ad__modal-suggestion" tabindex="0"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="pickProjectSuggestion(p)">
+                    <span class="ad__modal-sug-num">{{ p.number }}</span>
+                    <span class="ad__modal-sug-title">{{ p.title }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <div class="ad__modal-comment-wrap ad__modal-autocomplete-wrap">
+            <label class="ad__modal-label" for="ap-title">Project title <span class="ad__modal-required">*</span></label>
+            <input id="ap-title" class="ad__modal-input" type="text" placeholder="Full project title"
+                   [value]="addProjectTitle()"
+                   (input)="addProjectTitle.set($any($event.target).value)"
+                   (focus)="addProjectTitleFocus.set(true)"
+                   (blur)="$any($event.relatedTarget)?.closest?.('.ad__modal-suggestions') ? null : addProjectTitleFocus.set(false)"
+                   autocomplete="off">
+            @if (projectTitleSuggestions().length > 0) {
+              <ul class="ad__modal-suggestions">
+                @for (p of projectTitleSuggestions(); track p.number) {
+                  <li class="ad__modal-suggestion" tabindex="0"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="pickProjectSuggestion(p)">
+                    <span class="ad__modal-sug-title">{{ p.title }}</span>
+                    <span class="ad__modal-sug-num">{{ p.number }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <div class="ad__modal-comment-wrap">
+            <label class="ad__modal-label" for="ap-usage">How is this asset used?</label>
+            <textarea id="ap-usage" class="ad__modal-textarea" rows="3"
+                      placeholder="Briefly describe how the dataset supports this project."
+                      (input)="addProjectUsage.set($any($event.target).value)">{{ addProjectUsage() }}</textarea>
+          </div>
+
+          <button class="ad__modal-submit" type="button" [disabled]="!addProjectCanSubmit()" (click)="submitAddProject()">
+            Submit
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Try API Modal ───────────────────────────────────────────────────── -->
+  @if (tryApiOpen()) {
+    <div class="tap__overlay" (click)="closeTryApi()" role="dialog" aria-modal="true" aria-label="Try API">
+      <div class="tap" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="tap__header">
+          <div class="tap__header-left">
+            <div class="tap__header-top">
+              <span class="tap__title">Try API</span>
+              @if (canTrySample()) { <span class="tap__sample-badge">Sandbox</span> }
+            </div>
+            <div class="tap__header-meta">
+              <span class="tap__subtitle">{{ isApi() ? asset().title : 'Satellite Imagery API' }}</span>
+              @if (canTrySample()) {
+                <span class="tap__sandbox-note">Explore this API using sample data. Live data requires access.</span>
+              }
+              <div class="tap__endpoint-wrap">
+                <code class="tap__endpoint">{{ asset().slug === 'geospatial-flooding-risk-engine' ? '/flood-risk' : isApi() ? '/opendata/v4' + tryApiOdEndpoint() : '/v1/satellite-imagery' }}</code>
+                <button class="tap__icon-btn" type="button" (click)="copyTryApi('endpoint')" [attr.aria-label]="'Copy endpoint'">
+                  @if (tryApiCopied() === 'endpoint') {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+          <button class="tap__close" type="button" (click)="closeTryApi()" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="tap__body">
+
+          <!-- LEFT: Request configuration -->
+          <div class="tap__left">
+
+            <!-- Parameters -->
+            <div class="tap__section">
+              <h3 class="tap__section-title">Parameters</h3>
+
+              @if (isApi() && asset().slug === 'geospatial-flooding-risk-engine') {
+                <!-- Flood Risk API parameters -->
+                <div class="tap__fields">
+                  <div class="tap__field tap__field--row">
+                    <div class="tap__field">
+                      <label class="tap__label">Latitude</label>
+                      <input class="tap__input" type="text" value="14.5995" placeholder="14.5995">
+                    </div>
+                    <div class="tap__field">
+                      <label class="tap__label">Longitude</label>
+                      <input class="tap__input" type="text" value="120.9842" placeholder="120.9842">
+                    </div>
+                  </div>
+                  <div class="tap__field">
+                    <label class="tap__label">Return period</label>
+                    <select class="tap__select">
+                      <option value="10">10-year</option>
+                      <option value="50">50-year</option>
+                      <option value="100" selected>100-year</option>
+                    </select>
+                  </div>
+                  <div class="tap__field">
+                    <label class="tap__label">Climate scenario</label>
+                    <select class="tap__select">
+                      <option value="current">Current</option>
+                      <option value="2030">2030 (RCP 4.5)</option>
+                      <option value="2050" selected>2050 (RCP 8.5)</option>
+                    </select>
+                  </div>
+                  <div class="tap__field">
+                    <label class="tap__label">Format</label>
+                    <select class="tap__select">
+                      <option value="geojson" selected>GeoJSON</option>
+                      <option value="geotiff">GeoTIFF</option>
+                    </select>
+                  </div>
+                </div>
+              } @else if (isApi()) {
+                <!-- OpenData API parameters -->
+                <div class="tap__fields">
+                  <div class="tap__field">
+                    <label class="tap__label">Endpoint</label>
+                    <select class="tap__select" [value]="tryApiOdEndpoint()" (change)="tryApiOdEndpoint.set($any($event.target).value)">
+                      <option value="/projects">GET /projects</option>
+                      <option value="/indicators">GET /indicators</option>
+                      <option value="/disbursements">GET /disbursements</option>
+                      <option value="/climate-finance">GET /climate-finance</option>
+                      <option value="/procurement">GET /procurement</option>
+                    </select>
+                  </div>
+                  <div class="tap__field tap__field--row">
+                    <div class="tap__field">
+                      <label class="tap__label">Country</label>
+                      <input class="tap__input" type="text" placeholder="PHI" [value]="tryApiOdCountry()" (input)="tryApiOdCountry.set($any($event.target).value)">
+                    </div>
+                    <div class="tap__field">
+                      <label class="tap__label">Limit</label>
+                      <select class="tap__select" [value]="tryApiOdLimit()" (change)="tryApiOdLimit.set($any($event.target).value)">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="tap__field">
+                    <label class="tap__label">Format</label>
+                    <select class="tap__select" [value]="tryApiOdFormat()" (change)="tryApiOdFormat.set($any($event.target).value)">
+                      <option value="json">JSON</option>
+                      <option value="csv">CSV</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="tap__advanced-toggle" type="button" (click)="tryApiAdvanced.set(!tryApiAdvanced())">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="tryApiAdvanced() ? 'rotate(90deg)' : 'rotate(0)'"><path d="m9 18 6-6-6-6"/></svg>
+                  Advanced settings
+                </button>
+                @if (tryApiAdvanced()) {
+                  <div class="tap__advanced">
+                    <div class="tap__field">
+                      <label class="tap__label">API Key <span class="tap__label-opt">(optional for &gt;1,000 req/day)</span></label>
+                      <input class="tap__input" type="text" placeholder="adb-key-..." [value]="tryApiApiKey()" (input)="tryApiApiKey.set($any($event.target).value)">
+                    </div>
+                  </div>
+                }
+              } @else {
+                <!-- Satellite imagery parameters -->
+                <div class="tap__fields">
+                  <div class="tap__field">
+                    <label class="tap__label">Region</label>
+                    <select class="tap__select" [value]="tryApiRegion()" (change)="tryApiRegion.set($any($event.target).value)">
+                      <option value="PH">Philippines</option>
+                      <option value="ID">Indonesia</option>
+                      <option value="VN">Vietnam</option>
+                      <option value="BD">Bangladesh</option>
+                      <option value="LK">Sri Lanka</option>
+                    </select>
+                  </div>
+                  <div class="tap__field tap__field--row">
+                    <div class="tap__field">
+                      <label class="tap__label">Date from</label>
+                      <input class="tap__input" type="date" [value]="tryApiDateFrom()" (change)="tryApiDateFrom.set($any($event.target).value)">
+                    </div>
+                    <div class="tap__field">
+                      <label class="tap__label">Date to</label>
+                      <input class="tap__input" type="date" [value]="tryApiDateTo()" (change)="tryApiDateTo.set($any($event.target).value)">
+                    </div>
+                  </div>
+                  <div class="tap__field">
+                    <label class="tap__label">Satellite</label>
+                    <select class="tap__select" [value]="tryApiSatellite()" (change)="tryApiSatellite.set($any($event.target).value)">
+                      <option value="sentinel-2">Sentinel-2</option>
+                      <option value="landsat-8">Landsat 8</option>
+                      <option value="landsat-9">Landsat 9</option>
+                      <option value="modis">MODIS</option>
+                    </select>
+                  </div>
+                  <div class="tap__field tap__field--row">
+                    <div class="tap__field">
+                      <label class="tap__label">Max cloud cover</label>
+                      <select class="tap__select" [value]="tryApiCloud()" (change)="tryApiCloud.set($any($event.target).value)">
+                        <option value="10">&lt; 10%</option>
+                        <option value="20">&lt; 20%</option>
+                        <option value="30">&lt; 30%</option>
+                        <option value="50">&lt; 50%</option>
+                      </select>
+                    </div>
+                    <div class="tap__field">
+                      <label class="tap__label">Resolution</label>
+                      <select class="tap__select" [value]="tryApiResolution()" (change)="tryApiResolution.set($any($event.target).value)">
+                        <option value="10">10 m</option>
+                        <option value="30">30 m</option>
+                        <option value="100">100 m</option>
+                        <option value="250">250 m</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <button class="tap__advanced-toggle" type="button" (click)="tryApiAdvanced.set(!tryApiAdvanced())">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="tryApiAdvanced() ? 'rotate(90deg)' : 'rotate(0)'"><path d="m9 18 6-6-6-6"/></svg>
+                  Advanced settings
+                </button>
+                @if (tryApiAdvanced()) {
+                  <div class="tap__advanced">
+                    <div class="tap__field">
+                      <label class="tap__label">API Key <span class="tap__label-opt">(optional)</span></label>
+                      <input class="tap__input" type="text" placeholder="sk-..." [value]="tryApiApiKey()" (input)="tryApiApiKey.set($any($event.target).value)">
+                    </div>
+                    <div class="tap__field">
+                      <label class="tap__label">Response format</label>
+                      <select class="tap__select" [value]="tryApiRespFormat()" (change)="tryApiRespFormat.set($any($event.target).value)">
+                        <option value="json">JSON</option>
+                        <option value="geojson">GeoJSON</option>
+                        <option value="csv">CSV</option>
+                      </select>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Request preview -->
+            <div class="tap__section tap__section--preview">
+              <div class="tap__section-header">
+                <h3 class="tap__section-title">Request preview</h3>
+                <button class="tap__copy-btn" type="button" (click)="copyTryApi('request')">
+                  @if (tryApiCopied() === 'request') { Copied! } @else { Copy request }
+                </button>
+              </div>
+              <pre class="tap__code">{{ asset().slug === 'geospatial-flooding-risk-engine' ? 'GET /flood-risk\n?lat=14.5995&lon=120.9842\n&return_period=100\n&scenario=2050\n&format=geojson' : isApi() ? tryApiOdRequestPreview() : tryApiRequestPreview() }}</pre>
+            </div>
+
+            <!-- Send -->
+            <button class="tap__send-btn" type="button" (click)="sendTryApiRequest()" [disabled]="tryApiState() === 'loading'">
+              @if (tryApiState() === 'loading') {
+                <span class="tap__spinner"></span> Sending&#8230;
+              } @else {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send request
+              }
+            </button>
+
+          </div>
+
+          <!-- RIGHT: Response -->
+          <div class="tap__right">
+            <h3 class="tap__section-title">Response</h3>
+
+            @if (tryApiState() === 'idle') {
+              <div class="tap__empty">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8d0db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p class="tap__empty-text"><strong>Ready to test</strong><br>Adjust the parameters or use the defaults, then send a request to preview a sample response.</p>
+              </div>
+            }
+
+            @if (tryApiState() === 'loading') {
+              <div class="tap__empty">
+                <span class="tap__spinner tap__spinner--lg"></span>
+                <p class="tap__empty-text">Sending request&#8230;</p>
+              </div>
+            }
+
+            @if (tryApiState() === 'success') {
+              <div class="tap__resp">
+                <!-- Status row -->
+                <div class="tap__status-row">
+                  <span class="tap__status-dot"></span>
+                  <span class="tap__status-code">200 OK</span>
+                  <span class="tap__status-time">842 ms</span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tap__resp-tabs">
+                  <button class="tap__resp-tab" [class.tap__resp-tab--active]="tryApiRespTab() === 'preview'" (click)="tryApiRespTab.set('preview')">Preview</button>
+                  <button class="tap__resp-tab" [class.tap__resp-tab--active]="tryApiRespTab() === 'json'" (click)="tryApiRespTab.set('json')">JSON</button>
+                </div>
+
+                <!-- Preview tab -->
+                @if (tryApiRespTab() === 'preview') {
+                  @if (asset().slug === 'geospatial-flooding-risk-engine') {
+                    <!-- Flood API: risk summary -->
+                    <div class="tap__preview">
+                      <div class="tap__preview-meta">
+                        <div class="tap__preview-row"><span class="tap__preview-label">Location</span><span class="tap__preview-val">Manila, Philippines</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Flood hazard rating</span><span class="tap__preview-val" style="color:#dc2626;font-weight:500">High</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Inundation depth</span><span class="tap__preview-val">2.4 m</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Risk score</span><span class="tap__preview-val">0.82 / 1.0</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Affected area</span><span class="tap__preview-val">18.6 km²</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Return period</span><span class="tap__preview-val">100-year flood</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Climate scenario</span><span class="tap__preview-val">RCP 8.5 — 2050</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Response time</span><span class="tap__preview-val">318 ms</span></div>
+                      </div>
+                    </div>
+                  } @else if (isApi()) {
+                    <!-- OpenData API: tabular data preview -->
+                    <div class="tap__preview">
+                      <div class="tap__preview-meta">
+                        <div class="tap__preview-row"><span class="tap__preview-label">Endpoint</span><span class="tap__preview-val tap__preview-val--mono">/opendata/v4{{ tryApiOdEndpoint() }}</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Total results</span><span class="tap__preview-val">247</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Returned</span><span class="tap__preview-val">{{ tryApiOdLimit() }} records</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Format</span><span class="tap__preview-val">{{ tryApiOdFormat().toUpperCase() }}</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Response time</span><span class="tap__preview-val">214 ms</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Rate limit remaining</span><span class="tap__preview-val">998 / 1,000</span></div>
+                      </div>
+                      <div class="tap__od-rows">
+                        <div class="tap__od-row">
+                          <span class="tap__od-id">PHI-3824</span>
+                          <span class="tap__od-title">Metro Manila Subway Project Phase 2</span>
+                          <span class="tap__od-badge">Active</span>
+                        </div>
+                        <div class="tap__od-row">
+                          <span class="tap__od-id">PHI-3756</span>
+                          <span class="tap__od-title">Mindanao Rural Development Program</span>
+                          <span class="tap__od-badge">Active</span>
+                        </div>
+                        <div class="tap__od-row">
+                          <span class="tap__od-id">PHI-3701</span>
+                          <span class="tap__od-title">Sustainable Infrastructure Program</span>
+                          <span class="tap__od-badge tap__od-badge--done">Completed</span>
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <!-- Satellite: image + metadata -->
+                    <div class="tap__preview">
+                      <div class="tap__preview-img">
+                        <div class="tap__preview-img-placeholder">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9eabb8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                          </svg>
+                          <span>Satellite imagery</span>
+                        </div>
+                      </div>
+                      <div class="tap__preview-meta">
+                        <div class="tap__preview-row"><span class="tap__preview-label">Captured</span><span class="tap__preview-val">18 Sep 2026</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Satellite</span><span class="tap__preview-val">Sentinel-2</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Resolution</span><span class="tap__preview-val">{{ tryApiResolution() }} m</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Cloud coverage</span><span class="tap__preview-val">8%</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Coverage</span><span class="tap__preview-val">Philippines</span></div>
+                        <div class="tap__preview-row"><span class="tap__preview-label">Asset ID</span><span class="tap__preview-val tap__preview-val--mono">S2_PH_20260918_1043</span></div>
+                      </div>
+                    </div>
+                  }
+                }
+
+                <!-- JSON tab -->
+                @if (tryApiRespTab() === 'json') {
+                  <div class="tap__json-wrap">
+                    <button class="tap__copy-btn tap__copy-btn--json" type="button" (click)="copyTryApi('json')">
+                      @if (tryApiCopied() === 'json') { Copied! } @else { Copy }
+                    </button>
+                    <pre class="tap__code tap__code--json">{{ asset().slug === 'geospatial-flooding-risk-engine' ? tryApiFloodJsonResponse : isApi() ? tryApiOdJsonResponse() : tryApiJsonResponse() }}</pre>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="tap__footer">
+          <button class="tap__footer-link" type="button" (click)="setTab('docs'); closeTryApi()">
+            View API documentation
+          </button>
+          <button class="tap__footer-close" type="button" (click)="closeTryApi()">Close</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── Try Agent Modal ──────────────────────────────────────────────────── -->
+  @if (tryAgentOpen()) {
+    <div class="tap__overlay" (click)="closeTryAgent()" role="dialog" aria-modal="true" aria-label="Try Agent">
+      <div class="tap tap--agent" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="tap__header">
+          <div class="tap__header-left">
+            <div class="tap__header-top">
+              <span class="tap__title">Try Agent</span>
+              <span class="tap__sample-badge">Sandbox</span>
+            </div>
+            <div class="tap__header-meta">
+              <span class="tap__subtitle">{{ asset().title }}</span>
+              <span class="tap__sandbox-note">Explore this agent using sample data. Full capabilities require access.</span>
+            </div>
+          </div>
+          <button class="tap__close" type="button" (click)="closeTryAgent()" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Chat thread -->
+        <div class="tap__chat-area">
+
+          <!-- Suggested prompts — show only before first message -->
+          @if (tryAgentMessages().length === 0 && !tryAgentSending()) {
+            <div class="tap__chat-prompts">
+              <p class="tap__chat-prompts-label">What would you like to explore?</p>
+              <div class="tap__chat-chips">
+                @for (p of tryAgentPresets(); track $index) {
+                  <button class="tap__chat-chip" (click)="selectAgentPreset($index)">{{ p.label }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Messages using existing cv__ classes -->
+          @for (msg of tryAgentMessages(); track $index) {
+            @if (msg.role === 'user') {
+              <div class="cv__msg cv__msg--user cv__msg--animate">
+                <div class="cv__bubble">{{ msg.text }}</div>
+              </div>
+            } @else {
+              <div class="cv__msg cv__msg--ai cv__msg--animate">
+                <div class="cv__ai-response">
+                  <div class="cv__ai-text" [innerHTML]="markdownToHtml(msg.text)"></div>
+                  <div class="cv__ai-actions">
+                    <button class="cv__ai-btn" [class.cv__ai-btn--done]="tryAgentCopied() === $index" title="Copy" (click)="copyTryAgentMsg($index)">
+                      @if (tryAgentCopied() === $index) {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      } @else {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Try other prompts — shown after first message -->
+          @if (tryAgentMessages().length > 0 && !tryAgentSending()) {
+            <div class="tap__other-prompts">
+              <span class="tap__other-prompts-label">Try asking</span>
+              <div class="tap__chat-chips tap__chat-chips--inline">
+                @for (p of tryAgentPresets(); track $index) {
+                  <button class="tap__chat-chip tap__chat-chip--sm" (click)="selectAgentPreset($index)">{{ p.label }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Loading state -->
+          @if (tryAgentSending()) {
+            <div class="cv__msg cv__msg--ai">
+              <div class="cv__ai-response">
+                <ia-ai-reasoning-loader [phases]="['Thinking', 'Searching knowledge base', 'Preparing response']" />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Prompt bar -->
+        <div class="tap__prompt-wrap">
+          <adb-prompt-bar
+            placeholder="Ask the agent…"
+            [loading]="tryAgentSending()"
+            (submit)="submitAgentMessage($event)"
+          />
+        </div>
+
+        <!-- Footer -->
+        <div class="tap__footer">
+          <span class="tap__footer-note">Sandbox responses use sample data. Full access enables live data, uploads and integrations.</span>
+          <button class="tap__footer-close" type="button" (click)="closeTryAgent()">Close</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── Try Tool Modal ───────────────────────────────────────────────────── -->
+  @if (tryToolOpen()) {
+    <div class="tap__overlay" (click)="closeTryTool()" role="dialog" aria-modal="true" aria-label="Try Tool">
+      <div class="tap tap--tool" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="tap__header">
+          <div class="tap__header-left">
+            <div class="tap__header-top">
+              <span class="tap__title">Try Tool</span>
+              <span class="tap__sample-badge">Sandbox</span>
+            </div>
+            <div class="tap__header-meta">
+              <span class="tap__subtitle">{{ asset().title }}</span>
+              <span class="tap__sandbox-note">Explore this tool using sample data. Live results require access.</span>
+            </div>
+          </div>
+          <button class="tap__close" type="button" (click)="closeTryTool()" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Body: split input → results -->
+        <div class="tap__body tap__body--tool">
+
+          <!-- Left: Search -->
+          <div class="tap__tool-left">
+            <p class="tap__section-title">Search</p>
+
+            @if (tryToolChips().length) {
+              <div class="tap__tool-chips">
+                @for (chip of tryToolChips(); track $index) {
+                  <button class="tap__tool-chip" (click)="tryToolQuery.set(chip); tryToolState.set('idle')" [class.tap__tool-chip--active]="tryToolQuery() === chip">{{ chip }}</button>
+                }
+              </div>
+            }
+
+            <textarea class="tap__textarea" [value]="tryToolQuery()" (input)="tryToolQuery.set($any($event.target).value); tryToolState.set('idle')" rows="3" placeholder="e.g. Infrastructure finance specialists in South Asia"></textarea>
+
+            <button class="tap__send-btn" type="button" (click)="runTryTool()" [disabled]="tryToolState() === 'loading' || !tryToolQuery().trim()">
+              @if (tryToolState() === 'loading') {
+                <span class="tap__spinner"></span> Searching…
+              } @else {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Find people
+              }
+            </button>
+          </div>
+
+          <!-- Right: Matching People -->
+          <div class="tap__tool-right">
+            <p class="tap__section-title">Matching People</p>
+
+            @if (tryToolState() === 'idle') {
+              <div class="tap__empty">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8d0db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <p class="tap__empty-text"><strong>Ready to search</strong><br>Select a suggestion or enter a query, then click Find people.</p>
+              </div>
+            }
+
+            @if (tryToolState() === 'loading') {
+              <div class="tap__empty">
+                <span class="tap__spinner tap__spinner--lg"></span>
+                <p class="tap__empty-text" style="margin-top:12px">Searching sample dataset…</p>
+              </div>
+            }
+
+            @if (tryToolState() === 'success') {
+              <div class="tap__tool-results">
+                <p class="tap__tool-results-meta">{{ tryToolSampleOutput().length }} profiles found &nbsp;·&nbsp; Sample data</p>
+                <div class="tap__tool-rows">
+                  @for (p of tryToolSampleOutput(); track p.email) {
+                    <div class="tap__tool-row">
+                      <div class="tap__tool-avatar">{{ p.name.split(' ').map(w => w[0]).join('') }}</div>
+                      <div class="tap__tool-row-body">
+                        <div class="tap__tool-row-name">{{ p.name }}</div>
+                        <div class="tap__tool-row-role">{{ p.role }} &nbsp;·&nbsp; {{ p.dept }}</div>
+                        <div class="tap__tool-row-skills">{{ p.skills }}</div>
+                      </div>
+                      <a class="tap__tool-row-email" href="mailto:{{ p.email }}">{{ p.email }}</a>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="tap__footer">
+          <span class="tap__footer-note">Full access connects to the live ADB People Directory.</span>
+          <button class="tap__footer-close" type="button" (click)="closeTryTool()">Close</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ── Cite Asset Modal ─────────────────────────────────────────────────── -->
+  @if (citeOpen()) {
+    <div class="ad__modal-overlay" (click)="closeCiteModal()" role="dialog" aria-modal="true" aria-label="Cite this asset">
+      <div class="ad__modal-card ad__modal-card--cite" (click)="$event.stopPropagation()">
+        <button class="ad__modal-close" type="button" (click)="closeCiteModal()" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <h2 class="ad__modal-title">Cite this asset</h2>
+        <p class="ad__modal-subtitle">Copy a formatted citation for reports, publications, or project documentation.</p>
+
+        <div class="ad__cite-field">
+          <label class="ad__modal-label" for="cite-style">Citation style</label>
+          <div class="ad__cite-select-wrap">
+            <select id="cite-style" class="ad__cite-select"
+                    [value]="citeStyle()"
+                    (change)="citeStyle.set($any($event.target).value)">
+              <option value="ADB">ADB</option>
+              <option value="APA">APA</option>
+              <option value="Chicago">Chicago</option>
+              <option value="BibTeX">BibTeX</option>
+            </select>
+            <svg class="ad__cite-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        <div class="ad__cite-field">
+          <span class="ad__modal-label">Citation</span>
+          @if (citeStyle() === 'BibTeX') {
+            <pre class="ad__cite-preview ad__cite-preview--mono">{{ citation() }}</pre>
+          } @else {
+            <p class="ad__cite-preview">{{ citation() }}</p>
+          }
+        </div>
+
+        <div class="ad__cite-actions">
+          <button type="button" appSecondaryBtn (click)="closeCiteModal()">Cancel</button>
+          <button type="button" appPrimaryBtn class="ad__cite-copy-btn" [class.ad__cite-copy-btn--done]="citeCopied()" (click)="copyCitation()">
+            @if (citeCopied()) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Citation copied
+            } @else {
+              Copy citation
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

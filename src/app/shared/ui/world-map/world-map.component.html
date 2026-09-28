@@ -1,0 +1,61 @@
+<div class="wmv__map"
+  #wrapper
+  (mousedown)="onPanStart($event)"
+  (wheel)="onWheel($event)"
+  (click)="onMapClick($event)"
+  (mousemove)="onHoverMove($event)"
+  (mouseleave)="onMouseLeave()">
+
+  <div class="wmv__stage" [style.transform]="mapTransform()">
+    <div class="wmv__svg" [innerHTML]="safeHtml()"></div>
+    @for (m of markers(); track m.label) {
+      <div class="wmv__pin" [style.left.%]="m.left" [style.top.%]="m.top">
+        <div class="wmv__pin-ring"></div>
+        <div class="wmv__pin-dot"></div>
+        <span class="wmv__pin-label">{{ m.label }}</span>
+      </div>
+    }
+  </div>
+
+  @if (tooltip().visible) {
+    <div class="wmv__tooltip"
+      [style.left.px]="tooltip().x"
+      [style.top.px]="tooltip().y">
+      {{ tooltip().label }}
+    </div>
+  }
+</div>
+
+<div class="wmv__controls">
+  <button class="wmv__zoom-btn" (click)="zoomIn()" aria-label="Zoom in">+</button>
+  <button class="wmv__zoom-btn" (click)="zoomOut()" aria-label="Zoom out">−</button>
+</div>
+
+@if (selectedCard(); as card) { @if (!hideCard()) {
+  <div class="wmv__card" (click)="$event.stopPropagation()">
+    <div class="wmv__card-accent" [style.background]="card.accentColor"></div>
+    <div class="wmv__card-inner">
+      <div class="wmv__card-top">
+        <span class="wmv__card-badge"
+          [style.background]="card.badgeBg"
+          [style.color]="card.accentColor">
+          {{ card.regionName }}
+        </span>
+        <button class="wmv__card-close" (click)="closeCard()" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <h4 class="wmv__card-name">{{ card.name }}</h4>
+      <div class="wmv__card-meta">
+        <span class="wmv__card-meta-label">ADB Code</span>
+        <span class="wmv__card-meta-value">{{ card.adb }}</span>
+      </div>
+      <div class="wmv__card-meta">
+        <span class="wmv__card-meta-label">Department</span>
+        <span class="wmv__card-meta-value">{{ card.region.toUpperCase() }}</span>
+      </div>
+    </div>
+  </div>
+} }

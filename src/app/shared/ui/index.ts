@@ -1,0 +1,15 @@
+export { AuroraBeamComponent } from './loaders/aurora-beam/aurora-beam.component';
+export { SearchLoaderComponent } from './loaders/search-loader/search-loader.component';
+export { SkeletonPlaceholderComponent } from './loaders/skeleton-placeholder/skeleton-placeholder.component';
+export { DotMatrixLoaderComponent } from './loaders/dot-matrix-loader/dot-matrix-loader.component';
+export { AIReasoningLoaderComponent } from './loaders/ai-reasoning-loader/ai-reasoning-loader.component';
+export { AgenticTaskLoaderComponent } from './loaders/agentic-task-loader/agentic-task-loader.component';
+export type { AgenticTask, AgenticTaskStatus } from './loaders/agentic-task-loader/agentic-task-loader.component';
+export { PromptChipComponent } from './prompt-chip/prompt-chip.component';
+export type { PromptChipVariant } from './prompt-chip/prompt-chip.component';
+export { UploadItemComponent } from './upload-item/upload-item.component';
+export type { UploadItemStatus } from './upload-item/upload-item.component';
+export { PromptBarComponent } from './prompt-bar/prompt-bar.component';
+export { WorldMapComponent } from './world-map/world-map.component';
+export type { KidbObs, AdbRegion } from './world-map/world-map.types';
+export { MetricCardComponent } from './metric-card/metric-card.component';

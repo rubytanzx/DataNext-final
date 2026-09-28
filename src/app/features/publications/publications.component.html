@@ -1,0 +1,174 @@
+<div class="pubs">
+
+  <!-- Breadcrumb -->
+  <div class="pubs__breadcrumb">
+    <button class="pubs__bc-link" (click)="navigateHome()">Home</button>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+    <span class="pubs__bc-current">Publications</span>
+  </div>
+
+  <div class="pubs__inner scroll-hidden">
+    <h1 class="pubs__heading">Publications</h1>
+
+    <!-- ADB Publications grid -->
+    <div class="pubs__grid">
+      @for (pub of adbPubs; track pub.id) {
+        <div class="pubs__card" (click)="openPub(pub)" tabindex="0" (keydown.enter)="openPub(pub)">
+          <!-- Cover -->
+          <div class="pubs__cover" [style.background]="pub.coverBg">
+            <div class="pubs__cover-band" [style.background]="pub.typeBg + '28'"></div>
+            <div class="pubs__cover-band2" [style.background]="pub.typeBg + '15'"></div>
+            <div class="pubs__cover-series" [style.color]="pub.typeBg + 'dd'">{{ pub.series }}</div>
+            <div class="pubs__cover-title">{{ pub.subtitle || pub.title }}</div>
+          </div>
+          <!-- Body -->
+          <div class="pubs__card-body">
+            <div class="pubs__card-meta">
+              <span class="pubs__badge" [style.color]="pub.typeBg" [style.border-color]="pub.typeBg + '66'">{{ pub.type }}</span>
+              <span class="pubs__date">{{ pub.date }}</span>
+            </div>
+            <div class="pubs__card-title">{{ pub.subtitle || pub.title }}</div>
+            <div class="pubs__card-abstract">{{ pub.abstract }}</div>
+            <div class="pubs__card-footer">
+              <span class="pubs__card-pages">{{ pub.pages ? pub.pages + ' pages' : '' }}</span>
+              <span class="pubs__card-explore">
+                Explore
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pacific Media divider -->
+    @if (mediaPubs.length > 0) {
+      <div class="pubs__section-divider">
+        <div class="pubs__divider-line"></div>
+        <span class="pubs__divider-label">Pacific Media Sources</span>
+        <div class="pubs__divider-line"></div>
+      </div>
+
+      <div class="pubs__grid">
+        @for (pub of mediaPubs; track pub.id) {
+          <div class="pubs__card" (click)="openPub(pub)" tabindex="0" (keydown.enter)="openPub(pub)">
+            <div class="pubs__cover" [style.background]="pub.coverBg">
+              <div class="pubs__cover-band" [style.background]="pub.typeBg + '28'"></div>
+              <div class="pubs__cover-band2" [style.background]="pub.typeBg + '15'"></div>
+              <div class="pubs__cover-series" [style.color]="pub.typeBg + 'dd'">{{ pub.series }}</div>
+              <div class="pubs__cover-title">{{ pub.subtitle || pub.title }}</div>
+            </div>
+            <div class="pubs__card-body">
+              <div class="pubs__card-meta">
+                <span class="pubs__badge" [style.color]="pub.typeBg" [style.border-color]="pub.typeBg + '66'">{{ pub.type }}</span>
+                <span class="pubs__date">{{ pub.date }}</span>
+              </div>
+              <div class="pubs__card-title">{{ pub.subtitle || pub.title }}</div>
+              <div class="pubs__card-abstract">{{ pub.abstract }}</div>
+              <div class="pubs__card-footer">
+                <span class="pubs__card-pages">{{ pub.pages ? pub.pages + ' pages' : '' }}</span>
+                <span class="pubs__card-explore">
+                  Explore
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ── Publication Detail Modal ── -->
+@if (selectedPub()) {
+  <div class="pub-modal-backdrop" (click)="closePub()"></div>
+  <div class="pub-modal" role="dialog" [attr.aria-label]="selectedPub()!.title">
+    <div class="pub-modal-close-bar">
+      <span class="pub-modal-close-title">{{ selectedPub()!.title }}</span>
+      <button class="pub-modal-close-btn" (click)="closePub()" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="pub-modal-body">
+      <!-- Left: book cover -->
+      <div class="pub-modal-cover">
+        <div class="pub-modal-cover-art" [style.background]="selectedPub()!.coverBg">
+          <div class="pub-modal-cover-band" [style.background]="selectedPub()!.typeBg + '30'"></div>
+          <div class="pub-modal-cover-band2" [style.background]="selectedPub()!.typeBg + '18'"></div>
+        </div>
+        <div class="pub-modal-cover-strip">
+          <div class="pub-modal-cover-strip-title">{{ (selectedPub()!.subtitle || selectedPub()!.title).split(' — ')[0] }}</div>
+          <div class="pub-modal-cover-strip-series">{{ selectedPub()!.series }}</div>
+          <div class="pub-modal-cover-strip-adb">ADB</div>
+        </div>
+      </div>
+
+      <!-- Right: info + chat -->
+      <div class="pub-modal-info">
+        <div class="pub-modal-badge" [style.color]="selectedPub()!.typeBg" [style.border-color]="selectedPub()!.typeBg + '66'">
+          {{ selectedPub()!.type }}
+        </div>
+        <h2 class="pub-modal-title">{{ selectedPub()!.subtitle || selectedPub()!.title }}</h2>
+        <p class="pub-modal-abstract">{{ selectedPub()!.abstract }}</p>
+
+        <div class="pub-modal-actions">
+          <a [href]="selectedPub()!.url" target="_blank" rel="noopener" class="pub-modal-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; vertical-align: middle">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+              <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            View on adb.org
+          </a>
+        </div>
+
+        <!-- Chat with publication -->
+        <div class="pub-modal-chat">
+          <div class="pub-modal-chat-history scroll-hidden">
+            @if (pubChat().length === 0) {
+              <p class="pub-modal-chat-hint">Ask a question about this publication…</p>
+            }
+            @for (msg of pubChat(); track $index) {
+              <div class="pub-modal-msg" [class.pub-modal-msg--user]="msg.role === 'user'">
+                <div class="pub-modal-msg-text">{{ msg.content }}</div>
+              </div>
+            }
+            @if (pubLoading() && pubChat()[pubChat().length - 1]?.content === '') {
+              <div class="pub-modal-msg">
+                <div class="pub-modal-msg-dots">
+                  <span style="animation-delay: 0s"></span>
+                  <span style="animation-delay: 0.2s"></span>
+                  <span style="animation-delay: 0.4s"></span>
+                </div>
+              </div>
+            }
+          </div>
+          <form class="pub-modal-chat-form" (ngSubmit)="askPub()">
+            <input
+              class="pub-modal-chat-input"
+              type="text"
+              placeholder="Ask about this publication…"
+              [(ngModel)]="pubInput"
+              name="pubq"
+              [disabled]="pubLoading()"
+            />
+            <button type="submit" class="pub-modal-chat-send" [disabled]="pubLoading() || !pubInput.trim()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

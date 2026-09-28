@@ -1,0 +1,241 @@
+<div class="cv">
+
+  <!-- ── Top bar ── -->
+  <div class="cv__topbar">
+<div class="cv__title-wrap">
+      @if (editing) {
+        <input
+          #titleInput
+          class="cv__title-input"
+          type="text"
+          [(ngModel)]="editValue"
+          (blur)="commitEdit()"
+          (keydown)="onTitleKeydown($event)"
+          [style.width.ch]="editValue.length + 2"
+        />
+      } @else {
+        <button class="cv__title" (click)="startEdit()" title="Click to rename">
+          <span class="cv__title-text">{{ displayTitle() }}</span>
+        </button>
+      }
+    </div>
+
+    <button class="cv__share" title="Share conversation">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── Conversation ── -->
+  @if (item()) {
+    <div class="cv__thread" #threadEl>
+
+      <!-- Seed: user question from history -->
+      <div class="cv__msg cv__msg--user">
+        <div class="cv__bubble">{{ item()!.question }}</div>
+      </div>
+
+      <!-- Seed: initial AI response (plain text from history) -->
+      <div class="cv__msg cv__msg--ai">
+        <div class="cv__ai-response">
+          <p class="cv__ai-text">{{ item()!.answer }}</p>
+
+          <!-- Seed actions -->
+          <div class="cv__ai-actions">
+            <button class="cv__ai-btn" [class.cv__ai-btn--done]="seedCopied()" title="Copy" (click)="copySeed()">
+              @if (seedCopied()) {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              } @else {
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              }
+            </button>
+            <div class="cv__ai-sep"></div>
+            <button class="cv__ai-btn" [class.cv__ai-btn--active]="seedFeedback() === 'up'" title="Good response" (click)="setSeedFeedback('up')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            </button>
+            <button class="cv__ai-btn" [class.cv__ai-btn--down]="seedFeedback() === 'down'" title="Bad response" (click)="setSeedFeedback('down')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+            </button>
+          </div>
+
+          <!-- Seed feedback panel -->
+          @if (feedbackPanel()?.key === 'seed') {
+            <div class="cv__feedback-panel">
+              @if (feedbackPanel()!.status === 'success') {
+                <div class="cv__feedback-status cv__feedback-status--ok">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                  Thank you for your detailed feedback.
+                </div>
+                <button class="cv__feedback-x" (click)="closeFeedbackPanel()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              } @else if (feedbackPanel()!.status === 'error') {
+                <div class="cv__feedback-status cv__feedback-status--err">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Sorry, something went wrong.
+                </div>
+                <button class="cv__feedback-x" (click)="closeFeedbackPanel()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              } @else {
+                <div class="cv__feedback-header">
+                  <span>{{ feedbackPanel()!.type === 'up' ? 'What did you like about this response? Your feedback keeps us on the right track' : 'What did you not like about this response? Your feedback will help us do better next time.' }}</span>
+                  <button class="cv__feedback-x" (click)="closeFeedbackPanel()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+                <div class="cv__feedback-chips">
+                  @for (chip of feedbackChips(feedbackPanel()!.type); track chip) {
+                    <button class="cv__feedback-chip" (click)="selectFeedbackChip(chip)">{{ chip }}</button>
+                  }
+                </div>
+                <div class="cv__feedback-input-row">
+                  <textarea class="cv__feedback-textarea" placeholder="Input text" [value]="feedbackPanel()!.input" (input)="updatePanelInput($any($event.target).value)" rows="3"></textarea>
+                  <button class="cv__feedback-submit" (click)="submitFeedback()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Follow-up turns -->
+      @for (turn of turns(); track $index) {
+        @if (turn.role === 'user') {
+          <div class="cv__msg cv__msg--user cv__msg--animate">
+            <div class="cv__bubble">{{ turn.text }}</div>
+          </div>
+        } @else {
+          <div class="cv__msg cv__msg--ai cv__msg--animate">
+            <div class="cv__ai-response">
+
+              @if (turn.loading) {
+                <!-- Reasoning loader while AI is thinking -->
+                <ia-ai-reasoning-loader
+                  [phases]="['Thinking', 'Searching catalog', 'Preparing response']"
+                  [phaseDuration]="1800"
+                />
+              } @else {
+                <!-- Completed AI response -->
+                <p class="cv__ai-text">{{ turn.text }}</p>
+
+                @if (turn.assets && turn.assets.length > 0) {
+                  <div class="cv__assets-wrap">
+                  <div class="cv__assets">
+                    @for (asset of turn.assets; track asset.title) {
+                      <div class="cv__asset-card">
+                        <app-asset-card
+                          [tag]="asset.tag"
+                          [tagColor]="asset.tagColor"
+                          [title]="asset.title"
+                          [description]="asset.description"
+                          [access]="asset.access"
+                          [users]="asset.users ?? ''"
+                          [uses]="asset.uses ?? ''"
+                          [rai]="asset.rai ?? false"
+                          [governanceVerified]="asset.governanceVerified ?? false"
+                          [verificationInProgress]="asset.verificationInProgress ?? false"
+                          [sectorTag]="asset.sector ?? ''"
+                          [geoTag]="asset.region ?? ''"
+                          [showFooter]="true"
+                          [showAddToWorkspace]="true" [addToWorkspaceDisabled]="true"
+                        />
+                      </div>
+                    }
+                  </div>
+                  </div>
+                }
+
+                <!-- Response actions -->
+                <div class="cv__ai-actions">
+                  <button class="cv__ai-btn" [class.cv__ai-btn--done]="copiedIndex() === $index" title="Copy" (click)="copyTurn($index, turn.text)">
+                    @if (copiedIndex() === $index) {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    } @else {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    }
+                  </button>
+                  <div class="cv__ai-sep"></div>
+                  <button class="cv__ai-btn" [class.cv__ai-btn--active]="turn.feedback === 'up'" title="Good response" (click)="setFeedback($index, 'up')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  </button>
+                  <button class="cv__ai-btn" [class.cv__ai-btn--down]="turn.feedback === 'down'" title="Bad response" (click)="setFeedback($index, 'down')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+                  </button>
+                </div>
+
+                <!-- Turn feedback panel -->
+                @if (feedbackPanel()?.key === 'turn-' + $index) {
+                  <div class="cv__feedback-panel">
+                    @if (feedbackPanel()!.status === 'success') {
+                      <div class="cv__feedback-status cv__feedback-status--ok">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                        Thank you for your detailed feedback.
+                      </div>
+                      <button class="cv__feedback-x" (click)="closeFeedbackPanel()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    } @else if (feedbackPanel()!.status === 'error') {
+                      <div class="cv__feedback-status cv__feedback-status--err">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        Sorry, something went wrong.
+                      </div>
+                      <button class="cv__feedback-x" (click)="closeFeedbackPanel()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    } @else {
+                      <div class="cv__feedback-header">
+                        <span>{{ feedbackPanel()!.type === 'up' ? 'What did you like about this response? Your feedback keeps us on the right track' : 'What did you not like about this response? Your feedback will help us do better next time.' }}</span>
+                        <button class="cv__feedback-x" (click)="closeFeedbackPanel()">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                      </div>
+                      <div class="cv__feedback-chips">
+                        @for (chip of feedbackChips(feedbackPanel()!.type); track chip) {
+                          <button
+                            class="cv__feedback-chip"
+                            [class.cv__feedback-chip--selected]="feedbackPanel()!.selectedChips.includes(chip)"
+                            (click)="selectFeedbackChip(chip)">{{ chip }}</button>
+                        }
+                      </div>
+                      <div class="cv__feedback-input-row">
+                        <textarea class="cv__feedback-textarea" placeholder="Additional Comments" [value]="feedbackPanel()!.input" (input)="updatePanelInput($any($event.target).value)" rows="3"></textarea>
+                        <button class="cv__feedback-submit" [class.cv__feedback-submit--disabled]="feedbackSubmitDisabled" [disabled]="feedbackSubmitDisabled" (click)="submitFeedback()">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+
+            </div>
+          </div>
+        }
+      }
+
+    </div>
+
+    <!-- ── Follow-up prompt bar ── -->
+    <div class="cv__prompt-wrap">
+      <adb-prompt-bar
+        placeholder="Ask a follow-up…"
+        [loading]="isLoading"
+        (submit)="sendFollowUp($event)"
+      ></adb-prompt-bar>
+      <p class="cv__disclaimer">Recommendations are generated by ADB's Contextual Search Agent and supports, but does not replace, professional judgment.<br>AI outputs may contain inaccuracies, omissions, or unintended bias and should be reviewed before use.</p>
+    </div>
+
+  } @else {
+    <div class="cv__empty">
+      <p>Chat not found.</p>
+      <button (click)="goBack()">Go back</button>
+    </div>
+  }
+
+</div>

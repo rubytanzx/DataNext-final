@@ -1,0 +1,484 @@
+@use 'color-tokens';
+
+html {
+  height: 100%;
+}
+
+body {
+  color-scheme: light;
+  margin: 0;
+  height: 100%;
+}
+/* ── Ideal Sans @font-face ──────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Ideal Sans';
+  src: url('/fonts/IdealSans-Light-Pro.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Ideal Sans';
+  src: url('/fonts/IdealSans-LightItalic-Pro.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Ideal Sans';
+  src: url('/fonts/IdealSans-Book-Pro.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Ideal Sans';
+  src: url('/fonts/IdealSans-BookItalic-Pro.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Ideal Sans';
+  src: url('/fonts/IdealSans-Medium-Pro.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Ideal Sans';
+  src: url('/fonts/IdealSans-MediumItalic-Pro.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ── Fraunces @font-face (variable, self-hosted) ─────────────────────────── */
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/Fraunces-Variable.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── CSS Custom Properties — Light (default) ────────────────────────────── */
+:root {
+  --radius-ctrl: 4px;
+
+  --th-bg: #f0f5fa;
+  --th-card: #ffffff;
+  --th-border: #dce8f0;
+  --th-text: #212121;
+  --th-muted: #5a7a96;
+  --th-subtle: #3a5a78;
+  --th-input: #ffffff;
+  --th-chart: #f7fafd;
+  --th-nav: #ffffff;
+
+  /* ADB grey alias */
+  --adb-grey-50: var(--color-grey-50);
+
+  /* Typography */
+  --font: 'Ideal Sans', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Z-index scale */
+  --z-nav: 10;
+  --z-filter: 9;
+  --z-modal: 100;
+  --z-popover: 50;
+}
+
+/* ── Dark Mode ────────────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --th-bg: #0c1b36;
+  --th-card: #0a1a38;
+  --th-border: #1a2d51;
+  --th-text: #ffffff;
+  --th-muted: #7fa8c4;
+  --th-subtle: #b0c8d8;
+  --th-input: #0a1a38;
+  --th-chart: #09162f;
+  --th-nav: #0a1a38;
+
+  /* dark variants of the lightest-shade tokens */
+  --adb-blue-50: #0d2033;
+  --adb-blue-100: #0f2b42;
+  --adb-green-50: #0e1f09;
+  --adb-green-100: #14300d;
+  --adb-grey-50: #0a1a38;
+}
+
+/* ── Reset & Base ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  font-feature-settings:
+    'lnum' 1,
+    'tnum' 1;
+  background: var(--th-bg);
+  color: var(--th-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* Typography inherits from parent by default */
+* {
+  font-weight: inherit;
+}
+
+/* ── Scrollbar utilities ──────────────────────────────────────────────────── */
+.scroll-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ── Global typography ───────────────────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.25;
+  font-family: var(--font);
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+button {
+  font-family: var(--font);
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font-family: var(--font);
+  font-feature-settings:
+    'lnum' 1,
+    'tnum' 1;
+}
+
+a {
+  color: var(--adb-blue);
+  text-decoration: none;
+}
+
+/* ── Utility classes ─────────────────────────────────────────────────────── */
+.text-muted {
+  color: var(--th-muted);
+}
+.text-blue {
+  color: var(--adb-blue);
+}
+.text-green {
+  color: var(--adb-green);
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ripple {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ── Shared sidebar filter panel ──────────────────────────────────────────────
+
+.search-page__sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 14px;
+}
+
+.sb__header-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #212121;
+  font-family: var(--font, system-ui, sans-serif);
+  flex: 1;
+}
+
+.sb__active-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #007DB7;
+  background: rgba(0, 125, 183, 0.1);
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+.sb__clear-all {
+  font-size: 12px;
+  font-weight: 500;
+  color: #007DB7;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  &:hover { text-decoration: underline; }
+}
+
+.search-page__sidebar-group {
+  padding: 4px 24px 2px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.search-page__sidebar-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.search-page__sidebar-group-name {
+  font-size: 14px;
+  font-weight: 400;
+  color: #424242;
+  font-family: var(--font, system-ui, sans-serif);
+  flex: 1;
+}
+
+.search-page__sidebar-clear {
+  font-size: 11.5px;
+  font-family: var(--font, system-ui, sans-serif);
+  color: #007DB7;
+  background: none;
+  border: none;
+  padding: 0 2px;
+  cursor: pointer;
+  line-height: 1;
+  flex-shrink: 0;
+  &:hover { text-decoration: underline; }
+}
+
+.search-page__sidebar-chevron {
+  color: #9aa0a6;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  &--open { transform: rotate(180deg); }
+}
+
+.search-page__sidebar-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.search-page__sidebar-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-family: var(--font, system-ui, sans-serif);
+  color: #5f6368;
+  cursor: pointer;
+  padding: 3px 0;
+  user-select: none;
+  &:hover span { color: #007DB7; }
+}
+
+.search-page__sidebar-checkbox {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  accent-color: #007DB7;
+  cursor: pointer;
+}
+
+.sb__opt-label { flex: 1; min-width: 0; }
+.sb__opt-count {
+  font-size: 11px;
+  color: #bdbdbd;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sb__pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0 8px;
+}
+.sb__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-family: var(--font, system-ui, sans-serif);
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  color: #5f6368;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  &:hover { border-color: #007DB7; color: #007DB7; }
+  &--active {
+    border-color: #007DB7;
+    background: rgba(0, 125, 183, 0.08);
+    color: #007DB7;
+    font-weight: 500;
+  }
+  &--muted {
+    color: #bdbdbd;
+    border-color: #ebebeb;
+    cursor: not-allowed;
+    &:hover { border-color: #c8c8c8; color: #9e9e9e; }
+  }
+}
+
+.sb__toggle {
+  display: flex;
+  border: 1px solid #e0e0e0;
+  border-radius: 7px;
+  overflow: hidden;
+  margin: 2px 0 8px;
+}
+.sb__toggle-btn {
+  flex: 1;
+  font-size: 12.5px;
+  font-family: var(--font, system-ui, sans-serif);
+  padding: 6px 0;
+  background: #fff;
+  color: #5f6368;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  & + & { border-left: 1px solid #e0e0e0; }
+  &.sb__toggle-btn--active {
+    background: #007DB7;
+    color: #fff;
+    font-weight: 500;
+  }
+}
+
+/* ── Button base ───────────────────────────────────────────────────────── */
+%app-btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-ctrl);
+  font-size: 14px;
+  font-weight: 400;
+  font-family: var(--font, 'Ideal Sans', 'Helvetica Neue', Arial, sans-serif);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Primary button ────────────────────────────────────────────────────── */
+.app-primary-btn {
+  @extend %app-btn-base;
+  background: #007DB7;
+  color: #fff;
+  border: 1px solid #007DB7;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, #007DB7 85%, #000);
+    border-color: color-mix(in srgb, #007DB7 85%, #000);
+  }
+}
+
+/* ── Secondary button — stroke + white fill ────────────────────────────── */
+.app-secondary-btn {
+  @extend %app-btn-base;
+  background: #fff;
+  color: #007DB7;
+  border: 1px solid #007DB7;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 125, 183, 0.07);
+  }
+}
+
+/* ── Tertiary button — text only ────────────────────────────────────────── */
+.app-tertiary-btn {
+  @extend %app-btn-base;
+  background: transparent;
+  color: #007DB7;
+  border: 1px solid transparent;
+  padding: 0 8px;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 125, 183, 0.07);
+  }
+}
+
+/* ── Button size modifiers ────────────────────────────────────────────────── */
+.app-btn--sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.app-btn--lg { height: 44px; padding: 0 20px; font-size: 16px; }

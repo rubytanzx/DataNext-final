@@ -1,0 +1,84 @@
+:host { display: block; }
+
+.ia-reasoning__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+
+  &:focus-visible {
+    outline: 2px solid #a391ff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.ia-reasoning__label,
+.ia-reasoning__timer {
+  font-family: var(--font), sans-serif;
+  line-height: 140%;
+  background: linear-gradient(110deg, #48cde2 0%, #a391ff 40%, #da99e6 70%, #48cde2 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: ia-shimmer 3s linear infinite;
+}
+
+.ia-reasoning__label {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.ia-reasoning__timer {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.ia-reasoning__chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-left: 16px;
+  color: #9CA3AF;
+  transition: transform 0.2s ease;
+
+  &--up { transform: rotate(180deg); }
+}
+
+.ia-reasoning__body {
+  margin-top: 8px;
+}
+
+.ia-reasoning__thought {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--th-muted, #6b7280);
+  font-family: var(--font), sans-serif;
+}
+
+.ia-reasoning__tasks {
+  display: block;
+}
+
+@keyframes ia-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ia-reasoning__label,
+  .ia-reasoning__timer {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: #404040;
+    color: #404040;
+  }
+  .ia-reasoning__chevron { transition: none; }
+}

@@ -1,0 +1,143 @@
+<div class="briefing">
+
+  <!-- ── Top bar ── -->
+  <div class="briefing__topbar">
+    <div class="briefing__topbar-left">
+      <button class="briefing__close" (click)="close()" title="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <span class="briefing__topbar-title">
+        Country Briefing Note — <span class="text-blue">{{ countryName() }}</span>
+      </span>
+    </div>
+    <div class="briefing__topbar-actions">
+      <button class="briefing__action-btn" (click)="downloadText()" title="Download">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download
+      </button>
+      <button class="briefing__action-btn" (click)="copyToClipboard()" title="Copy to clipboard">
+        @if (copied()) {
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--adb-green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Copied
+        } @else {
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+          Copy
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Main layout ── -->
+  <div class="briefing__layout">
+
+    <!-- ── Editor pane ── -->
+    <div class="briefing__editor scroll-hidden">
+      @if (loading()) {
+        <div class="briefing__loading">
+          <div class="briefing__loading-dots">
+            <span style="animation-delay: 0s"></span>
+            <span style="animation-delay: 0.2s"></span>
+            <span style="animation-delay: 0.4s"></span>
+          </div>
+          <p class="briefing__loading-text">Generating briefing note for {{ countryName() }}…</p>
+        </div>
+      } @else {
+        <div class="briefing__doc">
+          <div class="briefing__doc-header">
+            <div class="briefing__doc-eyebrow">ERDI Intelligence Hub · Pacific Department</div>
+            <h1 class="briefing__doc-title">Country Briefing Note</h1>
+            <div class="briefing__doc-subtitle">{{ countryName() }}</div>
+            <div class="briefing__doc-meta">Generated {{ today() }} · Draft</div>
+          </div>
+
+          @for (section of sections(); track section.header) {
+            <div class="briefing__section">
+              <h2 class="briefing__section-head">{{ section.header }}</h2>
+              @for (para of section.paras; track $index) {
+                <p class="briefing__para">{{ para }}</p>
+              }
+            </div>
+          }
+
+          <div class="briefing__doc-footer">
+            <div class="briefing__disclaimer">This briefing note is AI-generated from ADB KIDB data and publications. Review and verify all figures before official use.</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ── Chat refinement pane ── -->
+    <div class="briefing__chat-pane">
+      <div class="briefing__chat-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--adb-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span>Refine with AI</span>
+      </div>
+
+      <div class="briefing__chat-messages scroll-hidden">
+        @if (chatMessages().length === 0) {
+          <div class="briefing__chat-hint">
+            <p>Use the chat to refine sections, add analysis, or adjust the tone of your briefing note.</p>
+            <div class="briefing__chat-prompts">
+              <button class="briefing__chat-prompt" (click)="chatInput = 'Add more detail on fiscal sustainability'; sendChat()">
+                Add more detail on fiscal sustainability
+              </button>
+              <button class="briefing__chat-prompt" (click)="chatInput = 'Make the policy section more concise'; sendChat()">
+                Make the policy section more concise
+              </button>
+              <button class="briefing__chat-prompt" (click)="chatInput = 'Add a table of key indicators'; sendChat()">
+                Add a table of key indicators
+              </button>
+            </div>
+          </div>
+        }
+        @for (msg of chatMessages(); track $index) {
+          <div class="briefing__chat-msg" [class.briefing__chat-msg--user]="msg.role === 'user'">
+            @if (msg.role === 'assistant' && !msg.content && chatLoading()) {
+              <div class="briefing__chat-loading-dots">
+                <span style="animation-delay: 0s"></span>
+                <span style="animation-delay: 0.2s"></span>
+                <span style="animation-delay: 0.4s"></span>
+              </div>
+            } @else {
+              <div class="briefing__chat-msg-text">{{ msg.content }}</div>
+            }
+          </div>
+        }
+      </div>
+
+      <form class="briefing__chat-form" (ngSubmit)="sendChat()">
+        <div class="briefing__chat-input-bar">
+          <input
+            class="briefing__chat-input"
+            type="text"
+            placeholder="Refine, expand, or restructure…"
+            [(ngModel)]="chatInput"
+            name="chat"
+            [disabled]="chatLoading()"
+          />
+          <button type="submit" class="briefing__chat-send"
+            [class.briefing__chat-send--active]="chatInput.trim().length > 0"
+            [disabled]="chatLoading() || !chatInput.trim()"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>

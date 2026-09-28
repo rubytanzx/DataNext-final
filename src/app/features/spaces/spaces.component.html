@@ -1,0 +1,143 @@
+<div class="sp">
+
+  <!-- ── Left sidebar ───────────────────────────────────────────────────── -->
+  <aside class="sp__sidebar">
+
+    <div class="search-page__sidebar-header">
+      <span class="sb__header-title">Filters</span>
+      @if (activeFilterCount() > 0) {
+        <button class="sb__clear-all" type="button" (click)="clearAll()">Clear all</button>
+      }
+    </div>
+
+    <!-- Region -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header" (click)="regionsExpanded.set(!regionsExpanded())">
+        <span class="search-page__sidebar-group-name">Region</span>
+        <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="regionsExpanded()"
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+      @if (regionsExpanded()) {
+        <div class="search-page__sidebar-options">
+          @for (r of regions; track r) {
+            <label class="search-page__sidebar-option">
+              <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="selectedRegions().has(r)" (change)="toggleRegion(r)" />
+              <span>{{ r }}</span>
+            </label>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Sector -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header" (click)="sectorsExpanded.set(!sectorsExpanded())">
+        <span class="search-page__sidebar-group-name">Sector</span>
+        <svg class="search-page__sidebar-chevron" [class.search-page__sidebar-chevron--open]="sectorsExpanded()"
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </div>
+      @if (sectorsExpanded()) {
+        <div class="search-page__sidebar-options">
+          @for (s of sectors; track s) {
+            <label class="search-page__sidebar-option">
+              <input type="checkbox" class="search-page__sidebar-checkbox" [checked]="selectedSectors().has(s)" (change)="toggleSector(s)" />
+              <span>{{ s }}</span>
+            </label>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Access -->
+    <div class="search-page__sidebar-group">
+      <div class="search-page__sidebar-group-header" style="cursor:default">
+        <span class="search-page__sidebar-group-name">Access</span>
+      </div>
+      <div class="sb__toggle">
+        <button class="sb__toggle-btn" [class.sb__toggle-btn--active]="accessFilter() === 'all'" type="button" (click)="setAccess('all')">All Staff</button>
+        <button class="sb__toggle-btn" [class.sb__toggle-btn--active]="accessFilter() === 'restricted'" type="button" (click)="setAccess('restricted')">Teams only</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main content ───────────────────────────────────────────────────── -->
+  <div class="sp__main">
+
+    <!-- Toolbar: title + search -->
+    <div class="sp__toolbar">
+      <div class="sp__toolbar-meta">
+        <h1 class="sp__title">All Workspaces</h1>
+        <p class="sp__subtitle">Curated collections of datasets, agents, and tools ready to explore</p>
+      </div>
+      <div class="sp__search-wrap">
+        <svg class="sp__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          class="sp__search-input"
+          type="text"
+          placeholder="Search spaces…"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          name="spSearch"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <!-- Count — right-aligned -->
+    <div class="sp__subbar">
+      <span class="sp__count">{{ filtered().length }} Workspace{{ filtered().length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="sp__content">
+
+      @if (filtered().length === 0) {
+        <div class="sp__empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <p>No spaces match your filters.</p>
+        </div>
+      } @else {
+        <div class="sp__grid">
+          @for (space of filtered(); track space.id) {
+            <div class="sp__card" (click)="open(space)">
+              <div class="sp__card-img" [style.backgroundImage]="'url(' + space.image + ')'"></div>
+              <div class="sp__card-body">
+                <div class="sp__card-region">{{ space.region }}</div>
+                <h3 class="sp__card-title">{{ space.title }}</h3>
+                <p class="sp__card-desc">{{ space.description }}</p>
+                <div class="sp__card-meta">
+                  <span class="sp__card-meta-item">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                      <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                      <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+                    </svg>
+                    {{ space.datasets }} Datasets
+                  </span>
+                  @if (space.tools > 0) {
+                    <span class="sp__card-meta-sep">·</span>
+                    <span class="sp__card-meta-item">{{ space.tools }} Tools</span>
+                  }
+                  @if (space.author) {
+                    <span class="sp__card-meta-sep">·</span>
+                    <span class="sp__card-meta-item sp__card-meta-item--author">{{ space.author }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+    </div><!-- /sp__content -->
+  </div><!-- /sp__main -->
+</div>
