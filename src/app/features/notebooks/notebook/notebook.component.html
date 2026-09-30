@@ -657,20 +657,49 @@
         } @else {
           <span class="nb__panel-title">Chat</span>
         }
-        <button
-          class="nb__panel-toggle nb__chat-doc-toggle"
-          [class.nb__chat-doc-toggle--active]="!previewCollapsed() && previewCtx() !== 'doc'"
-          type="button"
-          title="Toggle output"
-          (click)="previewCtx() === 'doc' ? restoreOutput() : togglePreviewPanel()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <line x1="10" y1="9" x2="8" y2="9"/>
-          </svg>
-        </button>
+        <div class="nb__artefact-toggle-wrap" (click)="$event.stopPropagation()">
+          <button
+            class="nb__panel-toggle nb__chat-doc-toggle"
+            [class.nb__chat-doc-toggle--active]="!previewCollapsed() && previewCtx() !== 'doc'"
+            [class.nb__chat-doc-toggle--picker-open]="artefactPickerOpen()"
+            type="button"
+            title="Toggle output"
+            (click)="toggleArtefactPicker($event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <line x1="10" y1="9" x2="8" y2="9"/>
+            </svg>
+            @if (artefactCount > 1) {
+              <span class="nb__artefact-badge">{{ artefactCount }}</span>
+            }
+          </button>
+          @if (artefactPickerOpen()) {
+            <div class="nb__artefact-picker">
+              <p class="nb__artefact-picker__label">Outputs</p>
+              @for (opt of allArtefacts; track opt.key) {
+                <button
+                  class="nb__artefact-picker__item"
+                  [class.nb__artefact-picker__item--active]="activeArtefactKey() === opt.key"
+                  type="button"
+                  (click)="peekArtefact(opt.key)">
+                  @if (opt.icon === 'map') {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  } @else if (opt.icon === 'chart') {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  } @else if (opt.icon === 'briefing') {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
+                  } @else {
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  }
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
       </div>
 
       @if (chatTab() === 'workflow') {
@@ -1010,16 +1039,68 @@
                     }
 
                     @if (node.type === 'output') {
-                      <div class="nb__wf-node-detail">
-                        @if (node.outputType) {
-                          <div class="nb__wf-output-meta">
-                            <span class="nb__wf-output-meta-type">{{ node.outputType }}</span>
-                            @if (node.outputSections?.length) {
-                              <span class="nb__wf-output-meta-sections">{{ node.outputSections!.join(' · ') }}</span>
-                            }
-                          </div>
-                        }
-                      </div>
+                      @if (!node.outputType) {
+                        <div class="nb__wf-output-type-grid">
+                          @for (ot of outputNodeTypes; track ot.label) {
+                            <button class="nb__wf-output-type-card" type="button" (click)="setNodeOutputType(node.id, ot)">
+                              <span class="nb__wf-output-type-card__icon">
+                                @if (ot.icon === 'docs') {
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                } @else if (ot.icon === 'dashboard') {
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                } @else if (ot.icon === 'chart') {
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                } @else {
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>
+                                }
+                              </span>
+                              <span class="nb__wf-output-type-card__label">{{ ot.label }}</span>
+                              <span class="nb__wf-output-type-card__desc">{{ ot.desc }}</span>
+                            </button>
+                          }
+                        </div>
+                      } @else if (node.outputType === 'Document Bundle') {
+                        <div class="nb__wf-subitems">
+                          @for (sec of (node.outputSections ?? []); track sec; let si = $index) {
+                            <div class="nb__wf-subitem">
+                              <div class="nb__wf-subitem-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              </div>
+                              <div class="nb__wf-subitem-body">
+                                <span class="nb__wf-subitem-title">{{ sec }}</span>
+                              </div>
+                              <button class="nb__wf-subitem-remove" type="button" (click)="removeOutputSection(node.id, si)" aria-label="Remove document">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              </button>
+                            </div>
+                          }
+                        </div>
+                        <div class="nb__wf-add-doc-wrap">
+                          <button class="nb__wf-add-source-btn" type="button" (click)="startAddDoc(node.id, $event)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add document
+                          </button>
+                          @if (addingDocNodeId() === node.id) {
+                            <div class="nb__wf-doc-picker" (click)="$event.stopPropagation()">
+                              @for (opt of availableDocOptions(node.id); track opt) {
+                                <button class="nb__wf-doc-picker__item" type="button" (click)="pickDoc(node.id, opt)">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                  {{ opt }}
+                                </button>
+                              }
+                              @if (availableDocOptions(node.id).length === 0) {
+                                <span class="nb__wf-doc-picker__empty">All documents added</span>
+                              }
+                            </div>
+                          }
+                          <button class="nb__wf-change-type-btn" type="button" (click)="clearNodeOutputType(node.id)">Change output type</button>
+                        </div>
+                      } @else {
+                        <div class="nb__wf-output-type-set">
+                          <span class="nb__wf-output-meta-type">{{ node.outputType }}</span>
+                          <button class="nb__wf-change-type-btn" type="button" (click)="clearNodeOutputType(node.id)">Change</button>
+                        </div>
+                      }
                     }
 
                   }
@@ -1383,7 +1464,8 @@
                 <div class="nb__output-opts">
                   <p class="nb__output-opts__label">Based on this analysis, I can also turn this into:</p>
                   <div class="nb__output-opts__row">
-                    @for (opt of msg.outputOptions!; track opt.key) {
+                    @let expanded = outputOptsExpanded().has(msgIdx);
+                    @for (opt of (expanded ? msg.outputOptions! : msg.outputOptions!.slice(0, 3)); track opt.key) {
                       <button class="nb__output-opt" type="button" (click)="triggerOutputOption(msgIdx, opt.key)">
                         <span class="nb__output-opt__border" aria-hidden="true">
                           <span class="nb__output-opt__blob"></span>
@@ -1398,6 +1480,11 @@
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
                           </svg>
+                        } @else if (opt.icon === 'briefing') {
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/>
+                            <line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/>
+                          </svg>
                         } @else {
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1406,6 +1493,11 @@
                           </svg>
                         }
                         {{ opt.label }}
+                      </button>
+                    }
+                    @if (!expanded && msg.outputOptions!.length > 3) {
+                      <button class="nb__output-opt nb__output-opt--more" type="button" (click)="expandOutputOpts(msgIdx)">
+                        +{{ msg.outputOptions!.length - 3 }} more
                       </button>
                     }
                   </div>
@@ -1614,24 +1706,42 @@
 
           @if (forkLoading() || outputSwitching()) {
             <div class="nb__skel-preview-wrap">
-              @if (!outputSwitching()) {
-                <div class="nb__skel-preview-chips">
-                  <span class="nb__skel-chip"></span>
-                  <span class="nb__skel-chip" style="width:90px"></span>
-                  <span class="nb__skel-chip" style="width:110px"></span>
-                  <span class="nb__skel-chip" style="width:80px"></span>
+              @if (previewCtx() === 'briefing') {
+                <div style="padding:32px 36px;display:flex;flex-direction:column;gap:20px">
+                  <div class="nb__skel-chip" style="width:42%;height:15px;border-radius:6px"></div>
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <div class="nb__skel-chip" style="width:95%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:88%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:91%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:72%;height:10px;border-radius:5px"></div>
+                  </div>
+                  <div class="nb__skel-chip" style="width:38%;height:15px;border-radius:6px;margin-top:8px"></div>
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <div class="nb__skel-chip" style="width:90%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:85%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:78%;height:10px;border-radius:5px"></div>
+                  </div>
+                </div>
+              } @else {
+                @if (!outputSwitching()) {
+                  <div class="nb__skel-preview-chips">
+                    <span class="nb__skel-chip"></span>
+                    <span class="nb__skel-chip" style="width:90px"></span>
+                    <span class="nb__skel-chip" style="width:110px"></span>
+                    <span class="nb__skel-chip" style="width:80px"></span>
+                  </div>
+                }
+                <div class="nb__skel-preview-map" style="border-radius:6px">
+                  <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+                    <div class="nb__skel-chip" style="width:55%;height:14px;border-radius:6px"></div>
+                    <div class="nb__skel-chip" style="width:90%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:82%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:75%;height:10px;border-radius:5px"></div>
+                    <div class="nb__skel-chip" style="width:88%;height:10px;border-radius:5px;margin-top:8px"></div>
+                    <div class="nb__skel-chip" style="width:65%;height:10px;border-radius:5px"></div>
+                  </div>
                 </div>
               }
-              <div class="nb__skel-preview-map" style="border-radius:6px">
-                <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
-                  <div class="nb__skel-chip" style="width:55%;height:14px;border-radius:6px"></div>
-                  <div class="nb__skel-chip" style="width:90%;height:10px;border-radius:5px"></div>
-                  <div class="nb__skel-chip" style="width:82%;height:10px;border-radius:5px"></div>
-                  <div class="nb__skel-chip" style="width:75%;height:10px;border-radius:5px"></div>
-                  <div class="nb__skel-chip" style="width:88%;height:10px;border-radius:5px;margin-top:8px"></div>
-                  <div class="nb__skel-chip" style="width:65%;height:10px;border-radius:5px"></div>
-                </div>
-              </div>
             </div>
           }
 
@@ -1713,6 +1823,32 @@
                   </div>
                 </div>
               }
+            </div>
+          }
+
+          <!-- ── COUNTRY DASHBOARD (map full-canvas + watchlist overlay) ── -->
+          @if (previewCtx() === 'watchlist') {
+            <div class="nb__watchlist-view">
+              <app-world-map
+                [activeEconomies]="['PHI']"
+                [hideCard]="true"
+                viewBoxOverride="560 365 250 250"
+                (countrySelect)="onWatchlistCountrySelect($event)"
+              ></app-world-map>
+              <div class="nb__watchlist-pane">
+                <erdi-watchlist-panel
+                  mode="country"
+                  [title]="watchlistTitle()"
+                  [subtitle]="watchlistSubtitle()"
+                  [countryFlag]="watchlistFlag()"
+                  [countryFacts]="watchlistFacts()"
+                  [cats]="watchlistCats"
+                  [openCats]="watchlistOpenCats()"
+                  (catToggled)="toggleWatchlistCat($event)"
+                  (briefingNote)="peekArtefact('country-briefing')"
+                  (closed)="restoreOutput()"
+                />
+              </div>
             </div>
           }
 
@@ -2344,10 +2480,11 @@
               @for (sec of briefingSections(); track sec.heading) {
                 <div class="nb__briefing-sec">
                   <h4 class="nb__briefing-h4">{{ sec.heading }}</h4>
-                  <p class="nb__briefing-p"
+                  <div class="nb__briefing-p"
                     contenteditable="true"
                     data-body
-                    (input)="onBriefingEdit()">{{ sec.body }}</p>
+                    (input)="onBriefingEdit()"
+                    [innerHTML]="renderBody(sec.body)"></div>
                 </div>
               }
             </div>

@@ -1,0 +1,104 @@
+<!-- ── Country header ── -->
+@if (mode() === 'country') {
+  <div class="erdi-wl__panel-hdr">
+    @if (countryFlag()) {
+      <img class="erdi-wl__flag" [src]="countryFlag()" alt="" />
+    }
+    <div class="erdi-wl__panel-hdr-body">
+      <div class="erdi-wl__title">{{ title() }}</div>
+      @if (subtitle()) {
+        <div class="erdi-wl__subtitle">{{ subtitle() }}</div>
+      }
+    </div>
+    <button class="erdi-wl__close-btn" title="Close" (click)="closed.emit()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+}
+
+<!-- ── Region header ── -->
+@if (mode() === 'region') {
+  <div class="erdi-wl__panel-hdr">
+    <div class="erdi-wl__panel-hdr-body">
+      <div class="erdi-wl__title">{{ title() }}</div>
+      <div class="erdi-wl__subtitle" style="margin-top:3px">ADB Region</div>
+    </div>
+    <button class="erdi-wl__close-btn" title="Close" (click)="closed.emit()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+}
+
+<!-- ── Country facts grid ── -->
+@if (mode() === 'country' && countryFacts()) {
+  <div class="erdi-wl__facts">
+    <div class="erdi-wl__fact">
+      <span class="erdi-wl__fact-label">Population</span>
+      <span class="erdi-wl__fact-value">{{ countryFacts()!.population }}</span>
+    </div>
+    <div class="erdi-wl__fact">
+      <span class="erdi-wl__fact-label">Area</span>
+      <span class="erdi-wl__fact-value">{{ countryFacts()!.area }}</span>
+    </div>
+    <div class="erdi-wl__fact">
+      <span class="erdi-wl__fact-label">Capital</span>
+      <span class="erdi-wl__fact-value">{{ countryFacts()!.capital }}</span>
+    </div>
+    <div class="erdi-wl__fact">
+      <span class="erdi-wl__fact-label">Currency</span>
+      <span class="erdi-wl__fact-value">{{ countryFacts()!.currency }}</span>
+    </div>
+  </div>
+}
+
+<!-- ── Body ── -->
+<div class="erdi-wl__body">
+  <div class="erdi-wl__stats-title">
+    @if (mode() === 'region') { Regional Averages } @else { Country Statistics }
+  </div>
+
+  @for (cat of cats(); track cat.id; let ci = $index) {
+    <div class="erdi-wl__section">
+      <button class="erdi-wl__cat-btn" [class.erdi-wl__cat-btn--first]="ci === 0"
+        (click)="catToggled.emit(cat.id)">
+        <span class="erdi-wl__cat-label">{{ cat.label }}</span>
+        <svg class="erdi-wl__chevron" [class.erdi-wl__chevron--open]="isCatOpen(cat.id)"
+          width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M2 4.5l4 4 4-4" stroke="#007DB7" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      @if (isCatOpen(cat.id)) {
+        <div class="erdi-wl__cards">
+          @for (item of cat.items; track item.key) {
+            <erdi-watchlist-card
+              [label]="item.label"
+              [value]="item.value"
+              [status]="item.status"
+              [statusColor]="item.statusColor"
+            />
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- ── Footer CTA ── -->
+@if (mode() !== 'none') {
+  <div class="erdi-wl__footer">
+    <button appPrimaryBtn
+      style="width:100%;justify-content:center;gap:7px"
+      (click)="briefingNote.emit()">
+      Open Country Briefing Note
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/>
+        <line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/>
+      </svg>
+    </button>
+  </div>
+}

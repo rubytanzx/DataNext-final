@@ -1634,7 +1634,7 @@
   &__modal-subtitle {
     font-size: 14px;
     color: #757575;
-    margin: 0 0 24px;
+    margin: 0 0 12px;
   }
 
   &__modal-stars {
@@ -1813,13 +1813,50 @@
     max-width: 600px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+
+    // Zero out individual margins so only the gap controls spacing
+    .ad__modal-title   { margin: 0; }
+    .ad__modal-subtitle { margin: 0; }
+    .ad__modal-comment-wrap { margin-bottom: 0; }
   }
 
   &__ra-user-wrap {
     display: flex;
     flex-direction: column;
     gap: 6px;
+  }
+
+  &__ra-intent-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  &__ra-chip {
+    padding: 9px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    color: #374151;
+    font-family: var(--font, system-ui, sans-serif);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.12s, background 0.12s, color 0.12s;
+
+    &:hover {
+      border-color: #007DB7;
+      background: rgba(0, 125, 183, 0.04);
+      color: #007DB7;
+    }
+
+    &--selected {
+      border-color: #007DB7;
+      background: rgba(0, 125, 183, 0.08);
+      color: #007DB7;
+    }
   }
 
   &__ra-label {

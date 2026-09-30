@@ -2748,6 +2748,24 @@ const ASSETS: AssetDetail[] = [
         ],
       },
     ],
+    agentCapabilities: {
+      whatItCanDo: [
+        'Validate documents against 240+ ADB-specific style and terminology rules',
+        'Flag deviations in country names, currency usage, and approved development terminology',
+        'Detect passive voice overuse and nominalisation patterns',
+        'Check citation formatting against ADB Style Guide requirements',
+        'Produce highlighted annotations and tracked-changes markup for authored documents',
+        'Generate itemised deviation reports with rule references for each flagged issue',
+      ],
+      exampleTasks: [
+        'Review a project appraisal document for ADB style compliance before submission',
+        'Check a sector working paper for approved terminology and citation formatting',
+        'Validate an external communication against ADB Writing for Development guidelines',
+        'Audit a draft Annual Report chapter and produce a tracked-changes output',
+      ],
+      accepts: ['Plain text', 'DOCX files', 'PDF documents', 'Inline text via ADB Genie'],
+      produces: ['Highlighted annotations', 'Tracked-changes markup', 'Itemised deviation reports', 'Style compliance summaries'],
+    },
     useCases: [
       {
         projectNumber: 'COMMS-INT-2026-01',
@@ -4697,6 +4715,8 @@ export class AssetDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
   requestAccessModalOpen = signal(false);
   requestReason          = signal('');
+  requestAccessIntent    = signal<string | null>(null);
+  requestProjectName     = signal('');
   requestSubmitted       = signal(false);
   private requestSnackTimer?: ReturnType<typeof setTimeout>;
 
@@ -5008,6 +5028,8 @@ Based on IPCC AR6 (2021) projections and ADB Climate Change Assessment reports f
   ctaAction(): void {
     if (this.asset().requestAccessCta) {
       this.requestReason.set('');
+      this.requestAccessIntent.set(null);
+      this.requestProjectName.set('');
       this.requestAccessModalOpen.set(true);
       return;
     }

@@ -1437,30 +1437,52 @@
         <div class="ad__ra-user-wrap">
           <p class="ad__ra-label">Requesting as</p>
           <div class="ad__ra-user">
-            <span class="ad__ra-avatar">RT</span>
+            <span class="ad__ra-avatar">NT</span>
             <div class="ad__ra-user-info">
-              <span class="ad__ra-name">Ruby Tan</span>
-              <span class="ad__ra-meta">ruby.tan&#64;accenture.com · Information Technology Department</span>
+              <span class="ad__ra-name">Noah Tan</span>
+              <span class="ad__ra-meta">noah.tan&#64;accenture.com · Information Technology Department</span>
             </div>
           </div>
         </div>
 
         <div class="ad__modal-comment-wrap">
-          <label class="ad__modal-label" for="ra-reason">Reason for Access Request</label>
+          <label class="ad__modal-label" for="ra-reason">Reason for Access Request <span class="ad__modal-required">*</span></label>
+          <div class="ad__ra-intent-chips">
+            <button class="ad__ra-chip" [class.ad__ra-chip--selected]="requestAccessIntent() === 'exploring'"
+              type="button" (click)="requestAccessIntent.set(requestAccessIntent() === 'exploring' ? null : 'exploring')">
+              I'm just exploring
+            </button>
+            <button class="ad__ra-chip" [class.ad__ra-chip--selected]="requestAccessIntent() === 'project'"
+              type="button" (click)="requestAccessIntent.set(requestAccessIntent() === 'project' ? null : 'project')">
+              I need this asset for a project
+            </button>
+          </div>
           <textarea
             id="ra-reason"
             class="ad__modal-textarea"
             maxlength="255"
-            rows="5"
+            rows="4"
             placeholder="Enter a justification for how you plan to use this asset"
             (input)="requestReason.set($any($event.target).value)">{{ requestReason() }}</textarea>
+        </div>
+
+        <div class="ad__modal-comment-wrap">
+          <label class="ad__modal-label" for="ra-project">Project Name</label>
+          <input
+            id="ra-project"
+            class="ad__modal-input"
+            type="text"
+            maxlength="120"
+            placeholder="Enter your project name (if applicable)"
+            [value]="requestProjectName()"
+            (input)="requestProjectName.set($any($event.target).value)" />
         </div>
 
         <p class="ad__ra-policy">By requesting access, you consent to sharing your ADB details with the Asset Owner and agree to ADB's <a href="#" class="ad__ra-link">Terms of Use</a> and <a href="#" class="ad__ra-link">Access to Information</a> policies.</p>
 
         <div class="ad__ra-actions">
           <button class="ad__ra-cancel" type="button" (click)="closeRequestAccessModal()">Cancel</button>
-          <button class="ad__modal-submit" type="button" (click)="submitAccessRequest()">Submit Request</button>
+          <button class="ad__modal-submit" type="button" [disabled]="!requestReason().trim()" (click)="submitAccessRequest()">Submit Request</button>
         </div>
       </div>
     </div>
