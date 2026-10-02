@@ -504,7 +504,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
   previewCollapsed = signal(false);
   promptExpanded   = signal(false);
   previewMode      = 'Map';
-  outputDropOpen   = false;
+  downloadDropOpen  = false;
   useInOpen        = signal(false);
   useInDrawer      = signal<string | null>(null);
 
@@ -552,6 +552,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
     this.useInOpen.set(false);
     this.artefactPickerOpen.set(false);
     this.addingDocNodeId.set(null);
+    this.downloadDropOpen = false;
   }
 
   openUseInDrawer(icon: string): void {
@@ -877,6 +878,22 @@ export class NotebookComponent implements OnInit, OnDestroy {
     },
   ];
 
+  // Map panel (Pacific workspace) — watchlist-style overlay
+  readonly mapPanelVisible    = signal(false);
+  readonly mapPanelTitle      = signal('');
+  readonly mapPanelSubtitle   = signal('');
+  readonly mapPanelFlag       = signal('');
+  readonly mapPanelFacts      = signal<CountryFacts | null>(null);
+  readonly mapPanelCats       = signal<WatchlistCat[]>([]);
+  readonly mapPanelOpenCats   = signal<Set<string>>(new Set(['climate']));
+
+  toggleMapPanelCat(id: string): void {
+    const s = new Set(this.mapPanelOpenCats());
+    if (s.has(id)) s.delete(id); else s.add(id);
+    this.mapPanelOpenCats.set(s);
+    this.cdr.markForCheck();
+  }
+
   toggleWatchlistCat(id: string): void {
     const s = new Set(this.watchlistOpenCats());
     if (s.has(id)) s.delete(id); else s.add(id);
@@ -984,15 +1001,14 @@ export class NotebookComponent implements OnInit, OnDestroy {
       this.mapCount.set(3);
       this.mapCountUnit.set('sites');
       this.mapViewBox.set(PACIFIC_VIEWBOX);
-      this.mapCountryPanel.set({
-        flag: 'to', name: 'Tonga', region: 'Pacific SIDS',
-        metrics: [
-          { label: 'Flood Risk Index',     value: '7.4 / 10', delta: '+0.3',  up: false },
-          { label: 'Coastal Exposure',      value: '62%',      delta: '+4%',   up: false },
-          { label: 'Infrastructure at Risk',value: '38 sites', delta: '+5',    up: false },
-          { label: 'GDP per Capita',        value: '$5,240',   delta: '+2.1%', up: true  },
-        ],
-      });
+      const tonDefault = NotebookComponent.PACIFIC_WATCHLIST['TON'];
+      this.mapPanelTitle.set(tonDefault.name);
+      this.mapPanelSubtitle.set(tonDefault.region);
+      this.mapPanelFlag.set(`https://flagcdn.com/w80/${tonDefault.iso2}.png`);
+      this.mapPanelFacts.set(tonDefault.facts);
+      this.mapPanelCats.set(tonDefault.cats);
+      this.mapPanelOpenCats.set(new Set(['climate']));
+      this.mapPanelVisible.set(true);
       this.previewCollapsed.set(false);
       this.messages = [];
       this.wfParams.set({ countries: 'Tonga, Cook Islands, Vanuatu', period: '2020–2025', indicators: 'Flood Risk Index, Coastal Exposure, Infrastructure at Risk' });
@@ -2003,17 +2019,6 @@ export class NotebookComponent implements OnInit, OnDestroy {
 
   // ── Header ───────────────────────────────────────────────────────────────────
 
-  toggleOutputDrop(e: MouseEvent): void {
-    e.stopPropagation();
-    this.outputDropOpen = !this.outputDropOpen;
-    this.cdr.markForCheck();
-  }
-
-  closeOutputDrop(): void {
-    this.outputDropOpen = false;
-    this.cdr.markForCheck();
-  }
-
   startEditTitle(): void { this.editingTitle.set(true); }
 
   saveTitle(value: string): void {
@@ -2195,6 +2200,42 @@ export class NotebookComponent implements OnInit, OnDestroy {
       doc: 'Source',
     };
     return map[this.previewCtx()] ?? 'Output';
+  }
+
+  get downloadOptions(): { ext: string; label: string; desc: string }[] {
+    const ctx = this.previewCtx();
+    const doc       = [{ ext: 'PDF',  label: 'PDF',         desc: 'Formatted document'    },
+                       { ext: 'DOCX', label: 'Word (.docx)', desc: 'Editable document'     }];
+    const chart     = [{ ext: 'PNG',  label: 'PNG Image',   desc: 'High-resolution image'  },
+                       { ext: 'SVG',  label: 'SVG',          desc: 'Vector graphic'         },
+                       { ext: 'CSV',  label: 'CSV',          desc: 'Underlying data'        }];
+    const table     = [{ ext: 'CSV',  label: 'CSV',          desc: 'Comma-separated values' },
+                       { ext: 'XLSX', label: 'Excel (.xlsx)', desc: 'Spreadsheet'            },
+                       { ext: 'PDF',  label: 'PDF',          desc: 'Formatted table'        }];
+    const visual    = [{ ext: 'PNG',  label: 'PNG Image',   desc: 'High-resolution image'  },
+                       { ext: 'PDF',  label: 'PDF',          desc: 'Formatted report'       }];
+
+    const map: Partial<Record<PreviewCtx, typeof doc>> = {
+      briefing:          doc,
+      doc:               doc,
+      overview:          doc,
+      'pacific-record':  doc,
+      map:               visual,
+      watchlist:         visual,
+      dashboard:         visual,
+      'ci-dashboard':    visual,
+      'pacific-schema':  visual,
+      disburse:          table,
+      procurement:       table,
+      comparison:        table,
+      'pacific-table':   table,
+      'pacific-chart':   chart,
+      'pacific-line':    chart,
+      'pacific-scatter': chart,
+      'pacific-raw':     [{ ext: 'JSON', label: 'JSON', desc: 'Raw data' },
+                          { ext: 'CSV',  label: 'CSV',  desc: 'Tabular export' }],
+    };
+    return map[ctx] ?? visual;
   }
 
   get dynamicOutputTitle(): string {
@@ -2726,13 +2767,155 @@ export class NotebookComponent implements OnInit, OnDestroy {
     }
   }
 
-  private static readonly PACIFIC_METRICS: Record<string, { flag: string; name: string; region: string; metrics: { label: string; value: string; delta: string; up: boolean }[] }> = {
-    TON: { flag: 'to', name: 'Tonga',        region: 'Pacific SIDS', metrics: [{ label: 'Flood Risk Index', value: '7.4 / 10', delta: '+0.3', up: false }, { label: 'Coastal Exposure', value: '62%', delta: '+4%', up: false }, { label: 'Infrastructure at Risk', value: '38 sites', delta: '+5', up: false }, { label: 'GDP per Capita', value: '$5,240', delta: '+2.1%', up: true }] },
-    COK: { flag: 'ck', name: 'Cook Islands', region: 'Pacific SIDS', metrics: [{ label: 'Flood Risk Index', value: '4.1 / 10', delta: '+0.1', up: false }, { label: 'Coastal Exposure', value: '44%', delta: '+2%', up: false }, { label: 'Infrastructure at Risk', value: '12 sites', delta: '+1', up: false }, { label: 'GDP per Capita', value: '$19,800', delta: '+3.4%', up: true }] },
-    VAN: { flag: 'vu', name: 'Vanuatu',      region: 'Pacific SIDS', metrics: [{ label: 'Flood Risk Index', value: '8.2 / 10', delta: '+0.5', up: false }, { label: 'Cyclone Exposure', value: '91%', delta: '+6%', up: false }, { label: 'Infrastructure at Risk', value: '64 sites', delta: '+9', up: false }, { label: 'GDP per Capita', value: '$3,190', delta: '+1.8%', up: true }] },
-    PNG: { flag: 'pg', name: 'Papua New Guinea', region: 'Pacific',  metrics: [{ label: 'Flood Risk Index', value: '6.8 / 10', delta: '+0.4', up: false }, { label: 'Coastal Exposure', value: '38%', delta: '+3%', up: false }, { label: 'Infrastructure at Risk', value: '82 sites', delta: '+7', up: false }, { label: 'GDP per Capita', value: '$2,870', delta: '+0.9%', up: true }] },
-    SOL: { flag: 'sb', name: 'Solomon Islands', region: 'Pacific SIDS', metrics: [{ label: 'Flood Risk Index', value: '5.9 / 10', delta: '+0.2', up: false }, { label: 'Coastal Exposure', value: '71%', delta: '+5%', up: false }, { label: 'Infrastructure at Risk', value: '29 sites', delta: '+3', up: false }, { label: 'GDP per Capita', value: '$2,350', delta: '+1.5%', up: true }] },
-    FIJ: { flag: 'fj', name: 'Fiji',         region: 'Pacific',     metrics: [{ label: 'Flood Risk Index', value: '5.3 / 10', delta: '+0.2', up: false }, { label: 'Cyclone Exposure', value: '78%', delta: '+4%', up: false }, { label: 'Infrastructure at Risk', value: '47 sites', delta: '+4', up: false }, { label: 'GDP per Capita', value: '$6,120', delta: '+2.7%', up: true }] },
+  private static readonly PACIFIC_WATCHLIST: Record<string, {
+    name: string; iso2: string; region: string;
+    facts: CountryFacts;
+    cats: WatchlistCat[];
+  }> = {
+    TON: {
+      name: 'Tonga', iso2: 'to', region: 'Pacific SIDS',
+      facts: { population: '100K', area: '747 km²', capital: "Nuku'alofa", currency: 'TOP (T$)' },
+      cats: [
+        { id: 'climate',  label: 'Flood & Coastal Risk', items: [
+          { key: 'fri',   label: 'Flood Risk Index',     value: '7.4 / 10', status: '2025, high',        statusColor: '#c62828' },
+          { key: 'coast', label: 'Coastal Exposure',     value: '62%',      status: '+4% since 2020',    statusColor: '#a65500' },
+          { key: 'surge', label: 'Storm Surge Freq.',    value: '4×/yr',    status: 'avg 2020–2025',     statusColor: '#a65500' },
+          { key: 'slr',   label: 'Sea Level Rise',       value: '+5.1 mm',  status: 'per year',          statusColor: '#c62828' },
+        ]},
+        { id: 'infra', label: 'Infrastructure Exposure', items: [
+          { key: 'sites', label: 'Sites at Risk',        value: '38',       status: 'of 61 total',       statusColor: '#c62828' },
+          { key: 'ports', label: 'Ports at Risk',        value: '2 / 3',    status: 'high exposure',     statusColor: '#a65500' },
+          { key: 'health',label: 'Health Facilities',    value: '8 / 12',   status: 'in flood zone',     statusColor: '#a65500' },
+          { key: 'roads', label: 'Roads at Risk',        value: '340 km',   status: 'coastal roads',     statusColor: '#a65500' },
+        ]},
+        { id: 'econ', label: 'Economic Indicators', items: [
+          { key: 'gdpcap',label: 'GDP per Capita',       value: '$5,240',   status: '2025',              statusColor: '#007DB7' },
+          { key: 'gdpg',  label: 'GDP Growth',           value: '2.1%',     status: '2025',              statusColor: '#2E7D32' },
+          { key: 'tour',  label: 'Tourism at Risk',      value: '$48M',     status: 'annual exposure',   statusColor: '#a65500' },
+          { key: 'aid',   label: 'Aid Dependency',       value: '18.4%',    status: '% of GNI',          statusColor: '#607D8B' },
+        ]},
+      ],
+    },
+    COK: {
+      name: 'Cook Islands', iso2: 'ck', region: 'Pacific SIDS',
+      facts: { population: '17K', area: '237 km²', capital: 'Avarua', currency: 'NZD (NZ$)' },
+      cats: [
+        { id: 'climate',  label: 'Flood & Coastal Risk', items: [
+          { key: 'fri',   label: 'Flood Risk Index',     value: '4.1 / 10', status: '2025, moderate',    statusColor: '#a65500' },
+          { key: 'coast', label: 'Coastal Exposure',     value: '44%',      status: '+2% since 2020',    statusColor: '#a65500' },
+          { key: 'surge', label: 'Storm Surge Freq.',    value: '2×/yr',    status: 'avg 2020–2025',     statusColor: '#2E7D32' },
+          { key: 'slr',   label: 'Sea Level Rise',       value: '+4.8 mm',  status: 'per year',          statusColor: '#a65500' },
+        ]},
+        { id: 'infra', label: 'Infrastructure Exposure', items: [
+          { key: 'sites', label: 'Sites at Risk',        value: '12',       status: 'of 38 total',       statusColor: '#a65500' },
+          { key: 'ports', label: 'Ports at Risk',        value: '1 / 2',    status: 'moderate exposure', statusColor: '#a65500' },
+          { key: 'health',label: 'Health Facilities',    value: '3 / 8',    status: 'in flood zone',     statusColor: '#2E7D32' },
+          { key: 'roads', label: 'Roads at Risk',        value: '89 km',    status: 'coastal roads',     statusColor: '#2E7D32' },
+        ]},
+        { id: 'econ', label: 'Economic Indicators', items: [
+          { key: 'gdpcap',label: 'GDP per Capita',       value: '$19,800',  status: '2025',              statusColor: '#007DB7' },
+          { key: 'gdpg',  label: 'GDP Growth',           value: '3.4%',     status: '2025',              statusColor: '#2E7D32' },
+          { key: 'tour',  label: 'Tourism at Risk',      value: '$112M',    status: 'annual exposure',   statusColor: '#a65500' },
+          { key: 'aid',   label: 'Aid Dependency',       value: '5.2%',     status: '% of GNI',          statusColor: '#607D8B' },
+        ]},
+      ],
+    },
+    VAN: {
+      name: 'Vanuatu', iso2: 'vu', region: 'Pacific SIDS',
+      facts: { population: '327K', area: '12,189 km²', capital: 'Port Vila', currency: 'VUV (Vt)' },
+      cats: [
+        { id: 'climate',  label: 'Cyclone & Flood Risk', items: [
+          { key: 'fri',   label: 'Flood Risk Index',     value: '8.2 / 10', status: '2025, very high',   statusColor: '#c62828' },
+          { key: 'cyc',   label: 'Cyclone Exposure',     value: '91%',      status: '+6% since 2020',    statusColor: '#c62828' },
+          { key: 'surge', label: 'Storm Surge Freq.',    value: '6×/yr',    status: 'avg 2020–2025',     statusColor: '#c62828' },
+          { key: 'slr',   label: 'Sea Level Rise',       value: '+5.8 mm',  status: 'per year',          statusColor: '#c62828' },
+        ]},
+        { id: 'infra', label: 'Infrastructure Exposure', items: [
+          { key: 'sites', label: 'Sites at Risk',        value: '64',       status: 'of 92 total',       statusColor: '#c62828' },
+          { key: 'ports', label: 'Ports at Risk',        value: '3 / 4',    status: 'high exposure',     statusColor: '#c62828' },
+          { key: 'health',label: 'Health Facilities',    value: '18 / 24',  status: 'in flood zone',     statusColor: '#c62828' },
+          { key: 'roads', label: 'Roads at Risk',        value: '670 km',   status: 'coastal roads',     statusColor: '#a65500' },
+        ]},
+        { id: 'econ', label: 'Economic Indicators', items: [
+          { key: 'gdpcap',label: 'GDP per Capita',       value: '$3,190',   status: '2025',              statusColor: '#007DB7' },
+          { key: 'gdpg',  label: 'GDP Growth',           value: '1.8%',     status: '2025',              statusColor: '#2E7D32' },
+          { key: 'tour',  label: 'Tourism at Risk',      value: '$71M',     status: 'annual exposure',   statusColor: '#c62828' },
+          { key: 'aid',   label: 'Aid Dependency',       value: '22.1%',    status: '% of GNI',          statusColor: '#607D8B' },
+        ]},
+      ],
+    },
+    FIJ: {
+      name: 'Fiji', iso2: 'fj', region: 'Pacific',
+      facts: { population: '930K', area: '18,274 km²', capital: 'Suva', currency: 'FJD (FJ$)' },
+      cats: [
+        { id: 'climate',  label: 'Cyclone & Flood Risk', items: [
+          { key: 'fri',   label: 'Flood Risk Index',     value: '5.3 / 10', status: '2025, moderate',    statusColor: '#a65500' },
+          { key: 'cyc',   label: 'Cyclone Exposure',     value: '78%',      status: '+4% since 2020',    statusColor: '#a65500' },
+          { key: 'surge', label: 'Storm Surge Freq.',    value: '3×/yr',    status: 'avg 2020–2025',     statusColor: '#a65500' },
+          { key: 'slr',   label: 'Sea Level Rise',       value: '+4.6 mm',  status: 'per year',          statusColor: '#a65500' },
+        ]},
+        { id: 'infra', label: 'Infrastructure Exposure', items: [
+          { key: 'sites', label: 'Sites at Risk',        value: '47',       status: 'of 110 total',      statusColor: '#a65500' },
+          { key: 'ports', label: 'Ports at Risk',        value: '2 / 5',    status: 'moderate exposure', statusColor: '#a65500' },
+          { key: 'health',label: 'Health Facilities',    value: '14 / 32',  status: 'in flood zone',     statusColor: '#2E7D32' },
+          { key: 'roads', label: 'Roads at Risk',        value: '520 km',   status: 'coastal roads',     statusColor: '#a65500' },
+        ]},
+        { id: 'econ', label: 'Economic Indicators', items: [
+          { key: 'gdpcap',label: 'GDP per Capita',       value: '$6,120',   status: '2025',              statusColor: '#007DB7' },
+          { key: 'gdpg',  label: 'GDP Growth',           value: '2.7%',     status: '2025',              statusColor: '#2E7D32' },
+          { key: 'tour',  label: 'Tourism at Risk',      value: '$680M',    status: 'annual exposure',   statusColor: '#a65500' },
+          { key: 'aid',   label: 'Aid Dependency',       value: '3.8%',     status: '% of GNI',          statusColor: '#607D8B' },
+        ]},
+      ],
+    },
+    SOL: {
+      name: 'Solomon Islands', iso2: 'sb', region: 'Pacific SIDS',
+      facts: { population: '720K', area: '28,896 km²', capital: 'Honiara', currency: 'SBD (SI$)' },
+      cats: [
+        { id: 'climate',  label: 'Flood & Coastal Risk', items: [
+          { key: 'fri',   label: 'Flood Risk Index',     value: '5.9 / 10', status: '2025, moderate',    statusColor: '#a65500' },
+          { key: 'coast', label: 'Coastal Exposure',     value: '71%',      status: '+5% since 2020',    statusColor: '#a65500' },
+          { key: 'surge', label: 'Storm Surge Freq.',    value: '3×/yr',    status: 'avg 2020–2025',     statusColor: '#a65500' },
+          { key: 'slr',   label: 'Sea Level Rise',       value: '+5.3 mm',  status: 'per year',          statusColor: '#c62828' },
+        ]},
+        { id: 'infra', label: 'Infrastructure Exposure', items: [
+          { key: 'sites', label: 'Sites at Risk',        value: '29',       status: 'of 58 total',       statusColor: '#a65500' },
+          { key: 'ports', label: 'Ports at Risk',        value: '2 / 4',    status: 'moderate exposure', statusColor: '#a65500' },
+          { key: 'health',label: 'Health Facilities',    value: '10 / 20',  status: 'in flood zone',     statusColor: '#a65500' },
+          { key: 'roads', label: 'Roads at Risk',        value: '290 km',   status: 'coastal roads',     statusColor: '#a65500' },
+        ]},
+        { id: 'econ', label: 'Economic Indicators', items: [
+          { key: 'gdpcap',label: 'GDP per Capita',       value: '$2,350',   status: '2025',              statusColor: '#007DB7' },
+          { key: 'gdpg',  label: 'GDP Growth',           value: '1.5%',     status: '2025',              statusColor: '#2E7D32' },
+          { key: 'tour',  label: 'Tourism at Risk',      value: '$22M',     status: 'annual exposure',   statusColor: '#a65500' },
+          { key: 'aid',   label: 'Aid Dependency',       value: '26.3%',    status: '% of GNI',          statusColor: '#607D8B' },
+        ]},
+      ],
+    },
+    PNG: {
+      name: 'Papua New Guinea', iso2: 'pg', region: 'Pacific',
+      facts: { population: '10M', area: '462,840 km²', capital: 'Port Moresby', currency: 'PGK (K)' },
+      cats: [
+        { id: 'climate',  label: 'Flood & Coastal Risk', items: [
+          { key: 'fri',   label: 'Flood Risk Index',     value: '6.8 / 10', status: '2025, high',        statusColor: '#c62828' },
+          { key: 'coast', label: 'Coastal Exposure',     value: '38%',      status: '+3% since 2020',    statusColor: '#a65500' },
+          { key: 'surge', label: 'Storm Surge Freq.',    value: '3×/yr',    status: 'avg 2020–2025',     statusColor: '#a65500' },
+          { key: 'slr',   label: 'Sea Level Rise',       value: '+4.9 mm',  status: 'per year',          statusColor: '#a65500' },
+        ]},
+        { id: 'infra', label: 'Infrastructure Exposure', items: [
+          { key: 'sites', label: 'Sites at Risk',        value: '82',       status: 'of 190 total',      statusColor: '#c62828' },
+          { key: 'ports', label: 'Ports at Risk',        value: '4 / 8',    status: 'high exposure',     statusColor: '#a65500' },
+          { key: 'health',label: 'Health Facilities',    value: '28 / 60',  status: 'in flood zone',     statusColor: '#a65500' },
+          { key: 'roads', label: 'Roads at Risk',        value: '1,200 km', status: 'coastal roads',     statusColor: '#a65500' },
+        ]},
+        { id: 'econ', label: 'Economic Indicators', items: [
+          { key: 'gdpcap',label: 'GDP per Capita',       value: '$2,870',   status: '2025',              statusColor: '#007DB7' },
+          { key: 'gdpg',  label: 'GDP Growth',           value: '0.9%',     status: '2025',              statusColor: '#2E7D32' },
+          { key: 'tour',  label: 'Tourism at Risk',      value: '$35M',     status: 'annual exposure',   statusColor: '#a65500' },
+          { key: 'aid',   label: 'Aid Dependency',       value: '8.7%',     status: '% of GNI',          statusColor: '#607D8B' },
+        ]},
+      ],
+    },
   };
 
   onCountrySelect(adbCode: string): void {
@@ -2741,9 +2924,15 @@ export class NotebookComponent implements OnInit, OnDestroy {
       this.step3();
     }
     if (this.notebookId === 'pacific') {
-      const data = NotebookComponent.PACIFIC_METRICS[adbCode];
-      if (data) {
-        this.mapCountryPanel.set(data);
+      const entry = NotebookComponent.PACIFIC_WATCHLIST[adbCode];
+      if (entry) {
+        this.mapPanelTitle.set(entry.name);
+        this.mapPanelSubtitle.set(entry.region);
+        this.mapPanelFlag.set(`https://flagcdn.com/w80/${entry.iso2}.png`);
+        this.mapPanelFacts.set(entry.facts);
+        this.mapPanelCats.set(entry.cats);
+        this.mapPanelOpenCats.set(new Set(['climate']));
+        this.mapPanelVisible.set(true);
         this.cdr.markForCheck();
       }
     }

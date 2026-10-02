@@ -281,6 +281,24 @@
     position: relative;
   }
 
+  &__dl-wrap {
+    position: relative;
+  }
+
+  &__dl-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 210px;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    padding: 6px;
+    z-index: 200;
+    animation: dropIn 0.15s ease both;
+  }
+
   &__output-dropdown {
     position: absolute;
     top: calc(100% + 6px);
@@ -2515,19 +2533,29 @@
     backdrop-filter: blur(4px);
   }
 
-  // ── Country dashboard (map + country pane side-by-side) ──────────────────
+  // ── Country dashboard (map full-canvas + country pane overlay) ───────────
   &__country-dashboard {
     position: absolute;
     inset: 0;
-    display: flex;
-    flex-direction: row;
     overflow: hidden;
 
     .nb__map-wrap {
-      position: relative;
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
+      position: absolute;
+      inset: 0;
+
+      app-world-map {
+        position: absolute;
+        inset: 0;
+      }
+    }
+
+    .nb__watchlist-pane {
+      position: absolute !important;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 300px;
+      z-index: 10;
     }
   }
 
@@ -5512,14 +5540,14 @@ $skel-user: linear-gradient(90deg, #dceef7 25%, #cce4f0 50%, #dceef7 75%);
 
 // ── Country pane ──────────────────────────────────────────────────────────────
 .nb__country-pane {
-  width: 240px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #e8ecf0;
   background: #fff;
+  border-left: 1px solid #e8ecf0;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.08);
   overflow-y: auto;
   font-family: var(--font, system-ui, sans-serif);
+  z-index: 10;
 
   &__header {
     display: flex;

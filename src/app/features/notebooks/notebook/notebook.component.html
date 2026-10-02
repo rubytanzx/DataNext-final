@@ -58,7 +58,7 @@
         <span class="nb__title" (click)="startEditTitle()">{{ title() }}</span>
       }
     </div>
-    <div class="nb__header-right" (click)="closeOutputDrop()">
+    <div class="nb__header-right" (click)="useInOpen.set(false)">
       @if (isPublished) {
         <button class="nb__fork-btn" [class.nb__fork-btn--forking]="forking()" type="button"
                 [disabled]="forking()"
@@ -77,11 +77,11 @@
         <div class="nb__use-in-wrap" (click)="$event.stopPropagation()">
           <button class="nb__use-in-btn" type="button" (click)="useInOpen.set(!useInOpen())">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-              <line x1="12" y1="22.08" x2="12" y2="12"/>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Use in
+            Export
             <svg class="nb__use-in-chevron" [class.nb__use-in-chevron--open]="useInOpen()"
                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="m6 9 6 6 6-6"/>
@@ -90,40 +90,17 @@
 
           @if (useInOpen()) {
             <div class="nb__use-in-dropdown">
-              <p class="nb__use-in-label">Use in a development environment</p>
-              @for (opt of useInOptions; track opt.label) {
-                <button class="nb__use-in-option" type="button" (click)="openUseInDrawer(opt.icon)">
-                  <div class="nb__use-in-icon">
-                    @if (opt.icon === 'databricks') {
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8512C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2 2 7l10 5 10-5-10-5z"/>
-                        <path d="M2 12l10 5 10-5"/>
-                        <path d="M2 17l10 5 10-5"/>
-                      </svg>
-                    } @else if (opt.icon === 'build-app') {
-                      <!-- Code / terminal icon for Build an Application -->
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007DB7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="16 18 22 12 16 6"/>
-                        <polyline points="8 6 2 12 8 18"/>
-                      </svg>
-                    } @else {
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#616161" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                      </svg>
-                    }
-                  </div>
-                  <div class="nb__use-in-body">
-                    <span class="nb__use-in-name">{{ opt.label }}</span>
-                    <span class="nb__use-in-desc">{{ opt.desc }}</span>
-                    <span class="nb__use-in-count">{{ opt.count }} assets available</span>
-                  </div>
-                  <svg class="nb__use-in-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m9 18 6-6-6-6"/>
-                  </svg>
-                </button>
-              }
+              <p class="nb__use-in-label">Download workspace</p>
+              <button class="nb__export-item" type="button" (click)="useInOpen.set(false)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
+                </svg>
+                <span class="nb__export-item-inner">
+                  <span class="nb__export-item-name">ZIP</span>
+                  <span class="nb__export-item-desc">All artefacts as a compressed folder</span>
+                </span>
+              </button>
             </div>
           }
         </div>
@@ -145,66 +122,6 @@
           Publish
         </button>
       }
-
-      <!-- Output generator -->
-      <div class="nb__output-wrap" (click)="$event.stopPropagation()">
-        <button class="nb__icon-btn" type="button" title="Output generator" aria-label="Generate output" (click)="toggleOutputDrop($event)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </button>
-        @if (outputDropOpen) {
-          <div class="nb__output-dropdown">
-            <div class="nb__output-label">Export as</div>
-            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
-              </svg>
-              <span class="nb__export-item-inner">
-                <span class="nb__export-item-name">CSV</span>
-                <span class="nb__export-item-desc">Comma-separated data</span>
-              </span>
-            </button>
-            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <path d="M9 13h6M9 17h6M9 9h1"/>
-              </svg>
-              <span class="nb__export-item-inner">
-                <span class="nb__export-item-name">PDF</span>
-                <span class="nb__export-item-desc">Formatted report</span>
-              </span>
-            </button>
-            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/>
-              </svg>
-              <span class="nb__export-item-inner">
-                <span class="nb__export-item-name">DOC</span>
-                <span class="nb__export-item-desc">Word document</span>
-              </span>
-            </button>
-            <button class="nb__export-item" type="button" (click)="closeOutputDrop()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
-              </svg>
-              <span class="nb__export-item-inner">
-                <span class="nb__export-item-name">ZIP</span>
-                <span class="nb__export-item-desc">Compressed folder</span>
-              </span>
-            </button>
-          </div>
-        }
-      </div>
 
       <button class="nb__icon-btn" type="button" title="Settings" aria-label="Workspace settings" (click)="$event.stopPropagation()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1690,6 +1607,35 @@
             }
           </select>
         }
+        @if (hasPreviewData) {
+          <div class="nb__dl-wrap" (click)="$event.stopPropagation()">
+            <button class="nb__panel-toggle" type="button" aria-label="Download artefact" title="Download"
+              (click)="downloadDropOpen = !downloadDropOpen">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+            @if (downloadDropOpen) {
+              <div class="nb__dl-dropdown">
+                <p class="nb__output-label">Download as</p>
+                @for (opt of downloadOptions; track opt.ext) {
+                  <button class="nb__export-item" type="button" (click)="downloadDropOpen = false">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span class="nb__export-item-inner">
+                      <span class="nb__export-item-name">{{ opt.label }}</span>
+                      <span class="nb__export-item-desc">{{ opt.desc }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
         <button
           class="nb__panel-toggle"
           type="button"
@@ -1769,7 +1715,7 @@
                   [activeEconomies]="mapEconomies()"
                   [viewBoxOverride]="mapViewBox() ?? '480 330 320 320'"
                   [markers]="mapMarkers()"
-                  [hideCard]="isCommunityWorkspace()"
+                  [hideCard]="true"
                   (countrySelect)="onCountrySelect($event)"
                 ></app-world-map>
                 @if (mapFilters().length > 0) {
@@ -1784,43 +1730,19 @@
                 }
               </div>
 
-              @if (mapCountryPanel(); as cp) {
-                <div class="nb__country-pane">
-                  <div class="nb__country-pane__header">
-                    <div class="nb__country-pane__flag-wrap">
-                      <img class="nb__country-pane__flag"
-                        [src]="'https://flagcdn.com/w40/' + cp.flag + '.png'"
-                        [alt]="cp.name" />
-                      <div>
-                        <div class="nb__country-pane__name">{{ cp.name }}</div>
-                        <div class="nb__country-pane__region">{{ cp.region }}</div>
-                      </div>
-                    </div>
-                    <button class="nb__country-pane__close" type="button" (click)="mapCountryPanel.set(null)" aria-label="Close">
-                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                        <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="nb__country-pane__metrics">
-                    @for (m of cp.metrics; track m.label) {
-                      <div class="nb__country-pane__metric">
-                        <span class="nb__country-pane__metric-label">{{ m.label }}</span>
-                        <div class="nb__country-pane__metric-row">
-                          <span class="nb__country-pane__metric-value">{{ m.value }}</span>
-                          <span class="nb__country-pane__metric-delta"
-                            [style.color]="m.up ? '#16a34a' : '#dc2626'">
-                            @if (m.up) {
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-                            } @else {
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                            }
-                            {{ m.delta }}
-                          </span>
-                        </div>
-                      </div>
-                    }
-                  </div>
+              @if (mapPanelVisible()) {
+                <div class="nb__watchlist-pane">
+                  <erdi-watchlist-panel
+                    mode="country"
+                    [title]="mapPanelTitle()"
+                    [subtitle]="mapPanelSubtitle()"
+                    [countryFlag]="mapPanelFlag()"
+                    [countryFacts]="mapPanelFacts()"
+                    [cats]="mapPanelCats()"
+                    [openCats]="mapPanelOpenCats()"
+                    (catToggled)="toggleMapPanelCat($event)"
+                    (closed)="mapPanelVisible.set(false)"
+                  ></erdi-watchlist-panel>
                 </div>
               }
             </div>
