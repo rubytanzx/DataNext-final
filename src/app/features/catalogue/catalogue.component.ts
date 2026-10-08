@@ -429,7 +429,8 @@ export class CatalogueComponent implements OnInit {
 
   // ── Filter panel (mirrors Search page) ────────────────────────────────────
   sidebarGroups: SidebarGroup[] = SIDEBAR_GROUPS.map(g => ({ ...g, options: g.options.map(o => ({ ...o })) }));
-  readonly sidebarVersion = signal(0);
+  readonly sidebarVersion   = signal(0);
+  filtersCollapsed          = signal(false);
 
   readonly capabilityOptions: ItemType[] = ['Dataset', 'AI Agent', 'AI Tool', 'AI Product', 'API'];
   readonly inScopeTypes = new Set(['Dataset', 'AI Agent', 'AI Tool', 'AI Product', 'API']);

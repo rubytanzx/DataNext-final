@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, AfterViewInit, HostListener, ViewChild, ElementRef, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ChatService } from '../../services/chat.service';
@@ -798,11 +798,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly phPrev         = signal(0);
   readonly phTransitioning = signal(false);
   readonly barFocused     = signal(false);
+  readonly barText        = signal('');
   private phTimer?: ReturnType<typeof setInterval>;
   private phTransTimer?: ReturnType<typeof setTimeout>;
 
   onBarFocus() { this.barFocused.set(true); }
   onBarBlur()  { this.barFocused.set(false); }
+  onBarTextChange(t: string) { this.barText.set(t); }
+
+  onCardRowScroll(el: HTMLElement, scrolled: WritableSignal<boolean>) {
+    scrolled.set(el.scrollLeft > 8);
+  }
 
   ngOnInit() { this.startPhRotation(); }
 
@@ -921,6 +927,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly dropdownPos          = signal<{ top: number; left: number; width: number } | null>(null);
 
   @ViewChild('greetingEl') private greetingEl!: ElementRef<HTMLElement>;
+  @ViewChild(PromptBarComponent) private promptBar!: PromptBarComponent;
+  readonly bookmarksScrolled  = signal(false);
+  readonly recommendedScrolled = signal(false);
+  readonly workspacesScrolled  = signal(false);
   // Cached so getBoundingClientRect() never runs inside the hot mousemove path
   private greetingRect = { left: 0, width: 1 };
   private gleamX = 0;
@@ -967,7 +977,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   applyPrompt(prompt: string) {
     this.activePromptCategory.set(null);
-    this.router.navigate(['/search'], { queryParams: { q: prompt } });
+    this.promptBar?.populate(prompt);
   }
 
   readonly topUseCases      = TOP_USE_CASES;

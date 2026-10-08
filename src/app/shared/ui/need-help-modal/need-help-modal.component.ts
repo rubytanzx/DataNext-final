@@ -33,7 +33,7 @@ export class NeedHelpModalComponent {
     const url = this.router.url;
     const map: Record<string, string> = {
       '/home': 'Discover',
-      '/catalogue': 'Assets Catalog',
+      '/catalogue': 'Asset Catalog',
       '/notebooks': 'My Library',
       '/whats-new': 'Get Started',
       '/faq': 'FAQ',

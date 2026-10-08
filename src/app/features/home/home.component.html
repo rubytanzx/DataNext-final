@@ -21,8 +21,8 @@
 
       <div class="home__search-wrap">
         <div class="home__search-bar-wrap" (focusin)="onBarFocus()" (focusout)="onBarBlur()">
-          <adb-prompt-bar placeholder="" (submit)="submitFromBar($event)"></adb-prompt-bar>
-          @if (!barFocused()) {
+          <adb-prompt-bar placeholder="" (submit)="submitFromBar($event)" (textChange)="onBarTextChange($event)"></adb-prompt-bar>
+          @if (!barFocused() && !barText()) {
             <div class="home__search-ph" aria-hidden="true">
               <span class="home__search-ph-static">Search for</span>
               <span class="home__search-ph-clip">
@@ -110,28 +110,30 @@
             </svg>
           </button>
         </div>
-        <div class="home__card-row">
-          @for (item of recentlySaved; track item.title) {
-            <div class="home__use-card home__use-card--recommended" (click)="openAsset(item)" style="cursor:pointer">
-              <app-asset-card
-                [tag]="item.tag ?? ''"
-                [tagColor]="item.tagColor ?? 'blue'"
-                [title]="item.title"
-                [description]="item.description"
-                [users]="item.users"
-                [uses]="item.downloads"
-                [access]="item.access ?? ''"
-                [governanceVerified]="item.governanceVerified ?? false"
-                [rai]="item.rai ?? false"
-                [sectorTag]="item.sector ?? ''"
-                [geoTag]="item.region ?? ''"
-                [themes]="item.themes ?? []"
-                [provider]="item.provider ?? ''"
-                [saved]="true"
-                [showAddToWorkspace]="true"
-              ></app-asset-card>
-            </div>
-          }
+        <div class="home__scroll-wrap" [class.home__scroll-wrap--scrolled]="bookmarksScrolled()">
+          <div class="home__card-row home__card-row--scroll" #bookmarksRow (scroll)="onCardRowScroll(bookmarksRow, bookmarksScrolled)">
+            @for (item of recentlySaved; track item.title) {
+              <div class="home__use-card home__use-card--recommended" (click)="openAsset(item)" style="cursor:pointer">
+                <app-asset-card
+                  [tag]="item.tag ?? ''"
+                  [tagColor]="item.tagColor ?? 'blue'"
+                  [title]="item.title"
+                  [description]="item.description"
+                  [users]="item.users"
+                  [uses]="item.downloads"
+                  [access]="item.access ?? ''"
+                  [governanceVerified]="item.governanceVerified ?? false"
+                  [rai]="item.rai ?? false"
+                  [sectorTag]="item.sector ?? ''"
+                  [geoTag]="item.region ?? ''"
+                  [themes]="item.themes ?? []"
+                  [provider]="item.provider ?? ''"
+                  [saved]="true"
+                  [showAddToWorkspace]="true"
+                ></app-asset-card>
+              </div>
+            }
+          </div>
         </div>
       </section>
 
@@ -146,27 +148,29 @@
             </svg>
           </button>
         </div>
-        <div class="home__card-row">
-          @for (item of recommendedForYou; track item.title) {
-            <div class="home__use-card home__use-card--recommended" (click)="openAsset(item)" style="cursor:pointer">
-              <app-asset-card
-                [tag]="item.tag ?? ''"
-                [tagColor]="item.tagColor ?? 'blue'"
-                [title]="item.title"
-                [description]="item.description"
-                [users]="item.users"
-                [uses]="item.downloads"
-                [access]="item.access ?? ''"
-                [governanceVerified]="item.governanceVerified ?? false"
-                [rai]="item.rai ?? false"
-                [sectorTag]="item.sector ?? ''"
-                [geoTag]="item.region ?? ''"
-                [themes]="item.themes ?? []"
-                [provider]="item.provider ?? ''"
-                [showAddToWorkspace]="true"
-              ></app-asset-card>
-            </div>
-          }
+        <div class="home__scroll-wrap" [class.home__scroll-wrap--scrolled]="recommendedScrolled()">
+          <div class="home__card-row home__card-row--scroll" #recommendedRow (scroll)="onCardRowScroll(recommendedRow, recommendedScrolled)">
+            @for (item of recommendedForYou; track item.title) {
+              <div class="home__use-card home__use-card--recommended" (click)="openAsset(item)" style="cursor:pointer">
+                <app-asset-card
+                  [tag]="item.tag ?? ''"
+                  [tagColor]="item.tagColor ?? 'blue'"
+                  [title]="item.title"
+                  [description]="item.description"
+                  [users]="item.users"
+                  [uses]="item.downloads"
+                  [access]="item.access ?? ''"
+                  [governanceVerified]="item.governanceVerified ?? false"
+                  [rai]="item.rai ?? false"
+                  [sectorTag]="item.sector ?? ''"
+                  [geoTag]="item.region ?? ''"
+                  [themes]="item.themes ?? []"
+                  [provider]="item.provider ?? ''"
+                  [showAddToWorkspace]="true"
+                ></app-asset-card>
+              </div>
+            }
+          </div>
         </div>
       </section>
 
@@ -181,7 +185,8 @@
             </svg>
           </button>
         </div>
-        <div class="home__card-row">
+        <div class="home__scroll-wrap" [class.home__scroll-wrap--scrolled]="workspacesScrolled()">
+          <div class="home__card-row home__card-row--scroll" #workspacesRow (scroll)="onCardRowScroll(workspacesRow, workspacesScrolled)">
           @for (item of featuredSpaces; track item.title) {
             <div class="home__use-card home__uc-image-card" style="cursor:pointer" (click)="openFeaturedSpace(item)">
               <div class="home__uc-img" [style.backgroundImage]="'url(' + item.image + ')'"></div>
@@ -218,6 +223,7 @@
               </div>
             </div>
           }
+          </div>
         </div>
       </section>
 

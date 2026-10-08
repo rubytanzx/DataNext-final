@@ -1,17 +1,26 @@
 <div class="cat">
 
   <!-- ── Left sidebar ───────────────────────────────────────────────────── -->
-  <aside class="cat__sidebar">
+  <aside class="cat__sidebar" [class.cat__sidebar--collapsed]="filtersCollapsed()">
 
     <div class="search-page__sidebar-header">
       <span class="sb__header-title">Filters</span>
-      @if (activeFilterCount > 0) {
+      @if (activeFilterCount > 0 && !filtersCollapsed()) {
         <span class="sb__active-badge">{{ activeFilterCount }} active</span>
       }
-      @if (activeFilterCount > 0) {
+      @if (activeFilterCount > 0 && !filtersCollapsed()) {
         <button class="sb__clear-all" type="button" (click)="clearFilters()">Clear</button>
       }
+      <button class="sb__collapse-btn" type="button"
+        [attr.title]="filtersCollapsed() ? 'Expand filters' : 'Collapse filters'"
+        (click)="filtersCollapsed.set(!filtersCollapsed())">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M7 12h10M10 18h4"/>
+        </svg>
+      </button>
     </div>
+
+    @if (!filtersCollapsed()) {
 
     <!-- CAPABILITY TYPE (pills) -->
     <div class="search-page__sidebar-group">
@@ -209,6 +218,8 @@
         </div>
       </div>
     </div>
+
+    } <!-- end @if (!filtersCollapsed()) -->
 
   </aside>
 

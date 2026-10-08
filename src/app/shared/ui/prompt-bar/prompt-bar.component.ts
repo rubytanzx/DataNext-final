@@ -18,17 +18,16 @@ import {
         <ng-content select="[slot=uploads]" />
       </div>
       <div class="search-input__row">
-        <input
+        <textarea
           #field
           class="search-input__field"
-          type="text"
+          rows="1"
           [placeholder]="placeholder()"
           [disabled]="disabled() || loading()"
-          [value]="text()"
-          (input)="text.set(field.value)"
+          (input)="onTextInput(field)"
           (keydown.enter)="onEnterKey($event)"
           aria-label="AI prompt input"
-        />
+        ></textarea>
 
         <div class="search-input__actions">
           @if (text().length > 0) {
@@ -111,16 +110,37 @@ export class PromptBarComponent {
   disabled    = input<boolean>(false);
   loading     = input<boolean>(false);
 
-  submit = output<string>();
-  stop   = output<void>();
-  attach = output<FileList>();
+  submit     = output<string>();
+  stop       = output<void>();
+  attach     = output<FileList>();
+  textChange = output<string>();
 
-  @ViewChild('field') private fieldRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('field') private fieldRef!: ElementRef<HTMLTextAreaElement>;
 
   protected text      = signal('');
   protected canSubmit = computed(() => this.text().trim().length > 0 && !this.disabled() && !this.loading());
 
+  private readonly LINE_HEIGHT = 24;  // px — matches font-size 16 * line-height 1.5
+  private readonly MAX_LINES   = 4;
+
+  private resize(): void {
+    const el = this.fieldRef?.nativeElement;
+    if (!el) return;
+    el.style.height = 'auto';
+    const maxHeight = this.LINE_HEIGHT * this.MAX_LINES;
+    const clamped   = Math.min(el.scrollHeight, maxHeight);
+    el.style.height   = clamped + 'px';
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }
+
+  protected onTextInput(el: HTMLTextAreaElement): void {
+    this.text.set(el.value);
+    this.textChange.emit(el.value);
+    this.resize();
+  }
+
   protected onEnterKey(event: Event): void {
+    if ((event as KeyboardEvent).shiftKey) return; // shift+enter = newline
     event.preventDefault();
     if (this.canSubmit()) this.onSubmit();
   }
@@ -130,11 +150,34 @@ export class PromptBarComponent {
     if (!value) return;
     this.submit.emit(value);
     this.text.set('');
+    this.textChange.emit('');
+    const el = this.fieldRef?.nativeElement;
+    if (el) {
+      el.value = '';
+      el.style.height = 'auto';
+      el.style.overflowY = 'hidden';
+    }
+  }
+
+  populate(text: string): void {
+    this.text.set(text);
+    const el = this.fieldRef?.nativeElement;
+    if (el) {
+      el.value = text;
+      setTimeout(() => { this.resize(); el.focus(); });
+    }
   }
 
   protected onClear(): void {
     this.text.set('');
-    this.fieldRef?.nativeElement.focus();
+    this.textChange.emit('');
+    const el = this.fieldRef?.nativeElement;
+    if (el) {
+      el.value = '';
+      el.style.height = 'auto';
+      el.style.overflowY = 'hidden';
+      el.focus();
+    }
   }
 
   protected onFileChange(event: Event): void {

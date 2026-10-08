@@ -31,8 +31,32 @@
     padding: 100px 0 28px;
     background: #fff;
     scrollbar-width: none;
+    transition: width 0.2s ease;
 
     &::-webkit-scrollbar { display: none; }
+
+    &--collapsed {
+      width: 56px;
+      overflow: hidden;
+
+      .search-page__sidebar-header {
+        justify-content: center;
+        padding: 0 0 14px;
+        position: relative;
+
+        &::after {
+          content: '';
+          position: absolute;
+          right: 0;
+          top: 0;
+          width: 1px;
+          height: calc(100vh - 120px);
+          background: #f0f0f0;
+        }
+      }
+
+      .sb__header-title { display: none; }
+    }
   }
 
   &__sidebar-heading {
@@ -120,6 +144,29 @@
     padding: 0;
     cursor: pointer;
     &:hover { text-decoration: underline; }
+  }
+
+  .sb__collapse-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    color: #007DB7;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+
+    &:hover {
+      background: rgba(0, 125, 183, 0.08);
+      color: #005F8E;
+    }
+
+    svg { display: block; }
   }
 
   .search-page__sidebar-group {
@@ -469,6 +516,7 @@
     padding: 28px 40px 60px;
     min-width: 0;
     scrollbar-width: none;
+    container-type: inline-size;
 
     &::-webkit-scrollbar { display: none; }
   }
@@ -841,6 +889,14 @@
     flex-direction: column;
 
     .cat__card { flex: 1; }
+
+    @container (max-width: 900px) {
+      flex: 0 0 calc((100% - 16px) / 2);
+    }
+
+    @container (max-width: 580px) {
+      flex: 0 0 100%;
+    }
   }
 
   &__grid {
@@ -848,7 +904,8 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
 
-    @media (max-width: 1200px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @container (max-width: 900px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @container (max-width: 580px) { grid-template-columns: 1fr; }
   }
 
   // ── Card — matches home__use-card--recommended exactly ────────────────
