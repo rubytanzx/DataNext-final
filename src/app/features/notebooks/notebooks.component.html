@@ -226,6 +226,7 @@
                       [users]="item.users || ''"
                       [uses]="item.downloads || ''"
                       [restricted]="!!item.restricted"
+                      [provider]="''"
                       [showToggle]="false"
                     ></app-asset-card>
                   </div>
@@ -261,6 +262,7 @@
                     [users]="item.users || ''"
                     [uses]="item.downloads || ''"
                     [restricted]="!!item.restricted"
+                    [provider]="''"
                     [showToggle]="false"
                     [saved]="true"
                     (saveClick)="unsaveItem(item.id)"

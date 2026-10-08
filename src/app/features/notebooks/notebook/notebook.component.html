@@ -507,7 +507,7 @@
             <div class="nb__asset-group">
               <div class="nb__asset-group-header" [class.nb__asset-group-header--expanded]="group.expanded" (click)="toggleGroup(group)">
                 <span class="nb__asset-group-name">{{ group.name }}</span>
-                <button class="nb__asset-clear" type="button" (click)="clearGroup(group, $event)">Clear</button>
+
                 @if (group.expanded) {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="18 15 12 9 6 15"/>
@@ -522,7 +522,8 @@
                 @for (item of group.items; track item.name) {
                   <div class="nb__asset-item" draggable="true"
                        (dragstart)="onAssetDragStart(item)" (dragend)="onAssetDragEnd()"
-                       [class.nb__asset-item--draggable]="wfEditingNodeId() !== null">
+                       [class.nb__asset-item--draggable]="wfEditingNodeId() !== null"
+                       (click)="openAssetDetail(item, $event)">
                     <span class="nb__asset-label">{{ item.name }}</span>
                     @if (!isPublished) {
                       <button class="nb__asset-remove" type="button" aria-label="Remove asset"
@@ -1470,6 +1471,7 @@
                           [description]="w.description"
                           [users]="w.users"
                           [uses]="w.downloads"
+                          [provider]="''"
                           [showToggle]="false"
                         ></app-asset-card>
                       </div>
@@ -2402,11 +2404,23 @@
               @for (sec of briefingSections(); track sec.heading) {
                 <div class="nb__briefing-sec">
                   <h4 class="nb__briefing-h4">{{ sec.heading }}</h4>
-                  <div class="nb__briefing-p"
-                    contenteditable="true"
-                    data-body
-                    (input)="onBriefingEdit()"
-                    [innerHTML]="renderBody(sec.body)"></div>
+                  @if (isBriefingArray(sec.body)) {
+                    <div class="nb__briefing-p" contenteditable="true" data-body (input)="onBriefingEdit()">
+                      @for (item of briefingBodyItems(sec.body); track item.text) {
+                        @if (item.type === 'heading') {
+                          <p class="nb__bf-body-heading">{{ item.text }}</p>
+                        } @else {
+                          <p>{{ item.text }}</p>
+                        }
+                      }
+                    </div>
+                  } @else {
+                    <div class="nb__briefing-p"
+                      contenteditable="true"
+                      data-body
+                      (input)="onBriefingEdit()"
+                      [innerHTML]="renderBriefingBodyStr(sec.body)"></div>
+                  }
                 </div>
               }
             </div>
@@ -2540,6 +2554,407 @@
                     <div class="nb__pdf-page-footer">Page {{ docPage() }} of {{ docTotalPages() }}</div>
                   }
                 </div>
+              </div>
+            </div>
+          }
+
+          @if (previewCtx() === 'speaking-notes') {
+            <div class="nb__speaking">
+              <div class="nb__speaking-tabs">
+                <button class="nb__speaking-tab nb__speaking-tab--active">Finance Ministry</button>
+                <button class="nb__speaking-tab">Bangladesh Bank</button>
+                <button class="nb__speaking-tab">Resident Mission</button>
+              </div>
+              <div class="nb__speaking-body">
+                <div class="nb__speaking-left">
+                  <div class="nb__speaking-meta">
+                    <span class="nb__speaking-meta-badge">Meeting 1 of 3</span>
+                    <p class="nb__speaking-meta-date">Date · [PLACEHOLDER — confirm meeting schedule]</p>
+                    <p class="nb__speaking-meta-org">Ministry of Finance, Government of Bangladesh</p>
+                  </div>
+                  <div class="nb__speaking-section">
+                    <p class="nb__speaking-section-label">Talking Points</p>
+                    <ul class="nb__speaking-points">
+                      <li class="nb__speaking-point">
+                        <span class="nb__speaking-cb" aria-hidden="true"></span>
+                        <span>ADB's cumulative commitment to Bangladesh stands at <strong>$35.6B across 758 operations</strong> — reaffirm the partnership's depth and the pipeline for FY2026. <em class="nb__speaking-cite">ADB Commitments Data</em></span>
+                      </li>
+                      <li class="nb__speaking-point">
+                        <span class="nb__speaking-cb" aria-hidden="true"></span>
+                        <span>ADO projects GDP growth recovering to <strong>~4.0% in FY2026</strong> after 3.5% in FY2025 — flag the fiscal space constraint and what it means for counterpart funding. <em class="nb__speaking-cite">ADO 2026</em></span>
+                      </li>
+                      <li class="nb__speaking-point">
+                        <span class="nb__speaking-cb" aria-hidden="true"></span>
+                        <span>CPS 2021–2025 extended to 2027 — confirm government priorities alignment with extension scope and any proposed amendments. <em class="nb__speaking-cite">Country Partnership Strategy</em></span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="nb__speaking-section">
+                    <p class="nb__speaking-section-label">Asks</p>
+                    <ul class="nb__speaking-points">
+                      <li class="nb__speaking-point">
+                        <span class="nb__speaking-cb nb__speaking-cb--ask" aria-hidden="true"></span>
+                        <span>Government counterpart funding confirmation for [PLACEHOLDER — project name, from project database]</span>
+                      </li>
+                      <li class="nb__speaking-point">
+                        <span class="nb__speaking-cb nb__speaking-cb--ask" aria-hidden="true"></span>
+                        <span>Update on VAT digitalisation and revenue reform timeline</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="nb__speaking-section">
+                    <p class="nb__speaking-section-label">Figures to quote</p>
+                    <div class="nb__speaking-figures">
+                      <div class="nb__speaking-figure">
+                        <span class="nb__speaking-figure-val">4.2%</span>
+                        <span class="nb__speaking-figure-label">FY2024 GDP growth</span>
+                        <span class="nb__speaking-figure-src">ADO 2026 · External</span>
+                      </div>
+                      <div class="nb__speaking-figure">
+                        <span class="nb__speaking-figure-val">$9.5B</span>
+                        <span class="nb__speaking-figure-label">Active portfolio</span>
+                        <span class="nb__speaking-figure-src">ADB Commitments · Internal</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="nb__speaking-sensitive">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <div>
+                      <p class="nb__speaking-sensitive-label">Sensitive — do not raise</p>
+                      <p class="nb__speaking-sensitive-text">[PLACEHOLDER — internal note for mission team only. Add via the workspace chat.]</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="nb__speaking-right">
+                  <div class="nb__speaking-panel-section">
+                    <p class="nb__speaking-panel-label">Counterpart</p>
+                    <p class="nb__speaking-panel-name">[PLACEHOLDER — confirm with Resident Mission]</p>
+                    <p class="nb__speaking-panel-role">Joint Secretary, Economic Relations Division</p>
+                  </div>
+                  <div class="nb__speaking-panel-section">
+                    <p class="nb__speaking-panel-label">Last engagement</p>
+                    <p class="nb__speaking-panel-value">[PLACEHOLDER — date, from mission records]</p>
+                  </div>
+                  <div class="nb__speaking-panel-section">
+                    <p class="nb__speaking-panel-label">Open commitments</p>
+                    <p class="nb__speaking-panel-value">[PLACEHOLDER — from last aide-memoire]</p>
+                  </div>
+                  <div class="nb__speaking-panel-section">
+                    <p class="nb__speaking-panel-label">ADB projects in scope</p>
+                    <p class="nb__speaking-panel-value">58371-001 · 60131-001</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (previewCtx() === 'project-status') {
+            <div class="nb__proj">
+              <div class="nb__proj-header">
+                <p class="nb__proj-title">Active Projects — Bangladesh</p>
+                <p class="nb__proj-sub">57 loans · 4 grants · $9.5B active portfolio · Source: ADB Project Database</p>
+              </div>
+              <div class="nb__proj-list">
+                <!-- Project 1 -->
+                <div class="nb__proj-card" [class.nb__proj-card--open]="expandedProjectId() === '58371'">
+                  <button class="nb__proj-card-head" (click)="toggleProject('58371')" type="button">
+                    <div class="nb__proj-card-head-left">
+                      <span class="nb__proj-id">58371-001</span>
+                      <span class="nb__proj-health nb__proj-health--unknown">Health: Internal</span>
+                    </div>
+                    <svg class="nb__proj-chevron" [class.nb__proj-chevron--open]="expandedProjectId() === '58371'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <p class="nb__proj-name">Sustainable Energy Development and Community Empowerment, Chattogram Hill Tracts</p>
+                  <div class="nb__proj-bar-row">
+                    <div class="nb__proj-bar"><div class="nb__proj-bar-fill" style="width:0%"></div></div>
+                    <span class="nb__proj-bar-val nb__proj-bar-val--placeholder">Disbursement [internal]</span>
+                  </div>
+                  @if (expandedProjectId() === '58371') {
+                    <div class="nb__proj-detail">
+                      <div class="nb__proj-props">
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Approved</span><span>31 Aug 2026</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Executing Agency</span><span class="nb__proj-prop-placeholder">[PLACEHOLDER — internal]</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Amount</span><span class="nb__proj-prop-placeholder">[PLACEHOLDER — internal]</span></div>
+                      </div>
+                      <div class="nb__proj-milestones">
+                        <p class="nb__proj-milestones-label">Milestones</p>
+                        <div class="nb__proj-milestone"><span class="nb__proj-milestone-pct nb__proj-milestone-pct--placeholder">?%</span><span>Effectiveness — [PLACEHOLDER]</span></div>
+                        <div class="nb__proj-milestone"><span class="nb__proj-milestone-pct nb__proj-milestone-pct--placeholder">?%</span><span>First disbursement — [PLACEHOLDER]</span></div>
+                      </div>
+                      <div class="nb__proj-issues">
+                        <p class="nb__proj-issues-label">Issues to raise on mission</p>
+                        <p class="nb__proj-issues-text">[PLACEHOLDER — confirm with project team before departure]</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <!-- Project 2 -->
+                <div class="nb__proj-card" [class.nb__proj-card--open]="expandedProjectId() === '60131'">
+                  <button class="nb__proj-card-head" (click)="toggleProject('60131')" type="button">
+                    <div class="nb__proj-card-head-left">
+                      <span class="nb__proj-id">60131-001</span>
+                      <span class="nb__proj-health nb__proj-health--unknown">Health: Internal</span>
+                    </div>
+                    <svg class="nb__proj-chevron" [class.nb__proj-chevron--open]="expandedProjectId() === '60131'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <p class="nb__proj-name">Modern Energy-Efficient Polyester Chips Manufacturing</p>
+                  <div class="nb__proj-bar-row">
+                    <div class="nb__proj-bar"><div class="nb__proj-bar-fill" style="width:0%"></div></div>
+                    <span class="nb__proj-bar-val nb__proj-bar-val--placeholder">Disbursement [internal]</span>
+                  </div>
+                  @if (expandedProjectId() === '60131') {
+                    <div class="nb__proj-detail">
+                      <div class="nb__proj-props">
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Approved</span><span>24 Sep 2026</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Amount</span><span>$50M</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Borrower</span><span>Modern Syntex</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Sector</span><span>Energy / Industry</span></div>
+                      </div>
+                      <div class="nb__proj-issues">
+                        <p class="nb__proj-issues-label">Issues to raise on mission</p>
+                        <p class="nb__proj-issues-text">[PLACEHOLDER — confirm with project team before departure]</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <!-- Project 3 (proposed) -->
+                <div class="nb__proj-card nb__proj-card--proposed" [class.nb__proj-card--open]="expandedProjectId() === 'P014852'">
+                  <button class="nb__proj-card-head" (click)="toggleProject('P014852')" type="button">
+                    <div class="nb__proj-card-head-left">
+                      <span class="nb__proj-id">P-014852</span>
+                      <span class="nb__proj-health nb__proj-health--proposed">Proposed</span>
+                    </div>
+                    <svg class="nb__proj-chevron" [class.nb__proj-chevron--open]="expandedProjectId() === 'P014852'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <p class="nb__proj-name">Bangladesh Reform for Investment and Growth Program</p>
+                  <div class="nb__proj-bar-row">
+                    <div class="nb__proj-bar"><div class="nb__proj-bar-fill" style="width:15%"></div></div>
+                    <span class="nb__proj-bar-val">Concept cleared · 15%</span>
+                  </div>
+                  @if (expandedProjectId() === 'P014852') {
+                    <div class="nb__proj-detail">
+                      <div class="nb__proj-props">
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Status</span><span>Proposed</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Related approval</span><span>$100M Affordable Resilient Housing · 27 Sep 2026</span></div>
+                        <div class="nb__proj-prop"><span class="nb__proj-prop-k">Sector</span><span>Finance</span></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (previewCtx() === 'mission-clearance') {
+            <div class="nb__mcl">
+              <div class="nb__mcl-header">
+                <div class="nb__mcl-header-top">
+                  <p class="nb__mcl-title">Mission Clearance Request</p>
+                  <span class="nb__mcl-status"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="url(#spark-grad2)"/><path d="M19 3L19.75 5.25L22 6L19.75 6.75L19 9L18.25 6.75L16 6L18.25 5.25L19 3Z" fill="url(#spark-grad2)"/><defs><linearGradient id="spark-grad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs></svg></span>
+                </div>
+                <p class="nb__mcl-sub">AI-filled fields use workspace assets. Review and edit before submitting to the mission clearance system.</p>
+              </div>
+              <div class="nb__mcl-section">
+                <p class="nb__mcl-section-label">Mission Details</p>
+                <div class="nb__mcl-fields">
+                  <div class="nb__mcl-field nb__mcl-field--ai">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Mission Purpose</label><span class="nb__mcl-ai-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="url(#spark-grad)"/><path d="M19 3L19.75 5.25L22 6L19.75 6.75L19 9L18.25 6.75L16 6L18.25 5.25L19 3Z" fill="url(#spark-grad)"/><defs><linearGradient id="spark-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs></svg></span></div>
+                    <p class="nb__mcl-value">Project review and portfolio health assessment — Bangladesh Resident Mission, Oct 2026. Review of active portfolio (57 loans + 4 grants, $9.5B) and CPS extension priorities.</p>
+                  </div>
+                  <div class="nb__mcl-field nb__mcl-field--empty">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Mission Dates</label><span class="nb__mcl-ph-chip">To fill</span></div>
+                    <p class="nb__mcl-value nb__mcl-value--ph">Confirm travel dates with Resident Mission before submitting.</p>
+                  </div>
+                  <div class="nb__mcl-field nb__mcl-field--empty">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Mission Team</label><span class="nb__mcl-ph-chip">To fill</span></div>
+                    <p class="nb__mcl-value nb__mcl-value--ph">List team members, roles, and grade levels.</p>
+                  </div>
+                  <div class="nb__mcl-field nb__mcl-field--ai">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Locations</label><span class="nb__mcl-ai-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="url(#spark-grad)"/><path d="M19 3L19.75 5.25L22 6L19.75 6.75L19 9L18.25 6.75L16 6L18.25 5.25L19 3Z" fill="url(#spark-grad)"/><defs><linearGradient id="spark-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs></svg></span></div>
+                    <p class="nb__mcl-value">Dhaka (primary) · Chattogram Hill Tracts (field visit — project 58371-001)</p>
+                  </div>
+                </div>
+              </div>
+              <div class="nb__mcl-section">
+                <p class="nb__mcl-section-label">Counterparts &amp; Budget</p>
+                <div class="nb__mcl-fields">
+                  <div class="nb__mcl-field nb__mcl-field--empty">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Key Counterparts</label><span class="nb__mcl-ph-chip">To fill</span></div>
+                    <p class="nb__mcl-value nb__mcl-value--ph">Confirm from Bangladesh Resident Mission contacts before submitting.</p>
+                  </div>
+                  <div class="nb__mcl-field nb__mcl-field--empty">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Budget Estimate</label><span class="nb__mcl-ph-chip">To fill</span></div>
+                    <p class="nb__mcl-value nb__mcl-value--ph">Travel and per diem — confirm with admin team.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="nb__mcl-section">
+                <p class="nb__mcl-section-label">Strategic Context</p>
+                <div class="nb__mcl-fields">
+                  <div class="nb__mcl-field nb__mcl-field--ai">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Country Partnership Strategy</label><span class="nb__mcl-ai-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="url(#spark-grad)"/><path d="M19 3L19.75 5.25L22 6L19.75 6.75L19 9L18.25 6.75L16 6L18.25 5.25L19 3Z" fill="url(#spark-grad)"/><defs><linearGradient id="spark-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs></svg></span></div>
+                    <p class="nb__mcl-value">CPS 2021–2025, extended to 2027. Pillars: infrastructure for sustainable growth, human capital development, and governance and public sector capacity.</p>
+                  </div>
+                  <div class="nb__mcl-field nb__mcl-field--ai">
+                    <div class="nb__mcl-field-head"><label class="nb__mcl-label">Economic Context</label><span class="nb__mcl-ai-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="url(#spark-grad)"/><path d="M19 3L19.75 5.25L22 6L19.75 6.75L19 9L18.25 6.75L16 6L18.25 5.25L19 3Z" fill="url(#spark-grad)"/><defs><linearGradient id="spark-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs></svg></span></div>
+                    <p class="nb__mcl-value">GDP growth 4.2% FY2024, slowing to 3.5% FY2025 (ADO 2026). Fiscal space constrained at 9.7% revenue-to-GDP. CPI at 7.8%, easing. Moderate debt (38.2% of GDP).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (previewCtx() === 'btor') {
+            <div class="nb__btor">
+              <div class="nb__btor-hero">
+                <p class="nb__btor-title">Back-to-Office Report</p>
+                <div class="nb__btor-meta-row">
+                  <span class="nb__btor-meta-item">Bangladesh Resident Mission</span>
+                  <span class="nb__btor-meta-sep">·</span>
+                  <span class="nb__btor-meta-item nb__btor-meta-item--ph">[PLACEHOLDER — mission dates]</span>
+                  <span class="nb__btor-meta-sep">·</span>
+                  <span class="nb__btor-meta-status"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="url(#spark-grad3)"/><path d="M19 3L19.75 5.25L22 6L19.75 6.75L19 9L18.25 6.75L16 6L18.25 5.25L19 3Z" fill="url(#spark-grad3)"/><defs><linearGradient id="spark-grad3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs></svg></span>
+                </div>
+              </div>
+              <div class="nb__btor-body">
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">01</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Mission Composition</p>
+                    <p class="nb__btor-ph">Team members, roles and travel dates — [PLACEHOLDER: fill after clearance is confirmed]</p>
+                  </div>
+                </div>
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">02</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Mission Objectives</p>
+                    <ul class="nb__btor-list">
+                      <li>Review progress of active portfolio (57 loans + 4 grants, $9.5B) <span class="nb__btor-cite">ADB Commitments Data</span></li>
+                      <li>Assess implementation status of recently approved projects: 58371-001 (Chattogram Hill Tracts energy, 31 Aug 2026) and 60131-001 (Modern Syntex, $50M, 24 Sep 2026)</li>
+                      <li>Discuss CPS 2021–2025 extension priorities with Ministry of Finance and other government counterparts</li>
+                      <li>Confirm pipeline readiness for proposed project P-014852 (Bangladesh Reform for Investment and Growth)</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">03</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Implementation Status</p>
+                    <p class="nb__btor-ph">Overall disbursement rate and portfolio performance — [PLACEHOLDER: internal project database data not yet connected. Paste summary from PPMS before final submission.]</p>
+                  </div>
+                </div>
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">04</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Meetings Held</p>
+                    <p class="nb__btor-ph">[PLACEHOLDER — list counterpart meetings, dates, and key points discussed. Add via workspace chat after mission.]</p>
+                  </div>
+                </div>
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">05</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Key Findings</p>
+                    <p class="nb__btor-ph">[PLACEHOLDER — mission findings. Add via workspace chat after return.]</p>
+                  </div>
+                </div>
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">06</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Actions</p>
+                    <table class="nb__btor-table">
+                      <thead>
+                        <tr><th>Task</th><th>Owner</th><th>Deadline</th><th>Source</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>[PLACEHOLDER — action from mission]</td>
+                          <td>[PLACEHOLDER]</td>
+                          <td>[PLACEHOLDER]</td>
+                          <td><span class="nb__btor-src-chip">Mission notes</span></td>
+                        </tr>
+                        <tr>
+                          <td>[PLACEHOLDER — action from mission]</td>
+                          <td>[PLACEHOLDER]</td>
+                          <td>[PLACEHOLDER]</td>
+                          <td><span class="nb__btor-src-chip">Mission notes</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="nb__btor-section">
+                  <p class="nb__btor-section-n">07</p>
+                  <div class="nb__btor-section-content">
+                    <p class="nb__btor-section-label">Issues for Management</p>
+                    <p class="nb__btor-ph">[PLACEHOLDER — issues requiring VP or Managing Director guidance. Add after mission.]</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (previewCtx() === 'bd-dashboard') {
+            <div class="nb__bd-dash">
+              <!-- Toolbar -->
+              <div class="nb__bd-dash-toolbar">
+                <span class="nb__bd-dash-refresh">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Refreshed just now
+                </span>
+                <div class="nb__bd-dash-toolbar-right">
+                  <label class="nb__bd-dash-toggle">
+                    <span class="nb__bd-dash-toggle-track"><span class="nb__bd-dash-toggle-thumb"></span></span>
+                    <span>Auto-refresh</span>
+                  </label>
+                  <button class="nb__bd-dash-btn">Schedule report</button>
+                </div>
+              </div>
+              <!-- KPI tiles -->
+              <div class="nb__bd-kpi-row">
+                <div class="nb__bd-kpi">
+                  <p class="nb__bd-kpi-label">GDP Growth (FY2024)</p>
+                  <p class="nb__bd-kpi-val">4.2%</p>
+                  <p class="nb__bd-kpi-delta nb__bd-kpi-delta--down">▼ from 5.8% FY2023</p>
+                  <p class="nb__bd-kpi-source">Asian Development Outlook 2026</p>
+                </div>
+                <div class="nb__bd-kpi">
+                  <p class="nb__bd-kpi-label">Active Portfolio</p>
+                  <p class="nb__bd-kpi-val">$9.5B</p>
+                  <p class="nb__bd-kpi-delta nb__bd-kpi-delta--neutral">57 loans · 4 grants</p>
+                  <p class="nb__bd-kpi-source">ADB Commitments Data</p>
+                </div>
+                <div class="nb__bd-kpi">
+                  <p class="nb__bd-kpi-label">Disbursement Rate</p>
+                  <p class="nb__bd-kpi-val nb__bd-kpi-val--placeholder">[Internal]</p>
+                  <p class="nb__bd-kpi-delta nb__bd-kpi-delta--neutral">Not yet connected</p>
+                  <p class="nb__bd-kpi-source">ADB Project Database</p>
+                </div>
+                <div class="nb__bd-kpi">
+                  <p class="nb__bd-kpi-label">Trade Finance</p>
+                  <p class="nb__bd-kpi-val">24,273</p>
+                  <p class="nb__bd-kpi-delta nb__bd-kpi-delta--neutral">Transactions</p>
+                  <p class="nb__bd-kpi-source">ADB Commitments Data</p>
+                </div>
+              </div>
+              <!-- AI summary -->
+              <div class="nb__bd-ai-summary">
+                <div class="nb__bd-ai-summary-head">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
+                  What this means for the mission
+                </div>
+                <p class="nb__bd-ai-summary-body">Bangladesh's growth slowdown to 4.2% (FY2024) and a further dip to 3.5% (FY2025) tightens the government's fiscal space, which may affect counterpart funding commitments. Prioritise verifying project disbursement rates and escalate any health-rating concerns to the Country Director before departure. The CPS 2021–2025 extension to 2027 provides strategic continuity — the Finance Ministry meeting is the right venue to align on extension priorities.</p>
+              </div>
+              <!-- Sector chart -->
+              <div class="nb__bd-chart-wrap">
+                <p class="nb__bd-chart-title">Portfolio by Sector (public sector approvals since 1973)</p>
+                <div class="nb__bd-chart">
+                  <div class="nb__bd-chart-row" style="--bar:22%"><span class="nb__bd-chart-label">Agriculture &amp; NR</span><div class="nb__bd-chart-bar"><div class="nb__bd-chart-fill"></div></div><span class="nb__bd-chart-count">171</span></div>
+                  <div class="nb__bd-chart-row" style="--bar:15%"><span class="nb__bd-chart-label">Energy</span><div class="nb__bd-chart-bar"><div class="nb__bd-chart-fill"></div></div><span class="nb__bd-chart-count">117</span></div>
+                  <div class="nb__bd-chart-row" style="--bar:10%"><span class="nb__bd-chart-label">Education</span><div class="nb__bd-chart-bar"><div class="nb__bd-chart-fill"></div></div><span class="nb__bd-chart-count">76</span></div>
+                  <div class="nb__bd-chart-row" style="--bar:8%"><span class="nb__bd-chart-label">Transport</span><div class="nb__bd-chart-bar"><div class="nb__bd-chart-fill"></div></div><span class="nb__bd-chart-count">[internal]</span></div>
+                  <div class="nb__bd-chart-row" style="--bar:6%"><span class="nb__bd-chart-label">Water &amp; Urban</span><div class="nb__bd-chart-bar"><div class="nb__bd-chart-fill"></div></div><span class="nb__bd-chart-count">[internal]</span></div>
+                </div>
+                <p class="nb__bd-chart-note">Source: ADB Commitments Data (Bangladesh) · 784 total public sector approvals</p>
               </div>
             </div>
           }
@@ -2981,6 +3396,7 @@
                     [restricted]="asset.access === 'restricted'"
                     [rai]="asset.trust_status === 'Responsible AI Verified' || asset.trust_status === 'Both'"
                     [governanceVerified]="asset.trust_status === 'Governance Verified' || asset.trust_status === 'Both'"
+                    [provider]="asset.provider ?? ''"
                     [showToggle]="true"
                     [selected]="isAssetAdded(asset)"
                     (addClick)="addAssetToSpace(asset)"

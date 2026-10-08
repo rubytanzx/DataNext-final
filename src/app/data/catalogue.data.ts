@@ -22,6 +22,7 @@ export interface CatalogueAsset {
   type: AssetType;
   description: string;
   access: AccessLevel;
+  provider?: string;
   department?: string;
   region?: string;
   // Fields sourced from the real catalog JSON
@@ -76,7 +77,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: 'ADB Learning and Development Operations Dataset',
     type: 'Dataset',
-    description: 'This dataset features data related to talent trends, skills-based career pathways, green-economy from LinkedIn. This includes information on skills, job roles, and industry trends relevant to ADB’s strategic priorities',
+    description: "This dataset features data related to talent trends, skills-based career pathways, green-economy from LinkedIn. This includes information on skills, job roles, and industry trends relevant to ADB's strategic priorities",
     access: 'all',
     trust_status: 'Governance Verified',
     sector_group: 'Not sector-specific',
@@ -172,8 +173,21 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: 'BICRA (CSV)',
     type: 'Dataset',
-    description: '',
+    description: "S&P's Banking Industry Country Risk Assessment scores and component scores by country, used to evaluate the strength and stability of national banking systems in sovereign credit analysis and financial sector risk assessments.",
     access: 'restricted',
+    sector_group: 'Finance',
+    region_group: 'Global',
+  },
+
+  {
+    name: 'Bloomberg Market Data',
+    type: 'Dataset',
+    description: 'Real-time and historical financial market data from Bloomberg covering equities, fixed income, commodities, currencies, and economic indicators used in ADB financial analysis and investment monitoring.',
+    access: 'restricted',
+    provider: 'Bloomberg',
+    trust_status: 'Governance Verified',
+    sector_group: 'Finance',
+    region_group: 'Global',
   },
 
   {
@@ -222,7 +236,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -232,7 +246,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -242,7 +256,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -252,7 +266,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -262,7 +276,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -272,14 +286,15 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
     name: 'Country Credit Profiles and Ratings (CSV)',
     type: 'Dataset',
-    description: '',
+    description: 'Sovereign credit ratings, outlooks, and supporting risk factors from major rating agencies, used to assess government creditworthiness and borrowing costs across ADB developing member countries.',
     access: 'restricted',
+    sector_group: 'Finance',
     region_group: 'Asia and the Pacific',
   },
 
@@ -339,8 +354,10 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: 'GICS List',
     type: 'Dataset',
-    description: '',
+    description: 'Global Industry Classification Standard reference list jointly developed by S&P and MSCI, used to classify companies and equity instruments into sectors, industry groups, industries, and sub-industries for financial analysis and portfolio attribution.',
     access: 'restricted',
+    sector_group: 'Finance',
+    region_group: 'Global',
   },
 
   {
@@ -358,6 +375,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     type: 'Dataset',
     description: 'Comprehensive historical exchange rates',
     access: 'open',
+    provider: 'IMF',
     trust_status: 'Responsible AI Verified',
   },
 
@@ -366,6 +384,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     type: 'Dataset',
     description: 'Comprehensive historical global macroeconomic data',
     access: 'open',
+    provider: 'IMF',
     trust_status: 'Responsible AI Verified',
   },
 
@@ -420,15 +439,19 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: "Moody's MDC Industry Taxonomy",
     type: 'Dataset',
-    description: '',
+    description: "Moody's industry classification taxonomy mapping companies and debt issuers to standardised sector and sub-sector categories, used to structure credit analysis, peer benchmarking, and portfolio risk assessment.",
     access: 'restricted',
+    sector_group: 'Finance',
+    region_group: 'Global',
   },
 
   {
     name: "Moody's Ratings Methodologies (CSV)",
     type: 'Dataset',
-    description: '',
+    description: "Structured reference dataset of Moody's published rating criteria and analytical frameworks across asset classes, enabling systematic mapping of rating factors to credit assessments for sovereign, corporate, and structured finance instruments.",
     access: 'restricted',
+    sector_group: 'Finance',
+    region_group: 'Global',
   },
 
   {
@@ -472,8 +495,9 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: 'Nighttime Light Intensity Dataset',
     type: 'Dataset',
-    description: 'NASA’s Black Marble nighttime lights data and derived statistics used as proxies for economic activity, urbanization, and spatial development patterns. The dataset was used in technical assistance on impact-based forecasting and socioeconomic monitoring.',
+    description: "NASA's Black Marble nighttime lights data and derived statistics used as proxies for economic activity, urbanization, and spatial development patterns. The dataset was used in technical assistance on impact-based forecasting and socioeconomic monitoring.",
     access: 'restricted',
+    provider: 'NASA',
     trust_status: 'Governance Verified',
     sector_group: 'Multisector',
     region_group: 'Global',
@@ -530,8 +554,10 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: 'S & P Global Market Intelligence',
     type: 'Dataset',
-    description: '',
+    description: "Comprehensive financial and company intelligence from S&P Global covering earnings data, balance sheets, credit ratings, market pricing, and industry metrics across global markets, used to support ADB's private sector investment and credit risk analysis.",
     access: 'restricted',
+    sector_group: 'Finance',
+    region_group: 'Global',
   },
 
   {
@@ -594,7 +620,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
   {
     name: 'Strategy, Policy & Partnership Intelligence Dataset',
     type: 'Dataset',
-    description: "ADB Corporate Results Framework (CRF) Level 2 datasets on the results of ADB operations that support ADB's Strategy 2030 Operational Priorities. This dataset was used to support SPD’s web portal dashboard creation.",
+    description: "ADB Corporate Results Framework (CRF) Level 2 datasets on the results of ADB operations that support ADB's Strategy 2030 Operational Priorities. This dataset was used to support SPD's web portal dashboard creation.",
     access: 'restricted',
     trust_status: 'Governance Verified',
     sector_group: 'Multisector',
@@ -647,7 +673,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -657,7 +683,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -667,7 +693,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -677,7 +703,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -687,7 +713,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -697,7 +723,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -707,7 +733,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -717,7 +743,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -727,7 +753,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -737,7 +763,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -747,7 +773,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -757,7 +783,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -767,7 +793,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -777,7 +803,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -787,7 +813,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -797,7 +823,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -807,7 +833,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -817,7 +843,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -827,7 +853,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -837,7 +863,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -847,7 +873,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -876,7 +902,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -886,7 +912,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -896,7 +922,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -906,7 +932,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -916,7 +942,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -926,7 +952,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -936,7 +962,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -946,7 +972,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -956,7 +982,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -966,7 +992,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -976,7 +1002,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -986,7 +1012,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -996,7 +1022,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1006,7 +1032,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1016,7 +1042,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1026,7 +1052,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1036,7 +1062,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1046,7 +1072,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1056,7 +1082,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1066,7 +1092,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1076,7 +1102,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1086,7 +1112,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1096,7 +1122,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1106,7 +1132,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1116,7 +1142,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1126,7 +1152,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1136,7 +1162,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1146,7 +1172,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1156,7 +1182,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1166,7 +1192,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1176,7 +1202,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1186,7 +1212,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1196,7 +1222,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1206,7 +1232,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1216,7 +1242,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1226,7 +1252,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1236,7 +1262,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1246,7 +1272,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1256,7 +1282,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1266,7 +1292,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1276,7 +1302,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1286,7 +1312,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1296,7 +1322,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1306,7 +1332,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1316,7 +1342,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1326,7 +1352,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1336,7 +1362,7 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     access: 'all',
     sector_group: 'Multisector',
     region_group: 'The Pacific',
-    unlisted: true,
+    unlisted: false,
   },
 
   {
@@ -1358,6 +1384,28 @@ export const DATA_ASSETS: CatalogueAsset[] = [
     region_group: 'Asia and the Pacific',
   },
 
+  {
+    name: 'World Development Indicators',
+    type: 'Dataset',
+    description: "World Bank's primary database of international development data covering over 1,600 indicators across 217 economies, including poverty, health, education, environment, and economic development metrics.",
+    access: 'open',
+    provider: 'World Bank',
+    trust_status: 'Responsible AI Verified',
+    sector_group: 'Multisector',
+    region_group: 'Global',
+  },
+
+  {
+    name: 'International Financial Statistics',
+    type: 'Dataset',
+    description: "IMF's flagship statistical publication providing comprehensive financial and economic data including balance of payments, monetary and financial statistics, and international reserves for over 200 countries.",
+    access: 'open',
+    provider: 'IMF',
+    trust_status: 'Responsible AI Verified',
+    sector_group: 'Finance',
+    region_group: 'Global',
+  },
+
 ];
 
 /* ── AI Agents ──────────────────────────────────────────────────────────── */
@@ -1373,7 +1421,7 @@ export const AI_AGENTS: CatalogueAsset[] = [
   {
     name: 'Agentic Orchestration (CLARA)',
     type: 'AI Agent',
-    description: 'CLARA’s (Credit Lending Avatar for Risk Assessment) agentic layer acts as an AI-powered credit analyst that orchestrates multiple specialized workflows across ADB’s Non-Sovereign Operations (NSO). It can search and analyze internal knowledge sources, including CreditLens and historical credit documentation, while simultaneously retrieving external intelligence from providers such as Moody’s to enrich borrower, sector, country, and market analysis. Using retrieval-augmented generation (RAG), contextual memory, and agentic workflows, CLARA synthesizes information from structured and unstructured data to deliver traceable, evidence-based credit insights.',
+    description: "CLARA's (Credit Lending Avatar for Risk Assessment) agentic layer acts as an AI-powered credit analyst that orchestrates multiple specialized workflows across ADB's Non-Sovereign Operations (NSO). It can search and analyze internal knowledge sources, including CreditLens and historical credit documentation, while simultaneously retrieving external intelligence from providers such as Moody's to enrich borrower, sector, country, and market analysis. Using retrieval-augmented generation (RAG), contextual memory, and agentic workflows, CLARA synthesizes information from structured and unstructured data to deliver traceable, evidence-based credit insights.",
     access: 'restricted',
     trust_status: 'Both',
   },
@@ -1673,7 +1721,7 @@ export const PORTALS: CatalogueAsset[] = [
   {
     name: 'CLARA',
     type: 'AI Product',
-    description: "CLARA (Credit Lending Avatar for Risk Assessment) is an AI-powered platform that supports credit risk assessment, loan structuring, and investment decision-making for ADB’s NonSovereign Operations by combining internal and external data into actionable insights covering ADB's Member and Developing Member Countries.",
+    description: "CLARA (Credit Lending Avatar for Risk Assessment) is an AI-powered platform that supports credit risk assessment, loan structuring, and investment decision-making for ADB's NonSovereign Operations by combining internal and external data into actionable insights covering ADB's Member and Developing Member Countries.",
     access: 'restricted',
     trust_status: 'Both',
   },

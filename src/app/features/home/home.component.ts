@@ -408,6 +408,7 @@ export interface SimpleCard {
   themes?: string[];
   // Workspace
   count?: string;
+  provider?: string;
 }
 
 const TOP_USE_CASES: SimpleCard[] = [

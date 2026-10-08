@@ -140,7 +140,13 @@ interface WfParams {
   indicators: string;
 }
 
-type PreviewCtx = 'map' | 'overview' | 'disburse' | 'procurement' | 'comparison' | 'dashboard' | 'ci-dashboard' | 'briefing' | 'pacific-chart' | 'pacific-table' | 'pacific-line' | 'pacific-scatter' | 'pacific-record' | 'pacific-schema' | 'pacific-raw' | 'doc' | 'watchlist';
+type PreviewCtx = 'map' | 'overview' | 'disburse' | 'procurement' | 'comparison' | 'dashboard' | 'ci-dashboard' | 'bd-dashboard' | 'briefing' | 'pacific-chart' | 'pacific-table' | 'pacific-line' | 'pacific-scatter' | 'pacific-record' | 'pacific-schema' | 'pacific-raw' | 'doc' | 'watchlist' | 'speaking-notes' | 'project-status' | 'mission-clearance' | 'btor';
+
+interface BriefingSection {
+  key?: string;
+  heading: string;
+  body: Array<{ type: 'paragraph' | 'heading'; text: string }>;
+}
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
@@ -793,6 +799,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
   }
 
   artefactPickerOpen  = signal(false);
+  expandedProjectId   = signal<string | null>(null);
   addingDocNodeId          = signal<number | null>(null);
   outputOptsExpanded       = signal<Set<number>>(new Set());
 
@@ -1197,67 +1204,107 @@ export class NotebookComponent implements OnInit, OnDestroy {
       this.previewCtx.set('dashboard');
       this.previewCollapsed.set(false);
     } else if (id === '5') {
-      this.title.set('Asia-Pacific Economic Brief');
+      this.title.set('Bangladesh Mission Brief');
+      this.assetGroups = [
+        { name: 'AI Agents', expanded: true,  items: [{ name: 'Country Analysis Agent', selected: true }] },
+        { name: 'Data',      expanded: true,  items: [
+          { name: 'Country Partnership Strategy (Bangladesh)',    selected: true  },
+          { name: 'Bangladesh Country Fact Sheet',               selected: true  },
+          { name: 'Asian Development Outlook — Bangladesh',      selected: true  },
+          { name: 'ADB Commitments Data (Bangladesh)',           selected: true  },
+          { name: 'Project Database (Bangladesh)',               selected: true  },
+          { name: 'Results & Cofinancing Data',                  selected: true  },
+          { name: 'Bangladesh Resident Mission Contacts',        selected: false },
+        ]},
+      ].map(g => ({ ...g, items: g.items.map(i => ({ ...i })) }));
       this.starterPrompts = [
-        "Summarise Bangladesh's economic outlook and credit rating.",
-        'Generate a briefing note comparing growth forecasts for Viet Nam, Cambodia, and Indonesia.',
-        'What are the key fiscal risks across South Asia in 2026?',
+        "Summarise Bangladesh's economic outlook and growth trajectory.",
+        "What is ADB's active portfolio in Bangladesh?",
+        'Generate a mission briefing note for Bangladesh.',
       ];
       this.previewCtx.set('briefing');
       this.previewCollapsed.set(true);
       this.messages = [
         {
           role: 'user',
-          text: "What's Bangladesh's GDP growth trajectory since 2020, and how does it compare with Viet Nam and Cambodia?",
+          text: "Give me Bangladesh's GDP growth trajectory and macroeconomic outlook.",
         },
         {
           role: 'assistant',
-          chartTitle: 'Real GDP Growth Rate — Bangladesh, Viet Nam, Cambodia',
-          chartSubtitle: 'Annual GDP growth (%) 2020–2024 · KIDB, IMF WEO, Asian Development Outlook',
+          chartTitle: 'Real GDP Growth — Bangladesh',
+          chartSubtitle: 'Annual GDP growth (%) FY2020–FY2026F · Asian Development Outlook 2026',
           hasChart: true,
           chartType: 'briefing-gdp',
-          text: "All three economies recovered from the COVID shock but with distinct trajectories:\n\n- **Bangladesh** grew **6.4%** in 2024, anchored by garment exports and remittances. The 2022 moderation reflects external headwinds including global commodity pressures.\n- **Viet Nam** saw a sharp **8.0%** spike in 2022 driven by electronics and semiconductor FDI, moderating to 6.8% in 2024.\n- **Cambodia** is recovering toward its pre-COVID 6–7% trend, reaching 6.1% in 2024 as garments and tourism rebound.",
+          text: "Bangladesh's GDP growth moderated to **4.2% in FY2024** (April 2023–March 2024), down from a post-COVID peak of 7.1% in FY2022, with a further dip to **3.5% in FY2025** amid post-transition political uncertainty and garment export softness. ADB projects a recovery to **~4.0% in FY2026**, contingent on political stabilisation, improved FDI climate, and sustained remittance inflows (~8% of GDP).\n\nInflation is easing — CPI at **7.8% in FY2024**, down from a 9.1% peak in FY2023 — driven by food prices (~48% of CPI basket) and Taka depreciation. Public debt is moderate at **38.2% of GDP** (well below the 55% IMF threshold). Revenue remains constrained at **9.7% of GDP**, among the lowest in Asia.",
           sources: 3,
           sourceCards: [
-            { type: 'dataset', title: 'Key Indicators Database (KIDB)', description: 'ADB flagship time-series covering economic and financial indicators across DMCs. GDP growth series 2020–2024.', updatedAt: '30 Jun 2026' },
-            { type: 'dataset', title: 'IMF World Economic Outlook', description: 'IMF WEO macroeconomic projections — GDP, inflation, current account, debt, 2020–2026.', updatedAt: '01 May 2026' },
-            { type: 'dataset', title: 'Asian Development Outlook', description: 'ADB annual flagship publication with macroeconomic analysis and growth forecasts for DMCs.', updatedAt: '15 Apr 2026' },
+            { type: 'dataset', title: 'Asian Development Outlook 2026', description: 'ADB flagship macroeconomic publication with GDP, inflation and fiscal forecasts for Bangladesh (FY2024–FY2026).', updatedAt: '15 Apr 2026' },
+            { type: 'dataset', title: 'Key Indicators Database (KIDB)', description: 'ADB time-series covering economic and financial indicators across DMCs.', updatedAt: '30 Jun 2026' },
+            { type: 'dataset', title: 'IMF World Economic Outlook', description: 'IMF WEO macroeconomic projections and historical data.', updatedAt: '01 May 2026' },
           ],
         },
         {
           role: 'user',
-          text: "Bangladesh's CPI looks elevated compared to peers — show inflation trends and what's driving it.",
+          text: "What's ADB's portfolio in Bangladesh and the current credit rating?",
         },
         {
           role: 'assistant',
-          chartTitle: 'Consumer Price Inflation — Bangladesh, Viet Nam, Cambodia',
-          chartSubtitle: 'Annual CPI inflation (%) 2020–2024 · KIDB, IMF WEO',
-          hasChart: true,
-          chartType: 'briefing-cpi',
-          text: "Bangladesh's inflation remains the highest in this peer group at **7.8% in 2024**, easing from a 9.1% peak in 2023. The drivers are structural:\n\n- **Food inflation** accounts for ~48% of the CPI basket, running at 8.3% YOY — the primary culprit\n- **Energy subsidy reform** has passed through higher utility costs to consumers\n- **Taka depreciation** (−7.2% vs USD in 2024) has added imported inflation pressure\n\nBy contrast, Viet Nam (3.6%) and Cambodia (2.9%) remain well within target ranges, supported by stable exchange rates and lower food price volatility.",
-          sources: 2,
-          sourceCards: [
-            { type: 'dataset', title: 'Key Indicators Database (KIDB)', description: 'CPI series for Bangladesh, Viet Nam, and Cambodia — annual observations 2020–2024.', updatedAt: '30 Jun 2026' },
-            { type: 'dataset', title: 'IMF World Economic Outlook', description: 'IMF inflation projections and historical data for 190 economies.', updatedAt: '01 May 2026' },
-          ],
-        },
-        {
-          role: 'user',
-          text: "What's the sovereign credit profile and fiscal position? I want to understand Bangladesh's debt risk.",
-        },
-        {
-          role: 'assistant',
-          text: "**Sovereign credit ratings (2025):**\n\n| Economy | S&P | Moody's | Outlook |\n|---|---|---|---|\n| Bangladesh | BB− | Ba3 | Stable |\n| Viet Nam | BB+ | Ba2 | Positive |\n| Cambodia | B+ | B2 | Stable |\n\n**Bangladesh's fiscal snapshot (FY2023/24):**\n- Fiscal deficit: **5.1% of GDP**\n- Revenue: **9.7% of GDP** — among the lowest in Asia\n- Public debt: **38.2% of GDP** (moderate; well below the 55% IMF threshold)\n- External debt share: **62%**, led by World Bank (22%), ADB (19%), Japan (14%)\n\nThe IMF's 2025 Article IV assessed Bangladesh at **moderate overall fiscal risk**, flagging energy subsidy reform and VAT digitalisation as critical consolidation levers.",
+          text: "**ADB in Bangladesh — Active Portfolio:**\n- Active sovereign portfolio: **57 loans + 4 grants, ~$9.5 billion**\n- Cumulative commitments since 1973: **$35.6B across 758 operations**\n- Trade and Supply Chain Finance: **24,273 transactions**\n- Country Partnership Strategy 2021–2025, **extended to 2027**\n\n**Sovereign credit ratings (Oct 2026):**\n| Agency | Rating | Outlook |\n|---|---|---|\n| S&P | BB− | Stable |\n| Moody's | Ba3 | Stable |\n\n**Recent approvals:** $100M Affordable Resilient Housing (27 Sep 2026) · $50M Modern Syntex Energy-Efficient Polyester Chips (29 Sep 2026).",
           sources: 3,
           sourceCards: [
-            { type: 'dataset', title: 'Country Credit Profiles and Ratings (CSV)', description: 'ADB-maintained sovereign credit rating history and outlook across DMCs.', updatedAt: '15 Jul 2026' },
-            { type: 'dataset', title: 'IMF World Economic Outlook', description: 'Fiscal position, debt and deficit data for 190 economies.', updatedAt: '01 May 2026' },
-            { type: 'web', title: 'adb.org/bangladesh', description: 'ADB country strategy and portfolio page for Bangladesh — latest lending programme and priorities.', updatedAt: '10 Jun 2026', url: 'https://www.adb.org' },
+            { type: 'dataset', title: 'ADB Commitments Data (Bangladesh)', description: 'Cumulative approvals, loans, and grants by sector since 1973.', updatedAt: '30 Jun 2026' },
+            { type: 'dataset', title: 'Country Partnership Strategy (Bangladesh)', description: 'CPS 2021–2025, extended to 2027. Pillars: infrastructure, human capital, governance.', updatedAt: '01 Jan 2026' },
+            { type: 'dataset', title: 'Country Credit Profiles and Ratings (CSV)', description: 'ADB-maintained sovereign credit rating history across DMCs.', updatedAt: '15 Jul 2026' },
           ],
           outputOptions: [
-            { key: 'country-dashboard', label: 'Country Dashboard', icon: 'map' },
+            { key: 'country-dashboard', label: 'Country Dashboard', icon: 'map'   },
             { key: 'metrics-dashboard', label: 'Metrics Dashboard', icon: 'chart' },
-            { key: 'briefing-note',     label: 'Briefing Note',     icon: 'doc'  },
+            { key: 'briefing-note',     label: 'Briefing Note',     icon: 'doc'   },
+          ],
+        },
+      ];
+    } else if (id === 'fork-5') {
+      this.title.set('Bangladesh Mission Brief');
+      this.assetGroups = [
+        { name: 'AI Agents', expanded: true,  items: [{ name: 'Country Analysis Agent', selected: true }] },
+        { name: 'Data',      expanded: true,  items: [
+          { name: 'Country Partnership Strategy (Bangladesh)',    selected: true  },
+          { name: 'Bangladesh Country Fact Sheet',               selected: true  },
+          { name: 'Asian Development Outlook — Bangladesh',      selected: true  },
+          { name: 'ADB Commitments Data (Bangladesh)',           selected: true  },
+          { name: 'Project Database (Bangladesh)',               selected: true  },
+          { name: 'Results & Cofinancing Data',                  selected: true  },
+          { name: 'Bangladesh Resident Mission Contacts',        selected: false },
+        ]},
+      ].map(g => ({ ...g, items: g.items.map(i => ({ ...i })) }));
+      this.starterPrompts = [
+        "Summarise Bangladesh's economic outlook and growth trajectory.",
+        "What is ADB's active portfolio in Bangladesh?",
+        'Generate a mission briefing note for Bangladesh.',
+      ];
+      this.previewCtx.set('briefing');
+      this.previewCollapsed.set(true);
+      this.messages = [
+        {
+          role: 'user',
+          text: "Give me Bangladesh's GDP growth trajectory and macroeconomic outlook.",
+        },
+        {
+          role: 'assistant',
+          chartTitle: 'Real GDP Growth — Bangladesh',
+          chartSubtitle: 'Annual GDP growth (%) FY2020–FY2026F · Asian Development Outlook 2026',
+          hasChart: true,
+          chartType: 'briefing-gdp',
+          text: "Bangladesh's GDP growth moderated to **4.2% in FY2024** (April 2023–March 2024), down from a post-COVID peak of 7.1% in FY2022, with a further dip to **3.5% in FY2025**. ADB projects a recovery to **~4.0% in FY2026**.\n\nInflation is easing — CPI at **7.8% in FY2024**. Public debt: **38.2% of GDP**.",
+          sources: 2,
+          sourceCards: [
+            { type: 'dataset', title: 'Asian Development Outlook 2026', description: 'ADB flagship macroeconomic forecasts for Bangladesh (FY2024–FY2026).', updatedAt: '15 Apr 2026' },
+            { type: 'dataset', title: 'Key Indicators Database (KIDB)', description: 'ADB time-series covering economic and financial indicators across DMCs.', updatedAt: '30 Jun 2026' },
+          ],
+          outputOptions: [
+            { key: 'country-dashboard', label: 'Country Dashboard', icon: 'map'   },
+            { key: 'metrics-dashboard', label: 'Metrics Dashboard', icon: 'chart' },
+            { key: 'briefing-note',     label: 'Briefing Note',     icon: 'doc'   },
           ],
         },
       ];
@@ -1418,6 +1465,52 @@ export class NotebookComponent implements OnInit, OnDestroy {
         'Generate the project rating section of the BTOR.',
       ];
       this.messages = [];
+    } else if (id === 'fork-5b') {
+      this.title.set('Bangladesh Mission');
+      this.assetGroups = [
+        { name: 'AI Agents', expanded: true,  items: [{ name: 'Project Analysis Agent', selected: true }] },
+        { name: 'Data',      expanded: true,  items: [
+          { name: 'Country Partnership Strategy (Bangladesh)',    selected: true  },
+          { name: 'Bangladesh Country Fact Sheet',               selected: true  },
+          { name: 'Asian Development Outlook — Bangladesh',      selected: true  },
+          { name: 'ADB Commitments Data (Bangladesh)',           selected: true  },
+          { name: 'Project Database (Bangladesh)',               selected: true  },
+          { name: 'Results & Cofinancing Data',                  selected: true  },
+          { name: 'Bangladesh Resident Mission Contacts',        selected: true  },
+          { name: 'Key Indicators Database (KIDB)',              selected: false },
+        ]},
+      ].map(g => ({ ...g, items: g.items.map(i => ({ ...i })) }));
+      this.previewCtx.set('briefing');
+      this.lastOutputCtx.set('briefing');
+      this.previewCollapsed.set(false);
+      this.starterPrompts = [
+        'Refine the briefing note for the Country Director.',
+        'Add a speaking note for the Finance Ministry meeting.',
+        'Update project status from the latest disbursement data.',
+      ];
+      this.messages = [
+        { role: 'user', text: 'Generate the full Bangladesh Mission pack — briefing note, speaking notes, country dashboard, project status, mission clearance, and BTOR.' },
+        {
+          role: 'assistant',
+          text: "I've generated **6 artefacts** for the Bangladesh Mission pack using 7 workspace assets. Each artefact is AI-drafted and ready for your review.",
+          artefactCard: { label: 'Mission Pack · 6 artefacts', title: 'Bangladesh Mission — Oct 2026', ctx: 'briefing' },
+          outputOptions: [
+            { key: 'briefing',          label: 'Briefing Note',      icon: 'doc'      },
+            { key: 'speaking-notes',    label: 'Speaking Notes',     icon: 'speaking' },
+            { key: 'bd-dashboard',      label: 'Country Dashboard',  icon: 'chart'    },
+            { key: 'project-status',    label: 'Project Status',     icon: 'list'     },
+            { key: 'mission-clearance', label: 'Mission Clearance',  icon: 'form'     },
+            { key: 'btor',              label: 'BTOR',               icon: 'doc'      },
+          ],
+          sources: 4,
+          sourceCards: [
+            { type: 'dataset', title: 'Country Partnership Strategy (Bangladesh)', description: 'ADB CPS 2021–2025, extended to 2027.', updatedAt: '01 Jan 2026' },
+            { type: 'dataset', title: 'Asian Development Outlook — Bangladesh', description: 'ADO 2026 macroeconomic forecasts.', updatedAt: '15 Apr 2026' },
+            { type: 'dataset', title: 'ADB Commitments Data (Bangladesh)', description: 'Cumulative 758 operations, $35.6B.', updatedAt: '30 Jun 2026' },
+            { type: 'dataset', title: 'Project Database (Bangladesh)', description: '57 active loans + 4 grants, $9.5B.', updatedAt: '30 Jun 2026' },
+          ],
+        },
+      ];
     } else if (id === 'new') {
       const widgets    = this.widgetService.selectedWidgets();
       const convo      = this.widgetService.conversation();
@@ -1593,10 +1686,10 @@ export class NotebookComponent implements OnInit, OnDestroy {
 
     // Handle component reuse when navigating between workspace routes
     // Community workspaces (Workspaces tab, not user-owned) default to the Workflow tab
-    const communityWorkspaceIds = new Set(['pacific', 'transport', 'finance', 'social', '2', 'mission-prep']);
+    const communityWorkspaceIds = new Set(['pacific', 'transport', 'finance', 'social', '2', 'mission-prep', '5']);
     if (id && communityWorkspaceIds.has(id)) {
       this.isCommunityWorkspace.set(true);
-      this.chatTab.set('workflow');
+      if (id !== '5') this.chatTab.set('workflow');
     }
 
     this.paramSub = this.route.paramMap.subscribe(params => {
@@ -2063,12 +2156,18 @@ export class NotebookComponent implements OnInit, OnDestroy {
       'briefing-presentation': 'briefing',
       'aide-memoire':          'briefing',
       'mou':                   'briefing',
-      'btor':                  'briefing',
+      'btor':                  'btor',
       'action-plan':           'briefing',
       'pam':                   'briefing',
       'cover-letter':          'briefing',
       'stakeholder-list':      'briefing',
       'technical-attachments': 'briefing',
+      // Bangladesh mission artefacts
+      'briefing':              'briefing',
+      'speaking-notes':        'speaking-notes',
+      'bd-dashboard':          'bd-dashboard',
+      'project-status':        'project-status',
+      'mission-clearance':     'mission-clearance',
     };
     const ctx: PreviewCtx = ctxMap[key] ?? 'briefing';
     if (ctx === 'doc') {
@@ -2081,6 +2180,7 @@ export class NotebookComponent implements OnInit, OnDestroy {
   }
 
   openArtefact(ctx: PreviewCtx): void {
+    this.hasDashboardData.set(true);
     this.lastOutputCtx.set(ctx);
     this.outputSwitching.set(true);
     this.previewCtx.set(ctx);
@@ -2104,6 +2204,24 @@ export class NotebookComponent implements OnInit, OnDestroy {
         }
       }, 0);
     }
+  }
+
+  toggleProject(id: string): void {
+    this.expandedProjectId.update(v => v === id ? null : id);
+    this.cdr.markForCheck();
+  }
+
+  isBriefingArray(body: any): boolean {
+    return Array.isArray(body);
+  }
+
+  briefingBodyItems(body: any): Array<{ type: string; text: string }> {
+    return Array.isArray(body) ? body : [];
+  }
+
+  renderBriefingBodyStr(body: any): import('@angular/platform-browser').SafeHtml {
+    if (Array.isArray(body)) return this.sanitizer.bypassSecurityTrustHtml('');
+    return this.renderBody(body as string);
   }
 
   triggerOutputOption(msgIndex: number, key: string): void {
@@ -2183,6 +2301,8 @@ export class NotebookComponent implements OnInit, OnDestroy {
 
   get hasPreviewData(): boolean {
     if (this.notebookId === 'mission-prep') return true;
+    if (this.notebookId === 'fork-5b') return true;
+    if (this.notebookId === '5' || this.notebookId === 'fork-5') return this.hasDashboardData();
     if (this.notebookId === 'new' || this.notebookId.startsWith('new-') || this.notebookId.startsWith('fork-')) return this.hasDashboardData();
     return this.notebookId !== '2' || this.flowStep() > 0;
   }
@@ -2193,7 +2313,9 @@ export class NotebookComponent implements OnInit, OnDestroy {
     const map: Partial<Record<PreviewCtx, string>> = {
       map: 'Map', watchlist: 'Dashboard', overview: 'Overview', disburse: 'Chart',
       procurement: 'Table', comparison: 'Table', dashboard: 'Dashboard',
-      'ci-dashboard': 'Dashboard', briefing: 'Briefing Note',
+      'ci-dashboard': 'Dashboard', 'bd-dashboard': 'Dashboard', briefing: 'Briefing Note',
+      'speaking-notes': 'Speaking Notes', 'project-status': 'Project Status',
+      'mission-clearance': 'Mission Clearance', btor: 'BTOR',
       'pacific-chart': 'Bar Chart', 'pacific-line': 'Line Chart',
       'pacific-scatter': 'Scatter', 'pacific-table': 'Table',
       'pacific-record': 'Record', 'pacific-schema': 'Schema', 'pacific-raw': 'Raw Data',
@@ -2224,6 +2346,11 @@ export class NotebookComponent implements OnInit, OnDestroy {
       watchlist:         visual,
       dashboard:         visual,
       'ci-dashboard':    visual,
+      'bd-dashboard':    visual,
+      'speaking-notes':  doc,
+      'project-status':  doc,
+      'mission-clearance': doc,
+      'btor':            doc,
       'pacific-schema':  visual,
       disburse:          table,
       procurement:       table,
@@ -2402,7 +2529,100 @@ export class NotebookComponent implements OnInit, OnDestroy {
     ],
   };
 
-  readonly briefingSections = computed(() => {
+  static readonly BRIEFING_BANGLADESH_MISSION: BriefingSection[] = [
+    {
+      key: 'mission',
+      heading: 'Mission Purpose & Key Asks',
+      body: [
+        { type: 'paragraph', text: 'Mission type: Project Review · Bangladesh Resident Mission · [PLACEHOLDER — confirm dates]' },
+        { type: 'paragraph', text: 'Purpose: Review implementation progress of the active Bangladesh portfolio (57 loans + 4 grants, $9.5B), engage government counterparts on CPS 2021–2025 extension priorities, and assess pipeline readiness for FY2027 approvals.' },
+        { type: 'heading', text: 'Three Key Asks' },
+        { type: 'paragraph', text: '1. Government counterpart funding confirmation for [PLACEHOLDER — project name]' },
+        { type: 'paragraph', text: '2. Ministry of Finance update on VAT digitalisation and revenue mobilisation reform timeline' },
+        { type: 'paragraph', text: '3. Resident Mission: confirm disbursement projection for Q4 FY2026 [PLACEHOLDER — internal figure]' },
+      ],
+    },
+    {
+      key: 'country',
+      heading: 'Country Snapshot',
+      body: [
+        { type: 'paragraph', text: 'Bangladesh is at a macroeconomic inflection point. ADB\'s Asian Development Outlook 2026 records GDP growth at 4.2% in FY2024 (April 2023–March 2024), down from a post-COVID peak of 7.1% in FY2022, with a further moderation to 3.5% in FY2025. Recovery toward 4.0% is projected for FY2026, contingent on political stabilisation after the 2024 transition, garment export recovery, and continued remittance inflows (~8% of GDP).' },
+        { type: 'paragraph', text: 'Inflation remains elevated at 7.8% (easing from a 9.1% peak in FY2023), driven by food prices (~48% of CPI basket) and Taka depreciation. The fiscal deficit stands at 5.1% of GDP; public debt at 38.2% of GDP is moderate and below the 55% IMF threshold. External debt is led by World Bank (22%), ADB (19%), and Japan (14%).' },
+        { type: 'paragraph', text: 'Credit ratings: BB− (S&P, Stable) · Ba3 (Moody\'s, Stable).' },
+        { type: 'heading', text: 'Economic Indicators' },
+        { type: 'paragraph', text: 'GDP growth FY2024: 4.2% · FY2025: 3.5% · FY2026F: ~4.0% — Source: Asian Development Outlook 2026' },
+        { type: 'paragraph', text: 'Inflation FY2024: 7.8% · Public debt: 38.2% of GDP — Source: KIDB / IMF WEO' },
+      ],
+    },
+    {
+      key: 'adb',
+      heading: 'ADB in Bangladesh',
+      body: [
+        { type: 'paragraph', text: 'ADB has been Bangladesh\'s partner since 1973. Cumulative commitments: 758 public sector loans, grants and TA totalling $35.6 billion. The active sovereign portfolio comprises 57 loans + 4 grants worth approximately $9.5 billion — Source: ADB Commitments Data.' },
+        { type: 'heading', text: 'Portfolio by Sector (public sector, 784 total)' },
+        { type: 'paragraph', text: 'Agriculture & Natural Resources: 171 · Energy: 117 · Education: 76 · Transport: [PLACEHOLDER] · Water & Urban: [PLACEHOLDER]' },
+        { type: 'paragraph', text: 'Trade and Supply Chain Finance programme: 24,273 transactions — Source: ADB Commitments Data.' },
+        { type: 'paragraph', text: 'Country Partnership Strategy 2021–2025, extended to 2027. Pillars: infrastructure for sustainable growth, human capital development, and governance and public sector capacity — Source: Country Partnership Strategy (Bangladesh).' },
+        { type: 'heading', text: 'Recent Approvals' },
+        { type: 'paragraph', text: '· $100M Affordable Resilient Housing (approved 27 Sep 2026)' },
+        { type: 'paragraph', text: '· $50M Modern Syntex Energy-Efficient Polyester Chips Loan (approved 29 Sep 2026)' },
+      ],
+    },
+    {
+      key: 'projects',
+      heading: 'Projects on the Agenda',
+      body: [
+        { type: 'heading', text: '58371-001 — Sustainable Energy Development and Community Empowerment, Chattogram Hill Tracts' },
+        { type: 'paragraph', text: 'Approved: 31 Aug 2026 · Executing Agency: [PLACEHOLDER — internal] · Disbursement: [PLACEHOLDER — internal data, not yet connected] · Health: [PLACEHOLDER — internal rating]' },
+        { type: 'paragraph', text: 'Issues to raise: [PLACEHOLDER — confirm with project team before mission]' },
+        { type: 'heading', text: '60131-001 — Modern Energy-Efficient Polyester Chips Manufacturing' },
+        { type: 'paragraph', text: 'Approved: 24 Sep 2026 · Borrower: Modern Syntex · Amount: $50M · Disbursement: [PLACEHOLDER — internal data, not yet connected]' },
+        { type: 'heading', text: 'Proposed: P-014852 — Bangladesh Reform for Investment and Growth Program' },
+        { type: 'paragraph', text: 'Status: Proposed · Pipeline stage: Concept cleared · Sector: Finance · [PLACEHOLDER — project details from project database]' },
+      ],
+    },
+    {
+      key: 'partners',
+      heading: 'Partners & Government Priorities',
+      body: [
+        { type: 'paragraph', text: 'Key cofinancing partners active in Bangladesh: World Bank, JICA, AIIB, EU, AFD.' },
+        { type: 'paragraph', text: 'Government priority areas: infrastructure (power and transport), social protection reform, digital economy, and climate resilience.' },
+        { type: 'paragraph', text: 'Government counterpart contacts: [PLACEHOLDER — from Bangladesh Resident Mission Contacts]' },
+        { type: 'paragraph', text: 'Past aide-memoire commitments outstanding: [PLACEHOLDER — internal record, not yet connected]' },
+      ],
+    },
+    {
+      key: 'risks',
+      heading: 'Risks',
+      body: [
+        { type: 'paragraph', text: 'Political: Post-transition governance uncertainty may affect counterpart availability and project implementation pace.' },
+        { type: 'paragraph', text: 'Fiscal: Revenue-to-GDP ratio at 9.7% is among the lowest in Asia; VAT reform delays pose fiscal consolidation risk.' },
+        { type: 'paragraph', text: 'Climate: Bangladesh is highly exposed to flood and cyclone hazard; project sites in Chattogram Hill Tracts carry elevated physical risk.' },
+        { type: 'paragraph', text: 'Exchange rate: Taka depreciation (−7.2% vs USD in FY2024) adds imported inflation and affects counterpart cost estimates.' },
+        { type: 'paragraph', text: 'Portfolio: Disbursement rate and project ratings: [PLACEHOLDER — internal data not yet connected. Flag any projects with health status below "On track".]' },
+      ],
+    },
+    {
+      key: 'sources',
+      heading: 'Sources & Gaps',
+      body: [
+        { type: 'heading', text: 'Sources Used' },
+        { type: 'paragraph', text: '· Country Partnership Strategy (Bangladesh) — Internal ADB · Jan 2026' },
+        { type: 'paragraph', text: '· Asian Development Outlook 2026 — External (ADB public) · Apr 2026' },
+        { type: 'paragraph', text: '· ADB Commitments Data (Bangladesh) — Internal ADB · Jun 2026' },
+        { type: 'paragraph', text: '· Project Database (Bangladesh) — Internal ADB · Jun 2026' },
+        { type: 'paragraph', text: '· Bangladesh Resident Mission Contacts — Internal ADB · Jun 2026' },
+        { type: 'heading', text: 'Data Gaps (placeholders in this brief)' },
+        { type: 'paragraph', text: '· Project health ratings and disbursement rates — requires connection to internal project management system' },
+        { type: 'paragraph', text: '· Counterpart names and contact details — requires Resident Mission confirmation' },
+        { type: 'paragraph', text: '· Past aide-memoire commitments — requires mission records access' },
+        { type: 'paragraph', text: '· Mission dates and team composition — requires clearance confirmation' },
+      ],
+    },
+  ];
+
+  readonly briefingSections = computed<any[]>(() => {
+    if (this.notebookId === 'fork-5b') return NotebookComponent.BRIEFING_BANGLADESH_MISSION;
     const key = this.activeArtefactKey();
     if (key && NotebookComponent.BRIEFING_MISSION[key]) {
       return NotebookComponent.BRIEFING_MISSION[key];

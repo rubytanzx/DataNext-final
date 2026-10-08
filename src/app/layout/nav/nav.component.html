@@ -2,15 +2,8 @@
 
   <!-- ── Collapsed state ── -->
   @if (navService.collapsed()) {
-    <div class="nav__logo nav__logo--collapsed" (click)="navService.expand()" title="Expand sidebar">
+    <div class="nav__logo nav__logo--collapsed" (click)="navigateTo('/home')" title="Home">
       <img src="/adb-logo.svg" class="adb-mark" alt="ADB" width="32" height="32" />
-      <span class="nav__logo-expand-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-          <line x1="15" y1="3" x2="15" y2="21"/>
-          <polyline points="8 9 11 12 8 15"/>
-        </svg>
-      </span>
     </div>
 
     <div class="nav__icon-group">
@@ -81,6 +74,17 @@
           </svg>
         </button>
       </div>
+      <div class="nav__tip" data-tooltip="Expand sidebar">
+        <button class="nav__icon-btn" (click)="navService.expand()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="15" y1="3" x2="15" y2="21"/>
+            <polyline points="8 9 11 12 8 15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="nav__user nav__user--collapsed">
       <div class="nav__avatar" title="Noah Tan"><span>NT</span></div>
     </div>
   }
@@ -92,12 +96,6 @@
       <div class="nav__logo-full" (click)="navigateTo('/home')" title="Home">
         <img src="/adb-logo.svg" class="adb-logo-svg" alt="Asian Development Bank" width="32" height="32" />
       </div>
-      <button class="nav__icon-btn" title="Collapse sidebar" (click)="navService.collapse()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/>
-          <polyline points="16 15 13 12 16 9"/>
-        </svg>
-      </button>
     </div>
 
     <!-- Product name -->
@@ -218,6 +216,13 @@
             <circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/>
           </svg>
           Need Help?
+        </button>
+        <button class="nav__footer-link" title="Collapse sidebar" (click)="navService.collapse()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+            <polyline points="16 15 13 12 16 9"/>
+          </svg>
+          Collapse
         </button>
       </div>
       <div class="nav__user">

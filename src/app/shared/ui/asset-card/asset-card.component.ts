@@ -34,6 +34,7 @@ export class AssetCardComponent {
   @Input() addToWorkspaceDisabled = false;
   @Input() ctaDisabled = false;
   @Input() ctaLabelOverride = '';
+  @Input() provider = '';
   @HostBinding('class.ac--unlisted') get unlistedClass() { return this.unlisted; }
   @Output() addClick  = new EventEmitter<MouseEvent>();
   @Output() saveClick = new EventEmitter<MouseEvent>();
@@ -90,5 +91,25 @@ export class AssetCardComponent {
 
   get effectiveCtaDisabled(): boolean {
     return this.ctaDisabled;
+  }
+
+  get providerLogo(): string {
+    const map: Record<string, string> = {
+      'Bloomberg':  '/providers/bloomberg.svg',
+      'IMF':        '/providers/imf.svg',
+      'World Bank': '/providers/worldbank.svg',
+      'NASA':       '/providers/nasa.webp',
+    };
+    return map[this.provider] ?? '/adb-logo.svg';
+  }
+
+  get providerLabel(): string {
+    const map: Record<string, string> = {
+      'Bloomberg':  'Bloomberg',
+      'IMF':        'IMF',
+      'World Bank': 'World Bank',
+      'NASA':       'NASA',
+    };
+    return map[this.provider] ?? 'ADB';
   }
 }

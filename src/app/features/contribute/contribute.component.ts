@@ -20,7 +20,7 @@ import { GeoSelectComponent } from '../../shared/ui/geo-select/geo-select.compon
 import { AIReasoningLoaderComponent } from '../../shared/ui/loaders/ai-reasoning-loader/ai-reasoning-loader.component';
 import { ChatService } from '../../services/chat.service';
 
-type ConvStep = 'await-asset' | 'await-proceed' | 'await-form' | 'large-dataset' | 'done';
+type ConvStep = 'await-asset' | 'await-proceed' | 'await-form' | 'large-dataset' | 'await-project-usage' | 'done';
 
 interface ChatMsg {
   role: 'user' | 'assistant';
@@ -29,6 +29,7 @@ interface ChatMsg {
   showForm?: boolean;
   showLargeDatasetForm?: boolean;
   showSuccess?: boolean;
+  showProjectUsagePrompt?: boolean;
 }
 
 interface ContributeForm {
@@ -430,6 +431,22 @@ export class ContributeComponent implements OnInit, AfterViewChecked, OnDestroy 
         text: `The form is above — fill it in and hit Submit when you're ready. Let me know if you have questions about any field.`,
       }]);
 
+    } else if (this.step() === 'await-project-usage') {
+      const skipped = /\b(skip|no|none|not yet|haven't|n\/a|na)\b/i.test(text);
+      this.formDone.set(true);
+      this.step.set('done');
+      if (skipped) {
+        this.messages.update(m => [...m, {
+          role: 'assistant',
+          text: `No problem — you can add project links later from the Project Usage tab on the asset's page. Got another asset to contribute? Just describe it below.`,
+        }]);
+      } else {
+        this.messages.update(m => [...m, {
+          role: 'assistant',
+          text: `Got it — that project usage has been noted and will appear in the Project Usage tab once the asset is approved. Got another asset to contribute? Just describe it below.`,
+        }]);
+      }
+
     } else if (this.step() === 'done') {
       // Start a fresh contribution round
       this.form = {
@@ -467,26 +484,29 @@ export class ContributeComponent implements OnInit, AfterViewChecked, OnDestroy 
     this.formErrors.set(errors);
     if (Object.keys(errors).length) return;
 
+    // Add user "Submit" bubble first
+    this.messages.update(m => [...m, { role: 'user', text: 'Submit' }]);
+    this.scrollToBottom();
+
     this.thinking.set(true);
     await new Promise(r => setTimeout(r, 1500));
     this.thinking.set(false);
     const assetTitle = this.form.title;
-    this.formDone.set(true);
-    this.step.set('done');
+    // Don't open the right panel yet — wait until project usage is answered
+    this.step.set('await-project-usage');
     // Auto-title the conversation after first submission if still on the default
     if (this.title() === 'Contribute an Asset') this.title.set(assetTitle);
     this.submittedSummary = `Submitted: ${assetTitle}`;
     this.historyPushed = false; // allow re-push with updated summary
 
     const successText = this.uploadSkipped()
-      ? `Thanks — we've got your metadata for "${assetTitle}". Because no file was attached, a data engineer will reach out to ${this.form.contact || 'you'} directly to set up the migration path. Got another asset to contribute? Just describe it below.`
-      : `Your asset "${assetTitle}" has been submitted for review. The data governance team will reach out to ${this.form.contact || 'you'} within 2–3 business days. You'll receive a notification once it's approved and live on DataNext. Got another asset to contribute? Just describe it below.`;
+      ? `Thanks — we've got your metadata for "${assetTitle}". Because no file was attached, a data engineer will reach out to ${this.form.contact || 'you'} directly to set up the migration path.`
+      : `Your asset "${assetTitle}" has been submitted. The data governance team will reach out to ${this.form.contact || 'you'} within 2–3 business days.`;
 
-    this.messages.update(m => [...m, {
-      role: 'assistant',
-      text: successText,
-      showSuccess: true,
-    }]);
+    this.messages.update(m => [...m,
+      { role: 'assistant', text: successText, showSuccess: true },
+      { role: 'assistant', text: `One last thing — which ADB project(s) has this dataset been used for? This will appear in the Project Usage tab on the asset's page, helping others discover how it's been applied. You can name a project, paste a project ID (e.g. RETA 6586), or skip if it hasn't been used in a project yet.`, showProjectUsagePrompt: true },
+    ]);
     this.scrollToLastAssistant();
   }
 

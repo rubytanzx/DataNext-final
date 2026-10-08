@@ -172,6 +172,9 @@
               @for (opt of group.options; track opt.label) {
                 <label class="search-page__sidebar-option">
                   <input type="checkbox" class="search-page__sidebar-checkbox" [(ngModel)]="opt.checked" [name]="group.name + '-' + opt.label" (ngModelChange)="sidebarVersion.update(v => v + 1)" />
+                  @if (opt.logo) {
+                    <img class="sb__opt-logo" [src]="opt.logo" [alt]="opt.label" />
+                  }
                   <span class="sb__opt-label">{{ opt.label }}</span>
                   @if (opt.count !== undefined) {
                     <span class="sb__opt-count">{{ opt.count }}</span>
@@ -358,6 +361,7 @@
       [sectorTag]="item.sectorGroup ?? ''"
       [geoTag]="item.region ?? ''"
       [themes]="item.themes ?? []"
+      [provider]="item.provider ?? ''"
       (addClick)="toggleAddDropdown(renderId, $event)"
       (saveClick)="toggleSave(item.id, $event)"
     ></app-asset-card>

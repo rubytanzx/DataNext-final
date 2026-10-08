@@ -386,6 +386,7 @@
                                 [uses]="w.downloads"
                                 [showToggle]="true"
                                 [selected]="isWidgetSelected(w.id)"
+                                [provider]="''"
                                 (addClick)="toggleWidget(w.id, $event)"
                               ></app-asset-card>
                             }

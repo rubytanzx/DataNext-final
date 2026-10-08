@@ -124,7 +124,7 @@
     color: #616161;
     line-height: 1.55;
     height: calc(14px * 1.55 * 3);
-    margin: 0 0 20px;
+    margin: 0 0 10px;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -321,11 +321,36 @@
     white-space: nowrap;
   }
 
-  &__footer {
+  &__provider-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-top: auto;
+    margin-bottom: 12px;
+  }
+
+  &__provider {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #212121;
+    font-family: var(--font, system-ui, sans-serif);
+  }
+
+  &__provider-logo {
+    height: 16px;
+    width: auto;
+    max-width: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding-top: 14px;
     border-top: 1px solid #F0F0F0;
     gap: 8px;

@@ -89,7 +89,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 80px;
+  gap: clamp(32px, 5vw, 80px);
   width: 100%;
   max-width: 1360px;
   margin: 0 auto;
@@ -97,8 +97,8 @@
 }
 
 .wn__hero-left {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 300px;
+  min-width: 280px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -106,7 +106,9 @@
 }
 
 .wn__hero-video {
-  flex: 0 0 660px;
+  flex: 0 1 56%;
+  max-width: 660px;
+  min-width: 320px;
   aspect-ratio: 16 / 9;
   background: rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(18px) saturate(1.4);
@@ -790,6 +792,43 @@
   line-height: 1.4;
 }
 
+.wn__release-intro {
+  text-align: center;
+  max-width: 960px;
+  margin: 0 auto 36px;
+  padding: 0 24px;
+}
+
+.wn__release-label {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  color: var(--wn-ink-muted, #6B7280);
+  margin: 0 0 12px;
+}
+
+.wn__release-title {
+  font-family: var(--font);
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #1a1a2e;
+  margin: 0 0 16px;
+  line-height: 1.2;
+}
+
+.wn__release-desc {
+  font-family: var(--font);
+  font-size: 16px;
+  color: var(--wn-ink-muted, #6B7280);
+  line-height: 1.65;
+  margin: 0;
+}
+
 // ── Horizontal scroll timeline ─────────────────────────────────────────────────
 .wn__roadmap {
   display: grid;
@@ -976,6 +1015,25 @@
 // GSAP sets initial state; this class is just a hook
 
 // ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 1100px) {
+  .wn__hero-inner { padding: 72px 48px 56px; }
+  .wn__hero-video { flex-basis: 50%; }
+}
+
+@media (max-width: 860px) {
+  .wn__hero-inner {
+    flex-direction: column;
+    padding: 80px 36px 56px;
+    gap: 40px;
+  }
+  .wn__hero-video {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 600px;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 960px) {
   .wn__hero-inner { padding: 100px 36px 80px; }
   .wn__hero-h1 { font-size: clamp(22px, 5.5vw, 34px); }

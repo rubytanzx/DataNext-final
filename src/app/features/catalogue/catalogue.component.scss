@@ -194,6 +194,14 @@
 
   .sb__opt-label { flex: 1; min-width: 0; }
 
+  .sb__opt-logo {
+    height: 14px;
+    width: auto;
+    max-width: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
   // ── Geographical Coverage nested filter ──────────────────────────────────
   .cat__geo-rg { }
 

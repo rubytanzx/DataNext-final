@@ -9,7 +9,7 @@ import { WorkspaceService } from '../../services/workspace.service';
 
 export type ItemType = 'Dataset' | 'Dashboard' | 'AI Agent' | 'AI Tool' | 'AI Product' | 'API' | 'Corpus Document';
 
-interface SidebarOption  { label: string; checked: boolean; count?: number; }
+interface SidebarOption  { label: string; checked: boolean; count?: number; logo?: string; }
 interface GeoRegionGroup { name: string; expanded: boolean; checked: boolean; options: SidebarOption[]; }
 interface SidebarGroup   { name: string; expanded: boolean; options: SidebarOption[]; geoGroups?: GeoRegionGroup[]; }
 
@@ -34,6 +34,17 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { label: 'Public',        checked: false, count: 4   },
       { label: 'Internal ADB',  checked: false, count: 130 },
       { label: 'Restricted',    checked: false, count: 43  },
+    ],
+  },
+  {
+    name: 'Provider',
+    expanded: false,
+    options: [
+      { label: 'ADB',        checked: false, count: 0, logo: '/adb-logo.svg'              },
+      { label: 'Bloomberg',  checked: false, count: 1, logo: '/providers/bloomberg.svg'   },
+      { label: 'IMF',        checked: false, count: 3, logo: '/providers/imf.svg'         },
+      { label: 'NASA',       checked: false, count: 1, logo: '/providers/nasa.webp'       },
+      { label: 'World Bank', checked: false, count: 1, logo: '/providers/worldbank.svg'   },
     ],
   },
   {
@@ -167,6 +178,7 @@ export interface CatalogueItem {
   region?: string;
   themes?: string[];
   unlisted?: boolean;
+  provider?: string;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -304,6 +316,7 @@ function mapAsset(asset: CatalogueAsset, idx: number): CatalogueItem {
     region: asset.region_group ?? asset.region,
     themes: SECTOR_THEMES[asset.sector_group ?? ''] ?? [],
     unlisted: asset.unlisted,
+    provider: asset.provider,
   };
 }
 
@@ -352,7 +365,7 @@ export class CatalogueComponent implements OnInit {
   private snackTimer?: ReturnType<typeof setTimeout>;
 
   readonly notebooks: { id: string; label: string }[] = [
-    { id: '5', label: 'Asia-Pacific Economic Brief' },
+    { id: '5', label: 'Bangladesh Mission Brief' },
     { id: '3', label: 'Sector Intelligence' },
     { id: '4', label: 'Climate & Sustainability' },
   ];
@@ -556,11 +569,12 @@ export class CatalogueComponent implements OnInit {
     const dept  = this.activeDept();
     const query = this.searchQuery().toLowerCase().trim();
 
-    const checkedTrust  = this.sidebarGroups[0].options.filter(o => o.checked).map(o => o.label);
-    const checkedAccess = this.sidebarGroups[1].options.filter(o => o.checked).map(o => o.label);
-    const checkedSector = this.sidebarGroups[2].options.filter(o => o.checked).map(o => o.label);
-    const checkedThemes = this.sidebarGroups[3].options.filter(o => o.checked).map(o => o.label);
-    const geo = this.sidebarGroups[4];
+    const checkedTrust    = this.sidebarGroups[0].options.filter(o => o.checked).map(o => o.label);
+    const checkedAccess   = this.sidebarGroups[1].options.filter(o => o.checked).map(o => o.label);
+    const checkedProvider = this.sidebarGroups[2].options.filter(o => o.checked).map(o => o.label);
+    const checkedSector   = this.sidebarGroups[3].options.filter(o => o.checked).map(o => o.label);
+    const checkedThemes   = this.sidebarGroups[4].options.filter(o => o.checked).map(o => o.label);
+    const geo = this.sidebarGroups[5];
     const checkedRegion: string[] = (geo.geoGroups ?? [])
       .filter(rg => rg.checked || rg.options.some(o => o.checked))
       .map(rg => rg.name);
@@ -585,6 +599,7 @@ export class CatalogueComponent implements OnInit {
       }
       if (checkedSector.length && !checkedSector.includes(a.sectorGroup ?? '')) return false;
       if (checkedThemes.length && !checkedThemes.some(t => (a.themes ?? []).includes(t))) return false;
+      if (checkedProvider.length && !checkedProvider.includes(a.provider ?? 'ADB')) return false;
       if (checkedRegion.length && !checkedRegion.includes(a.region ?? '')) return false;
       if (this.selectedCapabilities.size > 0 && !this.selectedCapabilities.has(a.type)) return false;
       if (this.accessMode && a.access !== this.accessMode) return false;

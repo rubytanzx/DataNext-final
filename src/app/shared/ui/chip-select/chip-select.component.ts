@@ -95,7 +95,7 @@ export class ChipSelectComponent {
     this.value.set(next);
     this.selectionChange.emit(next);
     this.searchQuery.set('');
-    this.dropdownOpen.set(false);
+    // keep dropdown open for multi-select
   }
 
   remove(i: number): void {
